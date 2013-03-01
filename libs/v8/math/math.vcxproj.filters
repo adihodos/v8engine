@@ -1,0 +1,286 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\containment">
+      <UniqueIdentifier>{cb3987dd-a19a-462d-814d-1b056e57a3f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\culling">
+      <UniqueIdentifier>{24bab4da-039c-4d8f-91df-553893d8ab88}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\distance">
+      <UniqueIdentifier>{551f7277-6ad7-492e-bb58-042433e0f2db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\objects">
+      <UniqueIdentifier>{af9787e1-ab25-4774-9840-2330a5ae9457}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+    <None Include="CMakeLists.txt" />
+    <None Include="..\..\include\v8\math\camera.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\include\v8\math\matrix2X2.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\include\v8\math\matrix2X3.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\include\v8\math\matrix3X3.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\include\v8\math\matrix4X4.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\include\v8\math\quaternion.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\include\v8\math\transform.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\include\v8\math\vector3.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\include\v8\math\vector4.inl">
+      <Filter>Header Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="camera.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="color.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="light.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pch_hdr.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="geometry_generators.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="culler.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pch_hdr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\containment\bounded_volume.h">
+      <Filter>Header Files\containment</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\containment\containment_aabb.h">
+      <Filter>Header Files\containment</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\containment\containment_sphere.h">
+      <Filter>Header Files\containment</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\culling\cull_aabb.h">
+      <Filter>Header Files\culling</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\culling\cull_cone.h">
+      <Filter>Header Files\culling</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\culling\cull_cylinder.h">
+      <Filter>Header Files\culling</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\culling\cull_ellipsoid.h">
+      <Filter>Header Files\culling</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\culling\cull_obb.h">
+      <Filter>Header Files\culling</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\culling\cull_sphere.h">
+      <Filter>Header Files\culling</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\culling\culler.h">
+      <Filter>Header Files\culling</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\distance\distance_line_line.h">
+      <Filter>Header Files\distance</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\distance\distance_line_ray.h">
+      <Filter>Header Files\distance</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\distance\distance_line_segment.h">
+      <Filter>Header Files\distance</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\distance\distance_line_triangle.h">
+      <Filter>Header Files\distance</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\distance\distance_point_line.h">
+      <Filter>Header Files\distance</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\distance\distance_point_plane.h">
+      <Filter>Header Files\distance</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\distance\distance_point_ray.h">
+      <Filter>Header Files\distance</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\distance\distance_point_rectangle.h">
+      <Filter>Header Files\distance</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\distance\distance_point_segment.h">
+      <Filter>Header Files\distance</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\distance\distance_point_triangle.h">
+      <Filter>Header Files\distance</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\distance\distance_ray_ray.h">
+      <Filter>Header Files\distance</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\distance\distance_ray_segment.h">
+      <Filter>Header Files\distance</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\distance\distance_segment_segment.h">
+      <Filter>Header Files\distance</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\objects\axis_aligned_bounding_box.h">
+      <Filter>Header Files\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\objects\circle2.h">
+      <Filter>Header Files\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\objects\circle3.h">
+      <Filter>Header Files\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\objects\cone.h">
+      <Filter>Header Files\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\objects\cylinder.h">
+      <Filter>Header Files\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\objects\ellipse2.h">
+      <Filter>Header Files\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\objects\ellipse3.h">
+      <Filter>Header Files\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\objects\ellipsoid.h">
+      <Filter>Header Files\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\objects\line.h">
+      <Filter>Header Files\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\objects\line2.h">
+      <Filter>Header Files\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\objects\line3.h">
+      <Filter>Header Files\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\objects\oriented_bounding_box.h">
+      <Filter>Header Files\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\objects\plane.h">
+      <Filter>Header Files\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\objects\ray.h">
+      <Filter>Header Files\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\objects\ray2.h">
+      <Filter>Header Files\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\objects\ray3.h">
+      <Filter>Header Files\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\objects\rectangle.h">
+      <Filter>Header Files\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\objects\rectangle2.h">
+      <Filter>Header Files\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\objects\rectangle3.h">
+      <Filter>Header Files\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\objects\segment.h">
+      <Filter>Header Files\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\objects\segment2.h">
+      <Filter>Header Files\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\objects\segment3.h">
+      <Filter>Header Files\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\objects\sphere.h">
+      <Filter>Header Files\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\objects\triangle.h">
+      <Filter>Header Files\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\bidimensional_space_traits.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\color.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\details.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\geometry_generators.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\light.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\math_constants.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\math_utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\matrix2X2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\matrix2X3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\matrix3X3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\matrix4X4.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\quaternion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\space_traits.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\transform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\tridimensional_space_traits.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\vector2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\vector3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\vector4.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\v8\math\depth_mapping.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

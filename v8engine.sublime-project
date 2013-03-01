@@ -1,0 +1,19 @@
+{
+    "folders":
+    [
+        {
+            "path" : "."
+        }
+    ],
+    "settings":
+    {
+        "tab_size": 4,
+        "translate_tab_to_spaces" : true,
+        "sublimeclang_options" : [
+            "-Id:/projects_new/v8engine/**",
+            "-I${env:DXSDK_DIR}/Include",
+            "-DNOMINMAX",
+            "-Wno-microsoft"
+        ]
+    }
+}
