@@ -93,10 +93,10 @@ void v8::directx::gpu_buffer_core::get_data(
 }
 
 void v8::directx::gpu_buffer_core::bind_to_pipeline_impl(
-    renderer*                  rsys, 
+    renderer*                           rsys, 
     gpu_buffer_core*                    buff,
     const v8_uint32_t                   k_offset,
-    const dx11_vertexbuffer_traits
+    const dx11_vertexbuffer_traits&
     ) {
     assert(rsys);
     assert(buff);
@@ -111,7 +111,7 @@ void v8::directx::gpu_buffer_core::bind_to_pipeline_impl(
     renderer*                  rsys, 
     gpu_buffer_core*                    buff,
     const v8_uint32_t                   k_offset,
-    const dx11_indexbuffer_traits
+    const dx11_indexbuffer_traits&
     ) {
     assert(rsys);
     assert(buff);

@@ -56,7 +56,7 @@ const D3D11_UAV_DIMENSION uav_dimension_mapping[] = {
 
 }
 
-v8::directx::Texture::Texture()
+v8::directx::texture::texture()
     :       width_(0)
         ,   height_(0)
         ,   depth_(0)
@@ -65,7 +65,7 @@ v8::directx::Texture::Texture()
         ,   flags_(0)
 {}
 
-v8::directx::Texture::Texture(
+v8::directx::texture::texture(
     v8::directx::renderer* rsys, 
     const char* file_name, 
     const v8_uint32_t bind_flags
@@ -80,9 +80,9 @@ v8::directx::Texture::Texture(
     Initialize(rsys, file_name, bind_flags);
 }
 
-v8::directx::Texture::~Texture() {}
+v8::directx::texture::~texture() {}
 
-v8_bool_t v8::directx::Texture::Initialize( 
+v8_bool_t v8::directx::texture::Initialize( 
     v8::directx::renderer* rsys, 
     const char* file_name, 
     const v8_uint32_t bind_flags
@@ -97,7 +97,7 @@ v8_bool_t v8::directx::Texture::Initialize(
     //  Create a shader resource view by default
     //  for each aditional resource views specified
     //      create the corresponding view
-    platformstl::path textureFilePath(state->Filesys->get_dir_path(
+    platformstl::path textureFilePath(state->file_sys()->get_dir_path(
         filesys::Dir::Textures));
     textureFilePath.push(file_name);
     utility::win32::scoped_wide_string_t filePathWideStr(

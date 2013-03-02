@@ -10,10 +10,33 @@
         "tab_size": 4,
         "translate_tab_to_spaces" : true,
         "sublimeclang_options" : [
+            "-std=c++11",
             "-Id:/projects_new/v8engine/**",
             "-I${env:DXSDK_DIR}/Include",
             "-DNOMINMAX",
-            "-Wno-microsoft"
+            "-D_WIN64",
+            "-D_AMD64_",
+            "-DIN=",
+            "-DOUT=",
+            "-DINOUT",
+            "-DFORCEINLINE=",
+            "-Wno-return-type-c-linkage",
+            "-D_MSC_VER=1600",
+            "-D_MSC_FULL_VER=160040219",
+            "-D_MSC_EXTENSIONS",
+            "-D_NATIVE_NULLPTR_SUPPORTED",
+            "-Wno-invalid-token-paste",
+            "-fno-operator-names",
+            "-fcxx-exceptions",
+            "-fdelayed-template-parsing",
+            "-march=core2",
+            "-msse",
+            "-msse2",
+            "-ferror-limit=0",
+            "-Wno-microsoft",
+            "-fms-extensions",
+            "-nobuiltininc",
+            "-fsyntax-only"
         ]
     }
 }

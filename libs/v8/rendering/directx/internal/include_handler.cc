@@ -30,9 +30,8 @@ HRESULT v8::directx::internal::compiler_include_handler::Open(
 
     using namespace v8;
 
-    platformstl::path include_file_path(state->Filesys->get_dir_path(
+    platformstl::path include_file_path(state->file_sys()->get_dir_path(
         filesys::Dir::Shaders));
-
     include_file_path.push(pFileName);
 
     using namespace v8::base;

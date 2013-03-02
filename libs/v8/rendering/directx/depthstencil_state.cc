@@ -1,3 +1,4 @@
+#include "v8/rendering/directx/internal/debug_helpers.hpp"
 #include "v8/rendering/directx/depth_stencil_state.hpp"
 #include "v8/rendering/directx/renderer.hpp"
 

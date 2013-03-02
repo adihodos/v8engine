@@ -67,7 +67,7 @@ void v8::directx::effect_pass::on_pass_loaded() {
         input_element_attrs.push_back(input_element);
     }
 
-    ID3D11Device* rdev = state->Renderer->internal_np_get_device();
+    ID3D11Device* rdev = state->render_sys()->internal_np_get_device();
     CHECK_D3D(&ret_code,
               rdev->CreateInputLayout(input_element_attrs.data(),
               static_cast<UINT>(input_element_attrs.size()), 
@@ -79,8 +79,9 @@ void v8::directx::effect_pass::apply() {
     assert(is_valid());
 
     if (input_layout_) {
-        state->Renderer->ia_stage_set_input_layout(
-            v8::base::scoped_pointer_get(input_layout_));
+        state->render_sys()->internal_np_get_device_context()->IASetInputLayout(
+            base::scoped_pointer_get(input_layout_));       
     }
-    pass_handle_->Apply(0, state->Renderer->internal_np_get_device_context());
+
+    pass_handle_->Apply(0, state->render_sys()->internal_np_get_device_context());
 }

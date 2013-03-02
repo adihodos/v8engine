@@ -1,14 +1,16 @@
 #include <third_party/stlsoft/platformstl/filesystem/memory_mapped_file.hpp>
+
 #include "v8/base/com_exclusive_pointer.hpp"
+#include "v8/rendering/directx/internal/compute_shader_traits.hpp"
+#include "v8/rendering/directx/internal/debug_helpers.hpp"
 #include "v8/rendering/directx/internal/geometry_shader_traits.hpp"
 #include "v8/rendering/directx/internal/fragment_shader_traits.hpp"
-#include "v8/rendering/directx/internal/shader_uniform.hpp"
-#include "v8/rendering/directx/sampler_state.hpp"
-#include "v8/rendering/directx/internal/vertex_shader_traits.hpp"
-#include "v8/rendering/directx/internal/debug_helpers.hpp"
 #include "v8/rendering/directx/internal/shader_common_base.hpp"
+#include "v8/rendering/directx/internal/shader_uniform.hpp"
 #include "v8/rendering/directx/internal/utilities.hpp"
+#include "v8/rendering/directx/internal/vertex_shader_traits.hpp"
 #include "v8/rendering/directx/renderer.hpp"
+#include "v8/rendering/directx/sampler_state.hpp"
 #include "v8/rendering/directx/shader_info.hpp"
 
 #include "v8/rendering/directx/gpu_shader.hpp"
@@ -340,3 +342,8 @@ v8::directx::gpu_shader
     v8::directx::dx11_geometryshader_traits
 >;
 
+template
+v8::directx::gpu_shader
+<
+    v8::directx::dx11_computeshader_traits
+>;

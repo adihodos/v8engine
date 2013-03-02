@@ -85,7 +85,7 @@ public :
 public :
 
     operator int base::operator_bool::*() const {
-        return base_class::check_if_valid() ? &bool_helper::a_member : nullptr;
+        return base_class::check_if_valid() ? &base::operator_bool::a_member : nullptr;
     }
 
 /// @}
@@ -143,9 +143,9 @@ inline void gpu_buffer<buffer_traits>::bind_to_pipeline(
     base_class::bind_to_pipeline_impl(rsys, this, k_offset, buffer_traits());
 }
 
-typedef gpu_buffer<dx11_vertexbuffer_traits>        VertexBuffer_t;
+typedef gpu_buffer<dx11_vertexbuffer_traits>                    vertex_buffer;
 
-typedef gpu_buffer<dx11_indexbuffer_traits>         IndexBuffer_t;
+typedef gpu_buffer<dx11_indexbuffer_traits>                     index_buffer;
 
 } // namespace directx
 } // namespace v8

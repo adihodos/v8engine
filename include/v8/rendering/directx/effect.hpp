@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstring>
 #include <unordered_map>
 #include <vector>
 
@@ -13,15 +12,19 @@
 
 #include <v8/rendering/directx/directx_resource_handle.hpp>
 #include <v8/rendering/directx/effect_technique.hpp>
+#include <v8/rendering/directx/fwd_renderer.hpp>
 
 namespace v8 { namespace directx {
+
+struct effect_info_t;    
 
 class effect : public directx_resource_traits<ID3DX11Effect> {
 /// \name Defined types.
 /// @{
 
 private :
-    typedef std::unordered_map<
+    typedef std::unordered_map
+    <
         v8_uint_t, 
         ID3DX11EffectVariable*
     >                                               effect_param_lookup_table_t;
@@ -33,10 +36,10 @@ private :
 
 public :
 
-    effect()
-        :   effect_handle_()
-    {
-        memset(&effect_info_, 0, sizeof(effect_info_));
+    effect();
+
+    effect(const effect_info_t& eff_info, renderer* rsys) {
+        initialize(eff_info, rsys);
     }
 
     ~effect();
@@ -49,6 +52,8 @@ public :
         steal_from_rvalue(std::move(rval));
         return *this;
     }
+
+    v8_bool_t initialize(const effect_info_t& eff_info, renderer* rsys);
 
 /// @}
 
@@ -160,11 +165,6 @@ public :
         return v8::base::scoped_pointer_get(effect_handle_);
     }
 
-    void internal_np_set_handle(handle_type handle) {
-        effect_handle_ = handle;
-        on_effect_loaded();
-    }
-
 /// @}
 
 /// \name Internal helper routines.
@@ -175,17 +175,7 @@ private :
     /// \brief Called when the effect is loaded or reset. This will query
     /// the effect for the techniques, variables, etc and setup the
     /// coresponding data structures.
-    void on_effect_loaded();
-
-    ///
-    /// \brief Clears any stored values.
-    void reset_data() {
-        memset(&effect_info_, 0, sizeof(effect_info_));
-        techniques_by_index_.clear();
-        techniques_by_name_.clear();
-        parameters_by_name_.clear();
-        parameters_by_semantic_.clear();
-    }
+    v8_bool_t on_effect_loaded(ID3DX11Effect* effect);
 
     void steal_from_rvalue(effect&& rval) {
         effect_handle_ = std::move(rval.effect_handle_);
@@ -237,10 +227,7 @@ private :
 
 template<typename T>
 inline
-void v8::directx::effect::set_variable_by_name(
-    const char* name, 
-    const T& value
-    ) {
+void v8::directx::effect::set_variable_by_name(const char* name, const T& value) {
     assert(is_valid());
     set_variable_raw(parameters_by_name_, name, &value, sizeof(value));
 }
@@ -248,9 +235,7 @@ void v8::directx::effect::set_variable_by_name(
 template<typename T>
 inline
 void v8::directx::effect::set_variable_by_semantic(
-    const char* name, 
-    const T& value
-    ) {
+    const char* name, const T& value) {
     assert(is_valid());
     set_variable_raw(parameters_by_semantic_, name, &value, sizeof(value));
 }
@@ -258,17 +243,12 @@ void v8::directx::effect::set_variable_by_semantic(
 template<typename T>
 inline 
 void v8::directx::effect::set_variable_by_name(
-    const std::string& name,
-    const T& value
-    ) {
+    const std::string& name, const T& value) {
     set_variable_by_name(name.c_str(), value);
 }
 
 template<typename T>
 inline 
-void set_variable_by_semantic(
-    const std::string& name, 
-    const T& value
-    ) {
+void set_variable_by_semantic(const std::string& name, const T& value) {
     set_variable_by_semantic(name.c_str(), value);
 }

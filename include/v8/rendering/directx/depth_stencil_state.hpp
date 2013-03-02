@@ -124,7 +124,7 @@ struct depthstencil_traits {
         );
 };
 
-typedef api_state<depthstencil_traits>                      DepthStencilState_t;
+typedef api_state<depthstencil_traits>                      depth_stencil_state;
 
 } // namespace directx
 } // namespace v8

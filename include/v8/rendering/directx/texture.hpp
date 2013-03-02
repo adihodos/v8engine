@@ -9,7 +9,7 @@
 
 namespace v8 { namespace directx {
 
-//struct TextureDescriptor_t {
+//struct textureDescriptor_t {
 //    v8_uint32_t     texWidth;
 //    v8_uint32_t     texHeight;
 //    v8_uint32_t     texDepth;
@@ -20,28 +20,28 @@ namespace v8 { namespace directx {
 //    v8_uint32_t     cpuFlags;
 //    const void*     initialData;
 //
-//    TextureDescriptor_t(
+//    textureDescriptor_t(
 //        const v8_uint32_t width,
 //        const v8_uint32_t height,
 //        const v8_uint32_t depth = 1u,
 //
 //};
 
-class Texture {
+class texture {
 /// \name Construction/init
 /// @{
 
 public :
 
-    Texture();
+    texture();
 
-    Texture(
+    texture(
         renderer* rsys, 
         const char* file_name, 
         const v8_uint32_t bind_flags
         );
 
-    ~Texture();
+    ~texture();
 
     //v8_bool_t Initialize(
     //    renderer* renderSys,
@@ -106,8 +106,8 @@ public :
 
 private :
 
-    struct TextureSRView {
-        TextureSRView() : view(nullptr) {}
+    struct texture_sr_view {
+        texture_sr_view() : view(nullptr) {}
 
         v8::base::com_exclusive_pointer
         <
@@ -116,8 +116,8 @@ private :
         D3D11_SHADER_RESOURCE_VIEW_DESC             view_desc;
     };
 
-    struct TextureUAView {
-        TextureUAView() : view(nullptr) {}
+    struct texture_ua_view {
+        texture_ua_view() : view(nullptr) {}
 
         v8::base::com_exclusive_pointer
         <
@@ -126,8 +126,8 @@ private :
         D3D11_UNORDERED_ACCESS_VIEW_DESC            view_desc;
     };
 
-    struct TextureRTView {
-        TextureRTView() : view(nullptr) {}
+    struct texture_rt_view {
+        texture_rt_view() : view(nullptr) {}
 
         v8::base::com_exclusive_pointer
         <
@@ -139,7 +139,7 @@ private :
     typedef v8::base::com_exclusive_pointer
     <
         ID3D11Resource
-    >::type                                 ScopedTextureResource_t;
+    >::type                                 ScopedtextureResource_t;
 
 /// @}
 
@@ -148,10 +148,10 @@ private :
 
 private :
 
-    ScopedTextureResource_t                         resource_;
-    TextureSRView                                   tex_srv_;
-    TextureUAView                                   tex_uav_;
-    TextureRTView                                   tex_rtv_;
+    ScopedtextureResource_t                         resource_;
+    texture_sr_view                                 tex_srv_;
+    texture_ua_view                                 tex_uav_;
+    texture_rt_view                                 tex_rtv_;
     v8_uint32_t                                     width_;
     v8_uint32_t                                     height_;
     v8_uint32_t                                     depth_;
@@ -162,7 +162,7 @@ private :
 /// @}
     
 private :
-    NO_CC_ASSIGN(Texture);
+    NO_CC_ASSIGN(texture);
 };
 
 } // namespace directx

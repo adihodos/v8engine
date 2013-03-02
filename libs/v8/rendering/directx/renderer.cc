@@ -9,13 +9,13 @@
 #include "v8/rendering/directx/renderer.hpp"
 
 v8::directx::renderer::renderer() 
-    :   m_target_window(nullptr)
-        , m_clear_color(v8::math::color_rgb::C_LightSeaGreen)
-        , m_target_width(1024.0f)
-        , m_target_height(1024.0f)
-        , m_fullscreen(false)
-        , m_backbuffer_type(DXGI_FORMAT_R8G8B8A8_UNORM)
-        , m_depth_stencil_type(DXGI_FORMAT_D24_UNORM_S8_UINT) {
+    :       m_target_window(nullptr)
+        ,   m_clear_color(v8::math::color_rgb::C_LightSeaGreen)
+        ,   m_target_width(1024.0f)
+        ,   m_target_height(1024.0f)
+        ,   m_fullscreen(false)
+        ,   m_backbuffer_type(DXGI_FORMAT_R8G8B8A8_UNORM)
+        ,   m_depth_stencil_type(DXGI_FORMAT_D24_UNORM_S8_UINT) {
     m_rtvs.push_back(nullptr);
 }
 

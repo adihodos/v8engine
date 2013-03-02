@@ -124,7 +124,7 @@ private :
 /// @{
 
 private :
-    NO_CC_ASSIGN(class_type);
+    NO_CC_ASSIGN(gpu_shader);
 
 /// @}
 };
@@ -145,11 +145,13 @@ inline void gpu_shader<T>::set_uniform_by_name(
     set_uniform_by_name(uniform_name, &uniform_value, sizeof(uniform_value));
 }
 
-typedef gpu_shader<dx11_vertexshader_traits>            VertexShader_t;
+typedef gpu_shader<dx11_vertexshader_traits>            vertex_shader;
 
-typedef gpu_shader<dx11_fragmentshader_traits>          FragmentShader_t;
+typedef gpu_shader<dx11_fragmentshader_traits>          fragment_shader;
 
-typedef gpu_shader<dx11_geometryshader_traits>          GeometryShader_t;
+typedef gpu_shader<dx11_geometryshader_traits>          geometry_shader;
+
+typedef gpu_shader<dx11_computeshader_traits>           compute_shader;
 
 } // namespace directx
 } // namespace v8

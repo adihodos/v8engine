@@ -10,20 +10,14 @@
 #include <v8/base/debug_helpers.hpp>
 #include <v8/base/pointer_policies.hpp>
 #include <v8/base/scoped_pointer.hpp>
-
 #include <v8/math/color.hpp>
-
-//#include <v8/rendering/directx/directx_input_layout.hpp>
-#include <v8/rendering/directx/gpu_buffer.hpp>
-#include <v8/rendering/directx/topology.hpp>
 #include <v8/rendering/directx/constants.hpp>
 
 namespace v8 {
-struct resize_event;
+    struct resize_event;
 }
 
 namespace v8 { namespace directx {
-
 
 class renderer {
 public :
@@ -122,20 +116,6 @@ public :
 
 public :
 
-    //! \name Input assembly stage operations.
-    //! @{
-
-    //void ia_stage_set_vertex_buffers(
-    //    const VertexBuffer_t* vxbuffers, 
-    //    v8_uint32_t count
-    //    ) const;
-
-    //void ia_stage_set_index_buffer(
-    //    const IndexBuffer_t* ibuff, 
-    //    v8_uint_t offset = 0
-    //    ) const;
-
-
     void ia_stage_set_primitive_topology_type(
         PrimitiveTopology::Type topology
         ) const;
@@ -151,11 +131,6 @@ public :
 
     //! \name Shader stage operations.
     //! @{
-
-    template<typename shader_proxy_type>
-    inline void set_active_shader(
-        shader_proxy_type& shader_proxy
-        );
 
     inline void unbind_vertex_shader() const;
 
@@ -199,21 +174,6 @@ public :
     inline v8_bool_t set_fullscreen(
         v8_bool_t fullscreen
         );
-
-    /*inline void set_rasterizer_state(
-        H_rasterizer_state raster_state
-        );*/
-
-    /*inline void set_depth_stencil_state(
-        H_depth_stencil_state depth_stencil_state,
-        v8_uint_t reference_value
-        );*/
-
-    /*inline void set_blend_state(
-        H_blend_state blend_state,
-        const v8::math::color_rgb& blend_factor = v8::math::color_rgb::C_Black,
-        v8_uint_t sample_mask = v8_uint_t(-1)
-        );*/
 
     inline void clear_backbuffer();
 
@@ -331,23 +291,23 @@ private :
         IFW1FontWrapper
     >::type                                                      m_font_wrapper;
 
-    HWND                                                m_target_window;
+    HWND                                                        m_target_window;
 
-    v8::math::color_rgb                                 m_clear_color;
+    v8::math::color_rgb                                         m_clear_color;
 
-    float                                               m_target_width;
+    float                                                       m_target_width;
 
-    float                                               m_target_height;
+    float                                                       m_target_height;
 
-    v8_bool_t                                           m_fullscreen;
+    v8_bool_t                                                   m_fullscreen;
 
-    DXGI_FORMAT                                         m_backbuffer_type;
+    DXGI_FORMAT                                                 m_backbuffer_type;
 
-    DXGI_FORMAT                                         m_depth_stencil_type;
+    DXGI_FORMAT                                                 m_depth_stencil_type;
 
     //
     // Bound render targets.
-    std::vector<ID3D11RenderTargetView*>                m_rtvs;
+    std::vector<ID3D11RenderTargetView*>                        m_rtvs;
 
 private :
     //! \name Disabled functions.
@@ -358,37 +318,14 @@ private :
     //! @}
 };
 
-inline v8_bool_t renderer::set_fullscreen(
-    v8_bool_t fullscreen
-    ) {
+inline v8_bool_t renderer::set_fullscreen(v8_bool_t fullscreen) {
     assert(check_if_object_state_valid());
-
     HRESULT ret_code = m_swap_chain->SetFullscreenState(fullscreen, nullptr);
     if (SUCCEEDED(ret_code)) {
         m_fullscreen = fullscreen;
         return true;
     }
-
     return false;
-}
-
-inline void renderer::ia_stage_set_input_layout(
-    void* input_layout
-    ) {
-    assert(check_if_object_state_valid());
-    //m_device_context->IASetInputLayout(input_layout);
-    assert(false && "Not implemented!");
-}
-
-
-template<typename shader_proxy_type>
-inline void renderer::set_active_shader(
-    shader_proxy_type& shader_proxy
-    ) {
-    assert(check_if_object_state_valid());
-
-    shader_proxy.internal_np_bind_to_pipeline(
-        v8::base::scoped_pointer_get(m_device_context));
 }
 
 inline void renderer::unbind_vertex_shader() const {
@@ -406,52 +343,20 @@ inline void renderer::unbind_fragment_shader() const {
     m_device_context->PSSetShader(nullptr, nullptr, 0);
 }
 
-inline FramePresentResult::Type renderer::present_frame(
-    FramePresent::Type flags
-    ) {
+inline FramePresentResult::Type renderer::present_frame(FramePresent::Type flags) {
     assert(check_if_object_state_valid());
 
-    const UINT kFlagsMappings[] = {
-        0,
-        DXGI_PRESENT_TEST
-    };
-
+    const UINT kFlagsMappings[] = { 0, DXGI_PRESENT_TEST  };
     HRESULT ret_code = m_swap_chain->Present(0, kFlagsMappings[flags]);
 
-    if (ret_code == S_OK)
+    if (ret_code == S_OK) {
         return FramePresentResult::Ok;
-
-    if (ret_code == DXGI_STATUS_OCCLUDED)
+    } else if (ret_code == DXGI_STATUS_OCCLUDED) {
         return FramePresentResult::WindowOccluded;
-
-    return FramePresentResult::Error;
+    } else {
+        return FramePresentResult::Error;
+    }
 }
-
-//inline void renderer::set_rasterizer_state(
-//    H_rasterizer_state raster_state
-//    ) {
-//    assert(check_if_object_state_valid());
-//    m_device_context->RSSetState(raster_state);
-//}
-
-//inline void renderer::set_depth_stencil_state(
-//    H_depth_stencil_state depth_stencil_state,
-//    v8_uint_t reference_value
-//    ) {
-//    assert(check_if_object_state_valid());
-//    m_device_context->OMSetDepthStencilState(depth_stencil_state, reference_value);
-//}
-//
-//inline void renderer::set_blend_state(
-//    H_blend_state blend_state,
-//    const v8::math::color_rgb& blend_factor /*= v8::math::color::Black*/,
-//    v8_uint_t sample_mask /*= v8_uint_t(-1)*/
-//    ) {
-//    assert(check_if_object_state_valid());
-//    m_device_context->OMSetBlendState(
-//        blend_state, blend_factor.components_, sample_mask
-//        );
-//}
 
 inline void renderer::clear_backbuffer() {
     assert(check_if_object_state_valid());
@@ -471,29 +376,23 @@ inline void renderer::clear_depth_stencil() {
 
 inline void renderer::reset_raster_state() {
     assert(check_if_object_state_valid());
-
     m_device_context->RSSetState(nullptr);
 }
 
 inline void renderer::reset_depth_stencil_state() {
     assert(check_if_object_state_valid());
-
     m_device_context->OMSetDepthStencilState(nullptr, UINT(-1));
 }
 
 inline void renderer::reset_blending_state() {
     assert(check_if_object_state_valid());
-
     m_device_context->OMSetBlendState(nullptr, nullptr, UINT(-1));
 }
 
 inline void renderer::draw(
-    v8_uint_t vertex_count,
-    v8_uint_t first_vertex_location /*= 0*/
+    v8_uint_t vertex_count, v8_uint_t first_vertex_location /*= 0*/
     ) const {
-
     assert(check_if_object_state_valid());
-
     m_device_context->Draw(vertex_count, first_vertex_location);
 }
 
@@ -502,9 +401,7 @@ inline void renderer::draw_indexed(
     v8_uint_t first_index_location /*= 0*/,
     int index_offset /*= 0*/
     ) const {
-
     assert(check_if_object_state_valid());
-
     m_device_context->DrawIndexed(index_count, first_index_location, index_offset);
 }
 
