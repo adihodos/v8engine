@@ -44,9 +44,9 @@ v8_bool_t v8::directx::renderer::initialize(
     v8_bool_t full_screen /*= false*/,
     v8_bool_t handle_full_screen_transition /*= false*/
     ) {
-
-    if (check_if_object_state_valid())
+    if (check_if_object_state_valid()) {
         return true;
+    }
 
     m_target_window = window;
     m_target_width = width;
@@ -55,8 +55,8 @@ v8_bool_t v8::directx::renderer::initialize(
     //
     // Translate and validate requested backbuffer format.
     m_backbuffer_type = element_type_to_dxgi_format(
-        backbuffer_elem_type, backbuffer_elem_count);
-
+        backbuffer_elem_type, backbuffer_elem_count
+        );
     if (m_backbuffer_type == DXGI_FORMAT_UNKNOWN) {
         OUTPUT_DBG_MSGA("Invalid format requeste for the backbuffer");
         return false;
@@ -64,24 +64,21 @@ v8_bool_t v8::directx::renderer::initialize(
 
     m_depth_stencil_type = DXGI_FORMAT_D24_UNORM_S8_UINT;
     
-    if (!initialize_swap_chain(full_screen))
+    if (!initialize_swap_chain(full_screen)) {
         return false;
-
-    if (!handle_full_screen_transition)
+    }
+    if (!handle_full_screen_transition) {
         disable_auto_alt_enter();
-
-    if (!initialize_font_engine())
+    }
+    if (!initialize_font_engine()) {
         return false;
-
+    }
     return handle_render_target_resized(width, height);
 }
 
 v8_bool_t v8::directx::renderer::handle_render_target_resized(
-    float new_width,
-    float new_height
+    float new_width, float new_height
     ) {
-
-    /*assert(check_if_object_state_valid());*/
     assert(m_device);
     assert(m_device_context);
     assert(m_swap_chain);
@@ -103,17 +100,16 @@ v8_bool_t v8::directx::renderer::handle_render_target_resized(
                                     static_cast<UINT>(m_target_height), 
                                     m_backbuffer_type, 
                                     DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH));
-    if (FAILED(ret_code))
+    if (FAILED(ret_code)) {
         return false;
+    }
     
     scoped_ptr<ID3D11Texture2D, com_storage> backbuffer_texture;
-
     CHECK_D3D(
         &ret_code,
         m_swap_chain->GetBuffer(
             0, __uuidof(ID3D11Texture2D), 
             reinterpret_cast<void**>(scoped_pointer_get_impl(backbuffer_texture))));
-
     if (FAILED(ret_code)) {
         OUTPUT_DBG_MSGW(L"Failed to get backbuffer reference.");
         return false;
@@ -125,9 +121,9 @@ v8_bool_t v8::directx::renderer::handle_render_target_resized(
             scoped_pointer_get(backbuffer_texture),
             nullptr, scoped_pointer_get_impl(m_rendertarget_view)));
 
-    if (FAILED(ret_code))
+    if (FAILED(ret_code)) {
         return false;
-
+    }
     m_rtvs[0] = scoped_pointer_get(m_rendertarget_view);
 
     D3D11_TEXTURE2D_DESC depth_stencil_tex_desc = {
@@ -147,29 +143,22 @@ v8_bool_t v8::directx::renderer::handle_render_target_resized(
         &ret_code,
         m_device->CreateTexture2D(&depth_stencil_tex_desc, nullptr,
                                   scoped_pointer_get_impl(m_depth_stencil)));
-
-    if (FAILED(ret_code))
+    if (FAILED(ret_code)) {
         return false;
-
-    /*D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
-    depthStencilViewDesc.Format = 
-        static_cast<DXGI_FORMAT>(m_depth_stencil_type);
-    depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-    depthStencilViewDesc.Texture2D.MipSlice = 0;
-    depthStencilViewDesc.Flags = 0;*/
+    }
 
     CHECK_D3D(
         &ret_code,
         m_device->CreateDepthStencilView(
             scoped_pointer_get(m_depth_stencil), nullptr, 
             scoped_pointer_get_impl(m_depthstencil_view)));
-
-    if (FAILED(ret_code))
+    if (FAILED(ret_code)) {
         return false;
-
+    }
     m_device_context->OMSetRenderTargets(
         static_cast<UINT>(m_rtvs.size()), 
-        &m_rtvs[0], scoped_pointer_get(m_depthstencil_view));
+        &m_rtvs[0], scoped_pointer_get(m_depthstencil_view)
+        );
 
     D3D11_VIEWPORT viewport_data = {
         0.0f,
@@ -179,8 +168,8 @@ v8_bool_t v8::directx::renderer::handle_render_target_resized(
         0.0f,
         1.0f
     };
-
     m_device_context->RSSetViewports(1, &viewport_data);
+
     return true;
 }
 
@@ -256,7 +245,6 @@ void v8::directx::renderer::draw_string(
     const v8::math::color_rgb& color
     ) {
     assert(check_if_object_state_valid());
-
     m_font_wrapper->DrawString(v8::base::scoped_pointer_get(m_device_context), 
                               text, font_size, xpos, ypos, 
                               color.to_uint32_abgr(), FW1_RESTORESTATE);
@@ -271,9 +259,7 @@ void v8::directx::renderer::draw_string(
     ) {
 
     std::vector<wchar_t> utf8_string;
-
     auto char_count = MultiByteToWideChar(CP_UTF8, 0, text, -1, nullptr, 0);
-
     if (char_count) {
         utf8_string.resize((std::vector<wchar_t>::size_type) char_count + 1);
         char_count = MultiByteToWideChar(CP_UTF8, 0, text, -1, &utf8_string[0], 
@@ -292,18 +278,19 @@ v8_bool_t v8::directx::renderer::disable_auto_alt_enter() const {
     scoped_ptr<IDXGIFactory, com_storage> factoryPtr;
     HRESULT ret_code = m_swap_chain->GetParent(
         __uuidof(IDXGIFactory), 
-        reinterpret_cast<void**>(scoped_pointer_get_impl(factoryPtr)));
-
+        reinterpret_cast<void**>(scoped_pointer_get_impl(factoryPtr))
+        );
     if (FAILED(ret_code)) {
         OUTPUT_DBG_MSGW(L"Failed to query for IDXGIFactory.");
         return false;
     }
 
     ret_code = factoryPtr->MakeWindowAssociation(
-        m_target_window, DXGI_MWA_NO_WINDOW_CHANGES);
-    if (FAILED(ret_code))
+        m_target_window, DXGI_MWA_NO_WINDOW_CHANGES
+        );
+    if (FAILED(ret_code)) {
         OUTPUT_DBG_MSGW(L"Failed to make window association");
-
+    }
     return ret_code == S_OK;
 }
 
@@ -315,8 +302,8 @@ v8_bool_t v8::directx::renderer::initialize_swap_chain(
     scoped_ptr<IDXGIFactory, com_storage> dxgifactory;
     HRESULT ret_code = ::CreateDXGIFactory(
         __uuidof(IDXGIFactory), 
-        reinterpret_cast<void**>(scoped_pointer_get_impl(dxgifactory)));
-
+        reinterpret_cast<void**>(scoped_pointer_get_impl(dxgifactory))
+        );
     if (FAILED(ret_code)) {
         OUTPUT_DBG_MSGW(L"Failed to create IDXGIFactory, %#08x", ret_code);
         return false;
@@ -324,8 +311,8 @@ v8_bool_t v8::directx::renderer::initialize_swap_chain(
 
     scoped_ptr<IDXGIAdapter, com_storage> firstAdapter;
     ret_code = dxgifactory->EnumAdapters(
-        0, scoped_pointer_get_impl(firstAdapter));
-
+        0, scoped_pointer_get_impl(firstAdapter)
+        );
     if (FAILED(ret_code)) {
         OUTPUT_DBG_MSGW(L"Failed to enum adapters, %#08x", ret_code);
         return false;
@@ -335,14 +322,14 @@ v8_bool_t v8::directx::renderer::initialize_swap_chain(
     DXGI_MODE_DESC closestMode;
     memset(&closestMode, 0, sizeof(closestMode));
     for (unsigned int outputIdx = 0; ; ++outputIdx) {
-
         scoped_ptr<IDXGIOutput, com_storage> adapterOutput;
         ret_code = firstAdapter->EnumOutputs(
-            outputIdx, scoped_pointer_get_impl(adapterOutput));
+            outputIdx, scoped_pointer_get_impl(adapterOutput)
+            );
 
-        if (FAILED(ret_code))
+        if (FAILED(ret_code)) {
             break;
-
+        }
         DXGI_MODE_DESC requestedMode;
         requestedMode.Format = static_cast<DXGI_FORMAT>(m_backbuffer_type);
         requestedMode.Width = static_cast<UINT>(m_target_width);
@@ -354,8 +341,9 @@ v8_bool_t v8::directx::renderer::initialize_swap_chain(
 
         ret_code = adapterOutput->FindClosestMatchingMode(
             &requestedMode, &closestMode, nullptr);
-        if (ret_code == S_OK)
+        if (ret_code == S_OK) {
             break;
+        }
     }
 
     if (FAILED(ret_code)) {
@@ -376,7 +364,8 @@ v8_bool_t v8::directx::renderer::initialize_swap_chain(
     swap_chain_description.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
     swap_chain_description.Windowed = !fullscreen;
 
-    const UINT device_creation_flags = D3D11_CREATE_DEVICE_DEBUG;
+    //const UINT device_creation_flags = D3D11_CREATE_DEVICE_DEBUG;
+    const UINT device_creation_flags = 0;
     D3D_FEATURE_LEVEL supported_feat_level = D3D_FEATURE_LEVEL_11_0;
 
     CHECK_D3D(

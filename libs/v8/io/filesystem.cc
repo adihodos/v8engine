@@ -207,3 +207,16 @@ std::string v8::filesys::build_path_for_var(const v8_int_t var) {
 
     return build_path_for_var(dirs_[var].parent) + dirs_[var].name + "\\";
 }
+
+std::string v8::filesys::make_full_path(
+    const v8_int32_t var, const char* const file_name, const char* const ext
+    ) {
+    assert(file_name);
+    assert(ext);
+    assert(is_valid());
+
+    platformstl::path full_path(dirs_[var].full_path.c_str());
+    full_path.push(file_name);
+    full_path.push_ext(ext);
+    return full_path.c_str();
+}

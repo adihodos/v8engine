@@ -16,6 +16,10 @@ public :
 
     typedef api_state<state_traits>                             class_type;
 
+    api_state() {}
+
+    ~api_state() {}
+
     api_state(class_type&& rval)
         : state_handle_(std::move(rval.state_handle_))
     {}

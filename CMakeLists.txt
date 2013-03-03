@@ -15,6 +15,20 @@ if( CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR AND NOT MSVC_IDE )
 endif()
 
 if (MSVC)
+    find_package(DirectX)
+
+    if (NOT DirectX_D3D11_FOUND)
+        MESSAGE(FATAL_ERROR "Could not find dependency: DirectX")
+    endif()
+
+    include_directories(
+        ${DirectX_INCLUDE_DIRS}
+    )
+
+    link_directories(
+        ${DirectX_D3D11_LIBRARIES}
+    )
+
     set(cxx_disabled_warnings "/wd 4201")
     add_definitions(/DNOMINMAX)
 

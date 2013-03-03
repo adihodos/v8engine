@@ -15,33 +15,29 @@ struct depthstencil_op_t {
     StencilOp::Type     sten_pass_depth_pass_op;
     CompareFunc::Type   stencil_func;
 
-    static const depthstencil_op_t& default() {
-        static const depthstencil_op_t def_state = {
-            StencilOp::Keep,
-            StencilOp::Keep,
-            StencilOp::Keep,
-            CompareFunc::Always
-        };
-
-        return def_state;
+    depthstencil_op_t()  {
+        sten_fail_op = StencilOp::Keep;
+        sten_pass_depth_fail_op = StencilOp::Keep;
+        sten_pass_depth_pass_op = StencilOp::Keep;
+        stencil_func = CompareFunc::Always;
     }
 };
 
 inline bool operator==(
     const depthstencil_op_t& lhs, const depthstencil_op_t& rhs
     ) {
-    if (lhs.stencil_func != rhs.stencil_func)
+    if (lhs.stencil_func != rhs.stencil_func) {
         return false;
-
-    if (lhs.sten_fail_op != rhs.sten_fail_op)
+    }
+    if (lhs.sten_fail_op != rhs.sten_fail_op) {
         return false;
-
-    if (lhs.sten_pass_depth_fail_op != rhs.sten_pass_depth_fail_op)
+    }
+    if (lhs.sten_pass_depth_fail_op != rhs.sten_pass_depth_fail_op) {
         return false;
-
-    if (lhs.sten_pass_depth_pass_op != rhs.sten_pass_depth_pass_op)
+    }
+    if (lhs.sten_pass_depth_pass_op != rhs.sten_pass_depth_pass_op) {
         return false;
-
+    }
     return true;
 }
 
@@ -61,25 +57,22 @@ struct depthstencil_descriptor_t {
     depthstencil_op_t               front_face;
     depthstencil_op_t               back_face;
 
-    static const depthstencil_descriptor_t& default() NOEXCEPT {
-        static const depthstencil_descriptor_t def_state = {
-            true,
-            DepthWriteMask::All,
-            CompareFunc::Less,
-            false,
-            0xff,
-            0xff,
-            depthstencil_op_t::default(),
-            depthstencil_op_t::default()
-        };
-
-        return def_state;
+    depthstencil_descriptor_t()
+        :       depth_enable(true)
+            ,   depth_write_mask(DepthWriteMask::All)
+            ,   depth_func(CompareFunc::Less)
+            ,   stencil_enable(false)
+            ,   stencil_read_mask(0xff)
+            ,   stencil_write_mask(0xff)
+            ,   front_face()
+            ,   back_face()
+    {
     }
+
 };
 
 inline bool operator==(
-    const depthstencil_descriptor_t& lhs,
-    const depthstencil_descriptor_t& rhs
+    const depthstencil_descriptor_t& lhs, const depthstencil_descriptor_t& rhs
     ) {
     if (lhs.back_face != rhs.back_face)
         return false;
@@ -109,8 +102,7 @@ inline bool operator==(
 }
 
 inline bool operator!=(
-    const depthstencil_descriptor_t& lhs,
-    const depthstencil_descriptor_t& rhs
+    const depthstencil_descriptor_t& lhs, const depthstencil_descriptor_t& rhs
     ) {
     return !(lhs == rhs);
 }

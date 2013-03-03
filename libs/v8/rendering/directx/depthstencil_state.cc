@@ -49,7 +49,6 @@ v8::directx::depthstencil_traits::handle_type*
 v8::directx::depthstencil_traits::create_state(
     const depthstencil_descriptor_t& descriptor, renderer* rsys
     ) {
-
     D3D11_DEPTH_STENCIL_DESC ds_description = {
         descriptor.depth_enable,
         kDepthWriteMaskMapping[descriptor.depth_write_mask],

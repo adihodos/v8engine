@@ -2,9 +2,9 @@
 #include <windowsx.h>
 #include <v8/base/debug_helpers.hpp>
 
-//#include "v8/global_state.hpp"
-//#include "v8/rendering/renderer.hpp"
-//#include "v8/rendering/render_constants.hpp"
+#include "v8/global_state.hpp"
+#include "v8/rendering/renderer.hpp"
+#include "v8/rendering/constants.hpp"
 #include "v8/gui/basic_window.hpp"
 #include "v8/input/key_syms.hpp"
 //#include "v8/scene/scene_manager.hpp"
@@ -376,41 +376,37 @@ v8::gui::basic_window::window_procedure(
 }
 
 void v8::gui::basic_window::app_frame_draw() {
-    /*
-    using namespace v8::render_engine;
-
-    FramePresent::Type present_flag = FramePresent::All;
+    v8::rendering::FramePresent::Type present_flag = rendering::FramePresent::All;
 
     //
     // Don't draw anything if occluded
     if (m_windata.occluded) {
         on_app_idle();
-        present_flag = FramePresent::Test;
+        present_flag = rendering::FramePresent::Test;
     } else {
         frame_draw_impl();
     }
 
-    auto ret_code = global::state->Renderer->present_frame(present_flag);
+    auto ret_code = state->render_sys()->present_frame(present_flag);
 
-    if (ret_code == FramePresentResult::Ok) {
+    if (ret_code == rendering::FramePresentResult::Ok) {
         m_windata.occluded = false;
-    } else if (ret_code == FramePresentResult::WindowOccluded) {
+    } else if (ret_code == rendering::FramePresentResult::WindowOccluded) {
         m_windata.occluded = true;
     } else {
         OUTPUT_DBG_MSGA("Frame present error");
         m_windata.quitflag = true;
     }
-    */
 }
 
 void v8::gui::basic_window::frame_draw_impl() {
-    /*
-    global::state->Renderer->reset_blending_state();
-    global::state->Renderer->reset_depth_stencil_state();
-    global::state->Renderer->clear_depth_stencil();
-    global::state->Renderer->clear_backbuffer();
+    state->render_sys()->reset_blending_state();
+    state->render_sys()->reset_depth_stencil_state();
+    state->render_sys()->clear_depth_stencil();
+    state->render_sys()->clear_backbuffer();
 
-    global::state->Scene->draw(
-        v8::base::scoped_pointer_get(global::state->Renderer));
+    /*
+    state->Scene->draw(
+        v8::base::scoped_pointer_get(global::state->render_sys()));
         */
 }

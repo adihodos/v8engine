@@ -253,7 +253,6 @@ v8::base::duo<v8_bool_t, ID3D10Blob*> v8::directx::compile_shader(
     typedef v8::base::duo<v8_bool_t, ID3D10Blob*> returned_type;
     returned_type ret_val(false, nullptr);
 
-    assert(shdr_info.name_or_source);
     assert(shdr_info.entrypoint);
     assert(shdr_info.shader_model);
 
@@ -302,7 +301,8 @@ v8::base::duo<v8_bool_t, ID3D10Blob*> v8::directx::compile_shader(
     } else {
         CHECK_D3D(
             &ret_code,
-            D3DCompile(shdr_info.name_or_source, strlen(shdr_info.name_or_source),
+            D3DCompile(shdr_info.name_or_source.c_str(), 
+                       (UINT) shdr_info.name_or_source.length(),
                        nullptr, &macro_list[0], &include_handler, 
                        shdr_info.entrypoint, shdr_info.shader_model,
                        k_compile_flags, 0,

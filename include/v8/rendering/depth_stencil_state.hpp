@@ -14,6 +14,8 @@ namespace v8 { namespace rendering {
 
 #if defined(V8FRAMEWORK_GRAPHICS_API_IS_DIRECTX)
 
+    using directx::depthstencil_op_t;
+    using directx::depthstencil_descriptor_t;
     using directx::depth_stencil_state;
 
 #else

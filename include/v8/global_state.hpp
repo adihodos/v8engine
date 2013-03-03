@@ -19,17 +19,15 @@ class application_state {
 
 public :
 
-    typedef gui::basic_window* (*window_creation_fn)();
-
 /// \name Construction.
 /// @{
 
 public :
     application_state();
 
-    ~application_state();
+    virtual ~application_state();
 
-    v8_bool_t initialize(window_creation_fn window_creator);
+    virtual v8_bool_t initialize() = 0;
 
 /// @}
 
@@ -54,7 +52,7 @@ public :
 /// \name Data members.
 /// @{
 
-private :
+protected :
 
     //! Renderer.
 

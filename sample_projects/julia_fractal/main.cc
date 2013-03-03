@@ -1,9 +1,9 @@
-#include <framework/app_dirs.hpp>
-#include <framework/global_state.hpp>
-#include <framework/rendering/renderer.hpp>
-#include <framework/rendering/resource_manager.hpp>
-#include <framework/win_util.hpp>
-#include <framework/win_util.hpp>
+#include <v8/io/filesystem.hpp>
+#include <v8/global_state.hpp>
+#include <v8/rendering/constants.hpp>
+#include <v8/rendering/renderer.hpp>
+#include <v8/rendering/render_assets_cache.hpp>
+#include <v8/utility/win_util.hpp>
 #include <third_party/fast_delegate/fast_delegate.hpp>
 #include <v8/v8.hpp>
 #include <v8/base/scoped_pointer.hpp>
@@ -12,13 +12,61 @@
 #include <v8/math/vector3.hpp>
 #include <v8/math/matrix4X4.hpp>
 
-#include <framework/directx/directx_gpu_shader.hpp>
-
 #include "fractal.hpp"
 #include "fractal_window.hpp"
 
-void test_gpushader() {
-    v8_framework::directx::VertexShader_t vsh;
+namespace {
+
+class fractal_app_context : public v8::application_state {
+public :
+    v8_bool_t initialize();
+
+private :
+    fractal julia_;
+};
+
+v8_bool_t fractal_app_context::initialize() {
+    application_state::initialize();
+
+    window_ = new fractal_window();
+    const v8_uint32_t window_style = WS_OVERLAPPEDWINDOW;
+    const v8_int32_t window_width = 1024;
+    const v8_int32_t window_height = 1024;
+    if (!window_->initialize(window_style, "FractalWindowClass", 
+                             "Julia fractal explorer",
+                             window_width, window_height)) {
+        return false;
+    }
+
+    render_sys_ = new v8::rendering::renderer();
+    if (!render_sys_->initialize(window_->get_handle(), 
+                                 static_cast<float>(window_width),
+                                 static_cast<float>(window_height),
+                                 v8::rendering::ElementType::Unorm8, 4,
+                                 24, 8)) {
+        return false;
+    }
+
+    window_->Subscribers_ResizeEvent += fastdelegate::MakeDelegate(
+        render_sys(), &v8::rendering::renderer::on_viewport_resized
+        );
+
+    asset_cache_ = new v8::rendering::render_assets_cache(render_sys());
+    file_sys_ = new v8::filesys();
+    const char* const app_data_dir = "D:\\games\\fractals";
+    file_sys_->initialize(app_data_dir);
+
+    g_fractal = &julia_;
+    if (!g_fractal->initialize()) {
+        return false;
+    }
+
+    window()->Subscribers_InputEvents += 
+        fastdelegate::MakeDelegate(g_fractal, &fractal::on_input);
+    window()->Subscribers_ResizeEvent +=
+        fastdelegate::MakeDelegate(g_fractal, &fractal::on_resize);
+    return true;
+}
 
 }
 
@@ -28,53 +76,15 @@ int WINAPI WinMain(
     LPSTR,
     int
     ) {
+    //
+    // Must be the first constructed object.
+    v8::utility::win32::scoped_mem_leak_checker leak_check_obj;
     {
-        win32::scoped_mem_leak_checker enable_leak_checks;
-
-        using namespace v8_framework;
-
-        global::application_state global_app_state;
-
-        global::state->Window = new fractal_window();
-        v8_bool_t ret_code = global::state->Window->initialize(
-            WS_OVERLAPPEDWINDOW, "FractalClass", "Fractal Explorer", 1024, 1024);
-        if (!ret_code) {
-            return EXIT_FAILURE;
+        fractal_app_context app_context;
+        if (!app_context.initialize()) {
+            return -1;
         }
-
-        global::state->Renderer = new render_engine::renderer();
-        ret_code = global::state->Renderer->initialize(
-            global::state->Window->get_handle(),
-            static_cast<float>(global::state->Window->get_width()),
-            static_cast<float>(global::state->Window->get_height()),
-            ElementType::Unorm8, 4, 24, 8
-            );
-        if (!ret_code) {
-            return EXIT_FAILURE;
-        }
-
-        global::state->Window->Subscribers_ResizeEvent += fastdelegate::MakeDelegate(
-            v8::base::scoped_pointer_get(global::state->Renderer),
-            &render_engine::renderer::on_viewport_resized);
-
-        global::state->AssetCache = new render_engine::resource_manager(
-            v8::base::scoped_pointer_get(global::state->Renderer));
-
-        global::state->Filesys = new app_dirs();
-        global::state->Filesys->initialize("D:\\games\\fractals");
-
-        fractal f;
-        g_fractal = &f;
-        if (!g_fractal->initialize()) {
-            return EXIT_FAILURE;
-        }
-
-        global::state->Window->Subscribers_InputEvents += 
-            fastdelegate::MakeDelegate(g_fractal, &fractal::on_input);
-        global::state->Window->Subscribers_ResizeEvent +=
-            fastdelegate::MakeDelegate(g_fractal, &fractal::on_resize);
-
-        global::state->Window->message_loop();
+        app_context.window()->message_loop();
     }
 
     return 0;

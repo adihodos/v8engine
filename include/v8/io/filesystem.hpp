@@ -1,9 +1,9 @@
 #pragma once
 
-#include <v8/v8.hpp>
-
 #include <cassert>
 #include <string>
+
+#include <v8/v8.hpp>
 
 namespace v8 {
 
@@ -126,6 +126,20 @@ public :
         assert(is_valid());
         return dirs_[dir_type].full_path;
     }
+
+    std::string make_shader_path(const char* file_name) {
+        return make_full_path(filesys::Dir::Shaders, file_name, "hlsl");
+    }
+
+    std::string make_effect_path(const char* file_name) {
+        return make_full_path(filesys::Dir::Shaders, file_name, "fx");
+    }
+
+private :
+
+    std::string make_full_path(
+        const v8_int32_t var, const char* const file_name, const char* const ext
+        );
 
 //! @}
 

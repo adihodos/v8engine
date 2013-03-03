@@ -12,6 +12,7 @@
 #include <v8/base/scoped_pointer.hpp>
 #include <v8/math/color.hpp>
 #include <v8/rendering/directx/constants.hpp>
+#include <v8/rendering/directx/depth_stencil_state.hpp>
 
 namespace v8 {
     struct resize_event;
@@ -94,9 +95,7 @@ private :
 
     v8_bool_t disable_auto_alt_enter() const;
 
-    v8_bool_t initialize_swap_chain(
-        v8_bool_t fullscreen
-        );
+    v8_bool_t initialize_swap_chain(v8_bool_t fullscreen);
 
     v8_bool_t initialize_font_engine();
 
@@ -118,11 +117,10 @@ public :
 
     void ia_stage_set_primitive_topology_type(
         PrimitiveTopology::Type topology
-        ) const;
+    ) const;
 
     inline void ia_stage_set_input_layout(
-        //H_vertex_declaration input_layout
-        void* input_layout
+        ID3D11InputLayout* input_layout
     );
 
     // ! @}
@@ -145,19 +143,15 @@ public :
     //! \name Output merger stage operations.
     //! @{
 
-    void add_render_target(
-        ID3D11RenderTargetView* rtv
+    inline void set_depth_stencil_state(
+        const depth_stencil_state& dsstate, const v8_uint32_t ref_value = 0
         );
 
-    void set_render_target(
-        ID3D11RenderTargetView* rtv, 
-        v8_size_t slot_id = 0
-        );
+    void add_render_target(ID3D11RenderTargetView* rtv);
 
-    void get_render_target(
-        v8_size_t slot_id,
-        ID3D11RenderTargetView** rtv
-        );
+    void set_render_target(ID3D11RenderTargetView* rtv, v8_size_t slot_id = 0);
+
+    void get_render_target(v8_size_t slot_id, ID3D11RenderTargetView** rtv);
 
     //! @}
 
@@ -165,15 +159,11 @@ public :
     //! \name State manipulation.
     //! @{
 
-    void set_clear_color(
-        const v8::math::color_rgb& clear_color
-        ) {
+    void set_clear_color(const v8::math::color_rgb& clear_color) {
         m_clear_color = clear_color;
     }
 
-    inline v8_bool_t set_fullscreen(
-        v8_bool_t fullscreen
-        );
+    inline v8_bool_t set_fullscreen(v8_bool_t fullscreen);
 
     inline void clear_backbuffer();
 
@@ -193,15 +183,14 @@ public :
     //! @{
 
     inline void draw(
-        v8_uint_t vertex_count,
-        v8_uint_t first_vertex_location = 0
-        ) const;
+        v8_uint_t vertex_count, v8_uint_t first_vertex_location = 0
+    ) const;
 
     inline void draw_indexed(
         v8_uint_t index_count, 
         v8_uint_t first_index_location = 0,
         int index_offset = 0
-        ) const;
+    ) const;
 
     void draw_string(
         const wchar_t* text, 
@@ -209,7 +198,7 @@ public :
         float xpos, 
         float ypos, 
         const v8::math::color_rgb& color
-        );
+    );
 
     void draw_string(
         const char* text,
@@ -217,7 +206,7 @@ public :
         float xpos, 
         float ypos, 
         const v8::math::color_rgb& color
-        );
+    );
 
     //! @}
 
@@ -243,9 +232,9 @@ private :
     //! @{
 
     v8_bool_t check_if_object_state_valid() const {
-        return m_device && m_device_context && m_swap_chain 
-            && m_depth_stencil && m_depthstencil_view
-            && m_rendertarget_view;
+        return  m_device && m_device_context && m_swap_chain 
+                && m_depth_stencil && m_depthstencil_view
+                && m_rendertarget_view;
     }
 
     //! @}
@@ -317,6 +306,12 @@ private :
 
     //! @}
 };
+
+inline void renderer::ia_stage_set_input_layout(ID3D11InputLayout* input_layout) {
+    assert(input_layout);
+    assert(check_if_object_state_valid());
+    m_device_context->IASetInputLayout(input_layout);
+}
 
 inline v8_bool_t renderer::set_fullscreen(v8_bool_t fullscreen) {
     assert(check_if_object_state_valid());
@@ -403,6 +398,14 @@ inline void renderer::draw_indexed(
     ) const {
     assert(check_if_object_state_valid());
     m_device_context->DrawIndexed(index_count, first_index_location, index_offset);
+}
+
+inline void renderer::set_depth_stencil_state(
+    const depth_stencil_state& dsstate, const v8_uint32_t ref_value
+    ) {
+    assert(check_if_object_state_valid());
+    m_device_context->OMSetDepthStencilState(dsstate.internal_np_get_handle(), 
+                                             ref_value);
 }
 
 } // namespace directx
