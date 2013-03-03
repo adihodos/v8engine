@@ -273,6 +273,15 @@ void fractal::evaluate(float delta_ms) {
 }
 
 void fractal::draw() {
+    const wchar_t* const key_settings = 
+        L"Keys :\n"
+        L"\tZoom in/out : mouse wheel\n"
+        L"\tNumeric + : change shape\n"
+        L"\tNumeric * : doubles the iteration count\n"
+        L"\tNumeric / : halve the iteration count\n"
+        L"\tArrow keys : move left, right, up, down\n"
+        L"\tHome : reset and center position";
+
     v8::rendering::renderer* k_rendersys = v8::state->render_sys();
 
     impl_->vertexbuffer.bind_to_pipeline(k_rendersys);
@@ -289,6 +298,9 @@ void fractal::draw() {
 
     v8::state->render_sys()->set_depth_stencil_state(impl_->no_depth_test);
     v8::state->render_sys()->draw_indexed(impl_->indexbuffer.get_element_count());
+    v8::state->render_sys()->draw_string(
+        key_settings, 18.0f, 5.0f, 60.0f, v8::math::color_rgb::C_YellowGreen
+        );
 }
 
 v8_bool_t fractal::mouse_wheel_event(
@@ -327,6 +339,12 @@ v8_bool_t fractal::key_press_event(
             iter_cnt /= 2;
             set_iteration_count(iter_cnt);
         }
+    } else if (Key_Sym_t::Home == key_code) {
+        impl_->frac_params.zoom_factor = 1.0f;
+        impl_->frac_params.offset_x = 0.0f;
+        impl_->frac_params.offset_y = 0.0f;
+        impl_->frac_params.max_iterations = 256;
+        impl_->solution_is_current = false;
     }
     key_stats[key_code] = true;
     return true;

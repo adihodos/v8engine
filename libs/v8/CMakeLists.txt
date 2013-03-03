@@ -4,6 +4,7 @@ add_subdirectory(input)
 add_subdirectory(io)
 add_subdirectory(math)
 add_subdirectory(rendering)
+add_subdirectory(scene)
 add_subdirectory(utility)
 
 add_library(v8_app_state global_state.cc)
