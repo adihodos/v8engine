@@ -62,7 +62,8 @@ inline v8::math::matrix_2X2<real_t>::matrix_2X2(
 
 template<typename real_t>
 inline v8::math::matrix_2X2<real_t>::matrix_2X2(
-        const real_t* input, size_t count) {
+    const real_t* input, size_t count
+    ) {
     memcpy(elements_, input, min((size_t) 4, count) * sizeof(real_t));
 }
 
@@ -73,6 +74,15 @@ inline v8::math::matrix_2X2<Real_Type>::matrix_2X2(
     ) {
     for (uint32_t i = 0; i < v8::base::count_of_array(elements_); ++i)
         elements_[i] = other.elements_[i];
+}
+
+template<typename Real_Type>
+template<typename Convertible_Type>
+inline v8::math::matrix_2X2<Real_Type>::matrix_2X2(
+    const Convertible_Type (&arr)[4]
+    ) {
+    a11_ = arr[0]; a12_ = arr[1];
+    a21_ = arr[2]; a22_ = arr[3];
 }
 
 template<typename real_t>

@@ -111,11 +111,9 @@ v8_bool_t v8::directx::effect::initialize(
     if (!effect_interface) {
         return false;
     }
-
     if (!on_effect_loaded(base::scoped_pointer_get(effect_interface))) {
         return false;
     }
-
     effect_handle_ = std::move(effect_interface);
     return true;
 }

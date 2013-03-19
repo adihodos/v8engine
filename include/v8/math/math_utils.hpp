@@ -101,7 +101,7 @@ struct div_wrap_t {
 template<typename T>
 inline
 bool
-operands_eq(T left, T right) {
+operands_eq(const T left, const T right) {
     return internals::op_eq_helper<
         T, base::is_floating_point_type<T>::Yes
     >::result(left, right);
@@ -110,20 +110,20 @@ operands_eq(T left, T right) {
 template<typename T>
 inline 
 bool
-operands_ge(T left, T right) {
+operands_ge(const T left, const T right) {
     return left > right || operands_eq(left, right);
 }
 
 template<typename T>
 inline bool
-operands_le(T left, T right) {
+operands_le(const T left, const T right) {
     return left < right || operands_eq(left, right);
 }
 
 template<typename real_t>
 inline
 bool
-is_zero(real_t value) {
+is_zero(const real_t value) {
     return fabs(value) < numerics<real_t>::epsilon();
 }
 
@@ -132,7 +132,7 @@ is_zero(real_t value) {
  *                           -1,    x < 0 }
  */
 template<typename T>
-inline v8_int_t signum(T val) {
+inline v8_int_t signum(const T val) {
     return (val > T(0)) - (val < T(0));
 }
 
@@ -142,9 +142,7 @@ inline v8_int_t signum(T val) {
 template<typename real_t>
 inline
 real_t
-to_degrees(
-    real_t radians
-    ) {
+to_degrees(const real_t radians) {
     return radians * numerics<real_t>::one_eighty_over_pi();
 }
 
@@ -154,9 +152,7 @@ to_degrees(
 template<typename real_t>
 inline
 real_t
-to_radians(
-    real_t degrees
-    ) {
+to_radians(const real_t degrees) {
     //return degrees * constants::kPiOver180;
     return degrees * numerics<real_t>::pi_over180();
 }
@@ -167,7 +163,7 @@ to_radians(
 template<typename real_t>
 inline 
 real_t
-inv_sqrt(real_t val) {
+inv_sqrt(const real_t val) {
     return real_t(1) / sqrt(val);
 }
 
@@ -194,7 +190,7 @@ inline void swap(ty& left, ty& right) {
 }
 
 template<typename real_t>
-real_t angle_from_xy(real_t x, real_t y) {
+real_t angle_from_xy(const real_t x, const real_t y) {
     real_t theta = real_t(0);
 
     if (operands_ge(x, real_t(0))) {
@@ -205,7 +201,6 @@ real_t angle_from_xy(real_t x, real_t y) {
     } else {
         theta = atan(y / x) + numerics<real_t>::pi();
     }
-
     return theta;
 }
 
@@ -218,15 +213,12 @@ real_t angle_from_xy(real_t x, real_t y) {
 //! first time.
 template<typename real_t>
 inline real_t random_number_in_interval(
-    real_t range_min, 
-    real_t range_max
+    const real_t range_min, const real_t range_max
     ) {
-    
     const float rand_num = 
         (static_cast<float>(rand()) / static_cast<float>(RAND_MAX)) 
         * (range_max - range_min) 
         + range_min;
-
     return static_cast<real_t>(rand_num);
 }
 

@@ -38,7 +38,6 @@ namespace v8 { namespace math {
 
 /**
  * \class   matrix_2X2.
- *
  * \brief   A 2x2 matrix, stored in row major format. It follows the convention
  * 			that it multiplies columns vectors, on the right (if M is a matrix
  * 			and V is a vector, then one would write a multiplication like this :
@@ -65,18 +64,16 @@ public :
         real_t elements_[4];	///< Used for array like access to the elements */
     };
 
-    /**
-     * \brief   Alias representing type of the matrix elements.
-     */
+    /*!< \brief   Alias representing type of the matrix elements. */
     typedef real_t                  element_type;
-    /**
-     * \brief Alias for reference to an element.
-     */
+
+    /*!< \brief Alias for reference to an element. */
     typedef real_t&                 reference;
-    /**
-     * \brief Alias for cont reference to an element.
-     */
+
+    /*!< brief Alias for cont reference to an element. */
     typedef const real_t&           const_reference;
+
+    /*!< Type of this object. */
     typedef matrix_2X2<real_t>      matrix_2X2_t;
 
     static const matrix_2X2_t       zero;
@@ -126,14 +123,16 @@ public :
     template<typename Convertible_Type>
     matrix_2X2(const matrix_2X2<Convertible_Type>& other);
 
+    template<typename Convertible_Type>
+    inline matrix_2X2(const Convertible_Type (&arr)[4]);
+
     /**
      * \brief   Makes the matrix equal to the tensor product of the two vectors.
      * 			Given two vectors u and v, their tensor product is
      * 			u * v ^ T.
      */
     inline matrix_2X2<real_t>& make_tensor_product(
-        const math::vector2<real_t>& u, 
-        const math::vector2<real_t>& v
+        const math::vector2<real_t>& u, const math::vector2<real_t>& v
         );
 
     /**

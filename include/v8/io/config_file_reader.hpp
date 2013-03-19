@@ -269,6 +269,69 @@ public :
         const v8_size_t     k_hier_entries = 0
         ) const;
 
+    class iterator {
+    public :
+        iterator& operator++() {
+            ++itr_;
+            return *this;
+        }
+
+        iterator operator++(int) {
+            rapidjson::Document::MemberIterator old_itr(itr_);
+            ++*this;
+            return old_itr;
+        }
+
+        iterator& operator--() {
+            --itr_;
+            return *this;
+        }
+
+        iterator operator--(int) {
+            rapidjson::Document::MemberIterator old_itr(itr_);
+            --*this;
+            return old_itr;
+        }
+
+        rapidjson::Document::MemberIterator operator->() const {
+            assert(itr_);
+            return itr_;
+        }
+
+        rapidjson::Document::ValueType& operator*() {
+            return itr_->value;
+        }        
+
+        const rapidjson::Document::ValueType& operator*() const {
+            return itr_->value;
+        }
+
+        bool operator==(const iterator& rhs) const {
+            return itr_ == rhs.itr_;
+        }
+
+        bool operator!=(const iterator& rhs) const {
+            return !(*this == rhs);
+        }
+
+    private :
+        friend class V8ConfigFile;
+
+        iterator(rapidjson::Document::MemberIterator itr)
+            : itr_(itr)
+        {}
+
+        rapidjson::Document::MemberIterator itr_;
+    };
+
+    iterator begin() {
+        return iterator(config_file_.MemberBegin());
+    }
+
+    iterator end() {
+        return iterator(config_file_.MemberEnd());
+    }
+
 private :
     v8_bool_t                                                   is_valid_;
     platformstl::memory_mapped_file                             mmfile_;

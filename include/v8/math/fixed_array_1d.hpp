@@ -68,10 +68,11 @@ namespace v8 { namespace math {
  *  elem = arr(5); // returns element arr(2)
  *  }
  */
-template<
-        typename T,
-        v8_size_t X = 4,
-        typename out_of_bounds_access_policy = oob_assert_policy
+template
+<
+    typename T,
+    v8_size_t X = 4u,
+    typename out_of_bounds_access_policy = oob_assert_policy
 > class fixed_array_1D {
 public :
 
@@ -217,7 +218,6 @@ private :
     //! @}
 
 private :
-
     T   data_[X];
 };
 

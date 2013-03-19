@@ -31,6 +31,7 @@
 #include <cassert>
 
 #include <v8/base/count_of.hpp>
+#include <v8/base/copy_pod_range.hpp>
 #include <v8/base/fundamental_types.hpp>
 #include <v8/math/math_constants.hpp>
 #include <v8/math/math_utils.hpp>
@@ -53,7 +54,7 @@ template<typename real_t>
 class matrix_3X3 {
 private :
 
-    int index_at(int row, int col) const {
+    v8_int_t index_at(const v8_int_t row, v8_int_t col) const {
         return (row - 1) * 3 + col - 1;
     }
 
@@ -92,8 +93,6 @@ public:
     static const matrix3X3_t identity;  ///< The identity matrix. */
 
     /**
-     * \fn  matrix3X3::matrix3X3()
-     *
      * \brief   Default constructor. Leaves elements uninitialized.
      */
     matrix_3X3() {}
@@ -104,29 +103,30 @@ public:
         real_t a31, real_t a32, real_t a33
         );
 
+    template<typename convertible_type>
+    matrix_3X3(const matrix_3X3<convertible_type>& rhs) {
+        base::copy_pod_range(rhs.elements_, 9, elements_);
+    }
+
+    template<typename convertible_type>
+    matrix_3X3(const convertible_type (&arr)[9]) {
+        base::copy_pod_range(&arr[0], 9, elements_);
+    }
+
     /**
-     * \fn  matrix3X3::matrix3X3(const real_t* input, size_t count);
-     *
      * \brief   Constructs from an array of values.
-     * 			
      * \param   input   Pointer to an array of values. Must not be null.
      * \param   count   Number of elements in the array.
      */
     matrix_3X3(const real_t* input, size_t count);
 
     /**
-     * \fn  matrix3X3::matrix3X3(float a11, float a22, float a33)
-     *
      * \brief   Construct a diagonal matrix, setting A(i,j) = 0 for every i <> j.
      */
     matrix_3X3(real_t a11, real_t a22, real_t a33);
 
     /**
-     * \fn  matrix3X3::matrix3X3( const vector3<real_t>& u, const vector3<real_t>& v,
-     * const vector3<real_t>& w, bool column = true );
-     *
      * \brief   Construct a matrix from a set of 3 vectors.
-     *
      * \param   column  True - vectors represent columns, otherwise rows.
      */
     matrix_3X3(
@@ -147,16 +147,12 @@ public:
     inline matrix_3X3<real_t>& make_identity();
 
     /**
-     * \fn  matrix3X3<real_t>& matrix3X3::make_translation(real_t tx, real_t ty);
-     *
      * \brief   Convert matrix to a matrix that can be used to translate affine points
      * 			of the form (x, y, 1).
      */
     matrix_3X3<real_t>& make_translation(real_t tx, real_t ty);
 
     /**
-     * \fn  static matrix3X3<real_t> matrix3X3::translation(const math::vector2<real_t>& tv)
-     *
      * \brief   Make a translation matrix, with the translating factors
      * 			specified by a vector2 object. The matrix can be used to translate
      * 			affine points in the form (x, y, 1).
@@ -166,24 +162,18 @@ public:
     }
 
     /**
-     * \fn    static const matrix3X3 matrix3X3::skew_symmetric(float a12, float a13, float a23)
-     *
      * \brief Make a skew symmetric matrix. A skew symmetric matrix has
      *        A(i,j) = 0 when i = j and A(i, j) = -A(j, i) when i <> j.
      */
     matrix_3X3<real_t>& make_skew_symmetric(real_t u0, real_t u1, real_t u2);
 
     /**
-     * \fn  static matrix3X3<real_t> matrix3X3::scale(real_t x, real_t y)
-     *
      * \brief   Makes a matrix suitable for scaling an affine vector of the
      * 			form (x, y, 0).
      */
     matrix_3X3<real_t>& make_scale(real_t x, real_t y);
 
     /**
-     * \fn  static const matrix3X3<real_t> matrix3X3::scale(real_t sx, real_t sy, real_t sz)
-     *
      * \brief   Returns a scaling matrix for a vector in R3.
      */
     matrix_3X3<real_t>& make_scale(real_t sx, real_t sy, real_t sz);
@@ -193,28 +183,20 @@ public:
     }  
 
     /**
-     * \fn  static const matrix3X3<real_t> matrix3X3::euler_xyz(real_t rx, real_t ry, real_t rz)
-     *
      * \brief   Makes a rotation matrix, using Euler angles in xyz format.
      */
     matrix_3X3<real_t>& make_euler_xyz(real_t rx, real_t ry, real_t rz);
 
     /**
-     * \fn  static const matrix3X3<real_t> matrix3X3::rotation_x(real_t theta)
-     *
      * \brief   Makes a matrix for a rotation around the x axis, with
      * 			an angle of theta radians.
-     * 			
      * \param   theta   Angle of rotation, in radians.
      */
     matrix_3X3<real_t>& make_rotation_x(real_t theta);
 
     /**
-     * \fn  static const matrix3X3<real_t> matrix3X3::rotation_y(real_t theta)
-     *
      * \brief   Returns a matrix for a rotation around the y axis, with
      * 			an angle of theta radians.
-     * 			
      * \param   theta   Angle of rotation, in radians.
      */
     matrix_3X3<real_t>& make_rotation_y(real_t theta);
@@ -222,7 +204,6 @@ public:
     /**
      * \brief   Returns a matrix for a rotation around the y axis, with
      * 			an angle of theta radians.
-     * 			
      * \param   theta   Angle of rotation, in radians.
      */
     matrix_3X3<real_t>& make_rotation_z(real_t theta);
@@ -239,11 +220,7 @@ public:
         );
 
     /**
-     * \fn  static matrix3X3<real_t> matrix3X3::axis_angle(const vector3<real_t>& axisv,
-     * real_t theta);
-     *
      * \brief   Make a rotation matrix out of an angle-axis representation.
-     *
      * \param   axisv   Normalized vector that gives the rotation axis.
      * \param   theta   Rotation angle, in radians.
      */
@@ -252,9 +229,6 @@ public:
         );
 
     /**
-     * \fn  static matrix3X3 matrix3X3::rotation(const vector3<real_t>& v1,
-     * const vector3<real_t>& v2);
-     *
      * \brief   Given 2 vectors v1 and v2, build a matrix that will rotate v1 into v2.
      *          If v1 and v2 are parallel, the function will return a  matrix representing
      *          a rotation of 0 radians around v1.
@@ -265,10 +239,7 @@ public:
         );
 
     /**
-     * \fn  static matrix3X3<real_t> matrix3X3::planar_reflection(const vector3<real_t>& pn);
-     *
      * \brief   Return a reflection matrix around a plane's normal.
-     *
      * \param   pn  Normalized vector representing the plane's normal.
      */
     matrix_3X3<real_t>& planar_reflection(
@@ -297,9 +268,6 @@ public:
         ) const;
 
     /**
-     * \fn  static const matrix3X3<real_t> matrix3X3::tensor_product( const vector3<real_t>& u,
-     * const vector3<real_t>& w );
-     *
      * \brief   Return a matrix that is the tensor product of the two input vectors.
      * 			If u(u0, u1, u2) and v(v0, v1, v2) are two vectors
      * 			then the tensor product is u * v^T.
@@ -326,15 +294,11 @@ public:
     matrix_3X3<real_t>& operator/=(real_t k);
 
     /**
-     * \fn  real_t matrix3X3::determinant() const;
-     *
      * \brief   Compute the determinant for this matrix.
      */
     real_t determinant() const;
 
     /**
-     * \fn  bool matrix3X3::is_invertible() const
-     *
      * \brief   Query if this matrix3X3 is invertible. A matrix B is invertible 
      * 			only if det(B) != 0.
      */
@@ -343,8 +307,6 @@ public:
     }
 
     /**
-     * \fn  matrix3X3<real_t>& matrix3X3::invert()
-     *
      * \brief   Inverts the matrix.
      */
     matrix_3X3<real_t>& invert();
@@ -357,8 +319,6 @@ public:
     void get_inverse(math::matrix_3X3<real_t>* mtx) const;
 
     /**
-     * \fn  matrix3X3<real_t>& matrix3X3::transpose();
-     *
      * \brief   Transpose the matrix and return a reference to it.
      */
     matrix_3X3<real_t>& transpose();
@@ -380,8 +340,6 @@ public:
     void get_adjoint(math::matrix_3X3<real_t>* mtx) const;
 
     /**
-     * \fn  real_t matrix3X3::trace() const
-     *
      * \brief   Return the trace of the matrix (sum of elements in the main diagonal).
      */
     real_t trace() const {
@@ -389,8 +347,6 @@ public:
     }
 
     /**
-     * \fn  matrix3X3& matrix3X3::ortho_normalize();
-     *
      * \brief   Make a matrix whose columns represent ortho-normalized vectors.
      *          Let M = [v0, v1, v2]. This function will output a matrix 
      *          M1 = [q0, q1, q2], such that q0, q1, q2 are orthonormal vectors.
@@ -405,8 +361,6 @@ public:
     matrix_3X3<real_t>& set_row(int row, real_t a1, real_t a2, real_t a3);
 
     /**
-     * \fn  matrix3X3<real_t>& matrix3X3::set_row(int row, const real_t* data_ptr);
-     *
      * \brief   Sets the contents of a row from an array of values.
      * 			
      * \param   row         The row index (1 based).
@@ -415,10 +369,7 @@ public:
     matrix_3X3<real_t>& set_row(int row, const real_t* data_ptr);
 
     /**
-     * \fn  matrix3X3<real_t>& matrix3X3::set_row(int row, const math::vector3<real_t>& vec);
-     *
      * \brief   Sets contents of the specified row equal to the elements of a vector.
-     * 			
      * \param   row Index of the row to set, using 1 based indexing.
      * \param   Source vector to copy elements from.
      */
@@ -427,10 +378,7 @@ public:
     }
   
     /**
-     * \fn    void matrix3X3::get_row(int row, float* data) const
-     *
      * \brief Copies the contents of a row.
-     *
      * \param row       The row index (1 based).
      * \param [in,out]  data    Pointer to a float array that will receive the
      * 					row's data. The array size must be at least 3. 
@@ -439,10 +387,7 @@ public:
     void get_row(int row, real_t* ptr) const;
 
     /**
-     * \fn  void matrix3X3::get_row(int row, math::vector3<real_t>* v3)
-     *
      * \brief   Copies the contents of a row into a vector3.
-     * 			
      * \param   row         The row index (1 based).
      * \param [in,out]  v3  Pointer to a vector3 object that receives the data.
      * 					Cannot be null.
@@ -454,20 +399,14 @@ public:
     matrix_3X3<real_t>& set_column(int column, real_t c1, real_t c2, real_t c3);
 
     /**
-     * \fn  matrix3X3<real_t>& matrix3X3::set_column(int column, const real_t* data_ptr)
-     *
      * \brief Sets a column's data.
-     *
      * \param column  The column index (1 based).
      * \param data_ptr  Pointer to source data. Must not be null.
      */
     matrix_3X3<real_t>& set_column(int column, const real_t* data_ptr);
 
     /**
-     * \fn  matrix3X3<real_t>& matrix3X3::set_column(int column, const math::vector3<real_t>& vec)
-     *
      * \brief   Assigns the contents of a vector3 object to a column.
-     *
      * \param   column  The column index(1 based).
      * \param   vec     The source vector for the assignment.
      */
@@ -476,10 +415,7 @@ public:
     }
 
     /**
-     * \fn  void matrix3X3::get_column(int column, real_t* data_ptr);
-     *
      * \brief   Copies the contents of a column into an array.
-     * 			
      * \param   column              The column index(1 based).
      * \param [in,out]  data_ptr    Pointer to an array of values. Must be non
      * 					null and have at least 3 elements.
@@ -487,8 +423,6 @@ public:
     void get_column(int column, real_t* data_ptr);
 
     /**
-     * \fn  void matrix3X3::get_column(int column, math::vector3<real_t>* v3)
-     *
      * \brief   Copies the contents of a column into a vector3 object.
      * \param   column      The column index(1 based).
      * \param [in,out]  v3  Pointer to a vector3 object. Must be non null.
@@ -498,10 +432,7 @@ public:
     }
 
     /**
-     * \fn  math::vector2<real_t>* matrix3X3::transform_point(math::vector2* p) const
-     *
      * \brief   Transforms a 2d affine point and returns a pointer to it.
-     *
      * \param [in,out]  p   Pointer to the point. Must not be null.
      */
     math::vector2<real_t>* transform_point(math::vector2<real_t>* p) const {
@@ -511,8 +442,6 @@ public:
     }
 
     /**
-     * \fn  math::vector2* matrix3X3::transform_vector(math::vector2* p) const
-     *
      * \brief   Transforms a 2d vector.
      */
     math::vector2<real_t>* transform_vector(math::vector2<real_t>* p) const {

@@ -34,22 +34,22 @@
 
 namespace v8 { namespace math { namespace geometry_gen {
 
-struct vertex3F_t {
+struct vertex_pntt {
     vector3F    vt_position;
     vector3F    vt_normal;
     vector3F    vt_tangent;
     vector2F    vt_texcoord;
 
-    vertex3F_t() {}
+    vertex_pntt() {}
 
-    vertex3F_t(const vector3F& position, 
+    vertex_pntt(const vector3F& position, 
                const vector3F& normal, 
                const vector3F& tangent,
                const vector2F& texcoord)
         : vt_position(position), vt_normal(normal), vt_tangent(tangent),
           vt_texcoord(texcoord) {}
 
-    vertex3F_t(float px, float py, float pz,
+    vertex_pntt(float px, float py, float pz,
                float nx, float ny, float nz,
                float tx, float ty, float tz,
                float tu, float tv) 
@@ -58,7 +58,7 @@ struct vertex3F_t {
 };
 
 struct mesh_data_t {
-    std::vector<vertex3F_t> md_vertices;
+    std::vector<vertex_pntt> md_vertices;
     std::vector<uint32_t>   md_indices;
 };
 

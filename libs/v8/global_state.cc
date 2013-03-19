@@ -3,7 +3,7 @@
 #include "v8/rendering/constants.hpp"
 #include "v8/rendering/renderer.hpp"
 #include "v8/rendering/render_assets_cache.hpp"
-//#include "framework/scene/scene_manager.hpp"
+#include "v8/scene/scene_system.hpp"
 #include "v8/io/filesystem.hpp"
 
 #include "v8/global_state.hpp"

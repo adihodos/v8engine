@@ -12,6 +12,7 @@ target_link_libraries(
     v8_renderer_directx
     v8_base
     v8_math
+    v8_scene
     v8_io
     v8_input
     v8_gui
@@ -19,3 +20,11 @@ target_link_libraries(
     v8_utility
     pdh
     )
+
+#message("Output dir = ${RUNTIME_OUTPUT_DIRECTORY}/${CONFIGURATION}")
+
+#add_custom_command(
+#   TARGET julia_fractal POST_BUILD
+#  COMMAND copy "${Assimp_DLL}" "${RUNTIME_OUTPUT_DIRECTORY}/${CONFIGURATION}"
+    #COMMENT "copying drlls ..."
+#)    

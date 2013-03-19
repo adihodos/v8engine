@@ -4,8 +4,10 @@
 #include "v8/global_state.hpp"
 #include "v8/io/config_file_reader.hpp"
 #include "v8/io/filesystem.hpp"
+#include "v8/rendering/constants.hpp"
 #include "v8/rendering/effect.hpp"
 #include "v8/rendering/render_assets_cache.hpp"
+#include "v8/rendering/texture_info.hpp"
 #include "v8/rendering/texture.hpp"
 #include "v8/utility/hash_string.hpp"
 
@@ -52,16 +54,20 @@ v8_bool_t v8::rendering::material::initialize(const hash_string& mat_file) {
         const char* tex_filename = nullptr;
         conf_main.GetValue("emissive", tex_filename);
 
-        tex.emissive = state->asset_cache()->get_texture(tex_filename);
+        texture_info_t tex_info(tex_filename, BindingFlag::ShaderResource);
+
+        tex.emissive = state->asset_cache()->get_texture(tex_info);
         if (!tex.emissive) {
             return false;
         }
 
         conf_main.GetValue("ambient", tex_filename);
-        tex.ambient = state->asset_cache()->get_texture(tex_filename);
+        tex_info.tex_filename = tex_filename;
+        tex.ambient = state->asset_cache()->get_texture(tex_info);
 
         conf_main.GetValue("diffuse", tex_filename);
-        tex.diffuse = state->asset_cache()->get_texture(tex_filename);
+        tex_info.tex_filename = tex_filename;
+        tex.diffuse = state->asset_cache()->get_texture(tex_info);
         if (!tex.diffuse) {
             return false;
         }
@@ -70,7 +76,8 @@ v8_bool_t v8::rendering::material::initialize(const hash_string& mat_file) {
         }
 
         conf_main.GetValue("specular", tex_filename);
-        tex.specular = state->asset_cache()->get_texture(tex_filename);
+        tex_info.tex_filename = tex_filename;
+        tex.specular = state->asset_cache()->get_texture(tex_info);
         if (!tex.specular) {
             return false;
         }

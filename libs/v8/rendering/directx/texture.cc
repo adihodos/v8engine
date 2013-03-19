@@ -10,6 +10,7 @@
 #include "v8/rendering/directx/internal/debug_helpers.hpp"
 #include "v8/utility/win_util.hpp"
 
+#include "v8/rendering/directx/texture_info.hpp"
 #include "v8/rendering/directx/texture.hpp"
 
 namespace {
@@ -66,9 +67,8 @@ v8::directx::texture::texture()
 {}
 
 v8::directx::texture::texture(
-    v8::directx::renderer* rsys, 
-    const char* file_name, 
-    const v8_uint32_t bind_flags
+    const texture_info_t& tex_info,
+    v8::directx::renderer* rsys
     )
     :       width_(0)
         ,   height_(0)
@@ -77,15 +77,13 @@ v8::directx::texture::texture(
         ,   format_(DXGI_FORMAT_UNKNOWN)
         ,   flags_(0)
 {
-    Initialize(rsys, file_name, bind_flags);
+    initialize(tex_info, rsys);
 }
 
 v8::directx::texture::~texture() {}
 
-v8_bool_t v8::directx::texture::Initialize( 
-    v8::directx::renderer* rsys, 
-    const char* file_name, 
-    const v8_uint32_t bind_flags
+v8_bool_t v8::directx::texture::initialize( 
+    const texture_info_t& tex_info, v8::directx::renderer* rsys
     ) {
     if (resource_) {
         return true;
@@ -99,7 +97,7 @@ v8_bool_t v8::directx::texture::Initialize(
     //      create the corresponding view
     platformstl::path textureFilePath(state->file_sys()->get_dir_path(
         filesys::Dir::Textures));
-    textureFilePath.push(file_name);
+    textureFilePath.push(tex_info.tex_filename.c_str());
     utility::win32::scoped_wide_string_t filePathWideStr(
         utility::win32::multibyte_string_to_wide_string(textureFilePath.c_str()));
 
@@ -129,7 +127,7 @@ v8_bool_t v8::directx::texture::Initialize(
     depth_      = static_cast<v8_uint32_t>(tex_metadata.depth);
     format_     = tex_metadata.format;
     array_size_ = static_cast<v8_uint32_t>(tex_metadata.arraySize);
-    flags_      = bind_flags;
+    flags_      = tex_info.tex_bindflags;
 
     const D3D11_USAGE res_usage_flags   = D3D11_USAGE_IMMUTABLE;
     const UINT res_bind_flags           = map_bindflags_to_directx_bindflags(flags_);

@@ -2,6 +2,9 @@
 
 #include <algorithm>
 #include <type_traits>
+#include <cstring>
+#include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <v8/v8.hpp>
@@ -41,140 +44,6 @@ public :
     scene_system();
 
     virtual ~scene_system();
-
-    virtual v8_bool_t initialize();
-
-protected :
-
-    typedef v8_bool_t (*ReadSectionElementFN_t)(
-        scene_system*, const io::V8ConfigFile_ReadOnlySection&, void*
-        );
-
-    typedef void (*ProcessSectionElementFN_t)(scene_system*, const void*);
-
-    struct SectionHandlerTableEntry_t {
-        const char*                                     section_name;
-        ReadSectionElementFN_t                          read_element_fn;
-        ProcessSectionElementFN_t                       process_element_fn;
-        void*                                           element_data;
-    };
-
-    typedef v8::base::fixed_pod_vector
-    <
-        SectionHandlerTableEntry_t,
-        64U
-    >                                                   SectionHandlersTable_t;
-
-    virtual void fill_section_handlers_table(
-        SectionHandlersTable_t* handlers_table
-        ) = 0;
-
-    static v8_bool_t dispatch_read_material(
-        scene_system* smgr, 
-        const io::V8ConfigFile_ReadOnlySection& mat_sec, 
-        void* mat
-        ) {
-        return smgr->read_material(mat_sec, mat);
-    }
-
-    static void dispatch_process_material(
-        scene_system* smgr,
-        const void* mat_data
-        ) {
-        smgr->process_material(mat_data);
-    }
-
-    static v8_bool_t dispatch_read_light(
-        scene_system* smgr,
-        const io::V8ConfigFile_ReadOnlySection& lsec,
-        void* ldata
-        ) {
-        return smgr->read_light(lsec, ldata);
-    }
-
-    static void dispatch_process_light(
-        scene_system* smgr, 
-        const void* ldata
-        ) {
-        smgr->process_light(ldata);
-    }
-
-    static v8_bool_t dispatch_read_std_object(
-        scene_system* smgr,
-        const io::V8ConfigFile_ReadOnlySection& section,
-        void* obj_data
-        ) {
-        return smgr->read_standard_object(section, obj_data);
-    }
-
-    static v8_bool_t dispatch_read_user_object(
-        scene_system* smgr,
-        const io::V8ConfigFile_ReadOnlySection& sec,
-        void* obj_data
-        ) {
-        return smgr->read_userdefined_object(sec, obj_data);
-    }
-
-protected :
-
-    //!
-    //! \brief Called to read a light entry from the lights section of the
-    //! scene configuration file.
-    v8_bool_t read_light(
-        const io::V8ConfigFile_ReadOnlySection& lsection, 
-        void* light_data
-        );
-
-    //!
-    //! \brief Called when a light is extracted from the config file. The default
-    //! implementation simply adds it to the scene lights group.
-    void process_light(
-        const void* light_data
-        );
-
-    //!
-    //! \brief Called to read a material, from the materials section.
-    v8_bool_t read_material(
-        const io::V8ConfigFile_ReadOnlySection& material_entry,
-        void* material_data
-        );
-
-    //!
-    //! \brief Called when a material is extracted from the config file. The
-    //! default implementation will cache the material, to the resource manager.
-    void process_material(
-        const void* material_data
-        );
-
-    //!
-    //! \brief Called to read information about a standard object, 
-    //! from the objects section.
-    v8_bool_t read_standard_object(
-        const io::V8ConfigFile_ReadOnlySection& object_entry,
-        void* object_data
-        );
-
-    //!
-    //! \brief Called when information about a standard object was extracted
-    //! from the objects section.
-    /*virtual void process_standard_object(
-        const void* loaded_obj_data
-        ) = 0;*/
-
-    //!
-    //! \brief Called to read information about a user defined object,
-    //! from the custom objects section.
-    v8_bool_t read_userdefined_object(
-        const io::V8ConfigFile_ReadOnlySection& object_entry,
-        void* object_data
-        );
-
-    //!
-    //! \brief Called when information about a user defined object was extracted
-    //! from the custom objects section.
-    /*virtual void process_userdefined_object(
-        const void* object_data
-        ) = 0;*/
 
 //! @}
 
@@ -282,9 +151,7 @@ public :
 
     //! \brief Sets the camera's controller.
     //! \remarks The scene_system takes ownership of the controller.
-    void set_cam_controller(
-        camera_controller* controller
-        ) {
+    void set_cam_controller(camera_controller* controller) {
         m_cam_controller = controller;
         m_cam_controller->set_camera(&m_camera);
     }
@@ -297,27 +164,19 @@ public :
 public :
 
     //! \brief Updates the state of all entities.
-    virtual void update(
-        float delta_ms
-        );
+    virtual void update(float delta_ms);
 
     //! \brief Draws all (visible) entities in the scene.
-    virtual void draw(
-        v8::rendering::renderer*
-        );
+    virtual void draw(v8::rendering::renderer*);
 
 protected :
 
     //! \brief Called before anything is drawn. This is the place to perform
     //! frustrum culling.
-    virtual void pre_draw(
-        v8::rendering::renderer*
-        );
+    virtual void pre_draw(v8::rendering::renderer*);
 
     //! \brief Called after the drawing of all visible objects has completed.
-    virtual void post_draw(
-        v8::rendering::renderer*
-        );
+    virtual void post_draw(v8::rendering::renderer*);
 
 //! @}
 

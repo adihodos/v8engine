@@ -42,7 +42,7 @@ if(WIN32) # The only platform it makes sense to check for DirectX SDK
   # redo search if prefix path changed
   clear_if_changed(DirectX_PREFIX_PATH
     DirectX_LIBRARY
-	DirectX_INCLUDE_DIR
+	  DirectX_INCLUDE_DIR
   )
   
   find_path(DirectX_INCLUDE_DIR NAMES d3d9.h HINTS ${DirectX_INC_SEARCH_PATH})
@@ -65,15 +65,22 @@ if(WIN32) # The only platform it makes sense to check for DirectX SDK
   # look for d3dcompiler (needed by 11)
   find_library(DirectX_D3DCOMPILER_LIBRARY NAMES d3dcompiler HINTS ${DirectX_LIB_SEARCH_PATH} PATH_SUFFIXES ${DirectX_LIBPATH_SUFFIX})
 
+  find_library(DirectX_EFFECTS_LIBRARY_DEB NAME Effects11d HINTS ${DirectX_LIB_SEARCH_PATH} PATH_SUFFIXES ${DirectX_LIBPATH_SUFFIX})
+  find_library(DirectX_EFFECTS_LIBRARY_REL NAME Effects11 HINTS ${DirectX_LIB_SEARCH_PATH} PATH_SUFFIXES ${DirectX_LIBPATH_SUFFIX})
+  find_library(DirectX_TEX_LIBRARY_DEB NAME DirectXTexd HINTS ${DirectX_LIB_SEARCH_PATH} PATH_SUFFIXES ${DirectX_LIBPATH_SUFFIX})
+  find_library(DirectX_TEX_LIBRARY_REL NAME DirectXTex HINTS ${DirectX_LIB_SEARCH_PATH} PATH_SUFFIXES ${DirectX_LIBPATH_SUFFIX})
+  set(DirectX_EFFECTS_LIBRARY optimized ${DirectX_EFFECTS_LIBRARY_REL} debug ${DirectX_EFFECTS_LIBRARY_DEB})
+  set(DirectX_TEX_LIBRARY optimized ${DirectX_TEX_LIBRARY_REL} debug ${DirectX_TEX_LIBRARY_DEB})
+
   findpkg_finish(DirectX)
   set(DirectX_LIBRARIES ${DirectX_LIBRARIES} 
     ${DirectX_D3DX9_LIBRARY}
     ${DirectX_DXERR_LIBRARY}
     ${DirectX_DXGUID_LIBRARY}
   )
-  
+
   mark_as_advanced(DirectX_D3DX9_LIBRARY DirectX_DXERR_LIBRARY DirectX_DXGUID_LIBRARY
-    DirectX_DXGI_LIBRARY DirectX_D3DCOMPILER_LIBRARY)
+    DirectX_DXGI_LIBRARY DirectX_D3DCOMPILER_LIBRARY DirectX_EFFECTS_LIBRARY)
   
 
   # look for D3D11 components
@@ -99,6 +106,10 @@ if(WIN32) # The only platform it makes sense to check for DirectX SDK
     if (DirectX_DXERR_LIBRARY)
         set(DirectX_D3D11_LIBRARIES ${DirectX_D3D11_LIBRARIES} ${DirectX_DXERR_LIBRARY})
     endif ()
+    if (DirectX_EFFECTS_LIBRARY)
+      set(DirectX_D3D11_LIBRARIES ${DirectX_D3D11_LIBRARIES} ${DirectX_EFFECTS_LIBRARY})
+      set(DirectX_D3D11_LIBRARIES ${DirectX_D3D11_LIBRARIES} ${DirectX_TEX_LIBRARY})
+    endif()
 	mark_as_advanced(DirectX_D3D11_INCLUDE_DIR DirectX_D3D11_LIBRARY DirectX_D3DX11_LIBRARY)
   endif ()
   

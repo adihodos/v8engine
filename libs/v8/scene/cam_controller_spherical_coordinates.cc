@@ -118,8 +118,9 @@ v8::scene::camera_controller_spherical_coords::initialize() {
     return true;
 }
 
-void v8::scene::camera_controller_spherical_coords::
-on_input_event(const input_event& ev_input) {
+void v8::scene::camera_controller_spherical_coords::on_input_event(
+    const input_event& ev_input
+    ) {
     if (ev_input.type == InputEventType::Mouse_Wheel) {
         handle_mouse_wheel(ev_input.mouse_wheel_ev.delta, 
                            ev_input.mouse_wheel_ev.x_pos, 

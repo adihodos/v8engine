@@ -9,6 +9,8 @@
 
 namespace v8 { namespace directx {
 
+struct texture_info_t;    
+
 //struct textureDescriptor_t {
 //    v8_uint32_t     texWidth;
 //    v8_uint32_t     texHeight;
@@ -35,11 +37,7 @@ public :
 
     texture();
 
-    texture(
-        renderer* rsys, 
-        const char* file_name, 
-        const v8_uint32_t bind_flags
-        );
+    texture(const texture_info_t& tex_info, renderer* rsys);
 
     ~texture();
 
@@ -56,11 +54,7 @@ public :
     //    const void* initialData
     //    );
 
-    v8_bool_t Initialize(
-        renderer* rsys, 
-        const char* file_name,
-        const v8_uint32_t bind_flags
-        );
+    v8_bool_t initialize(const texture_info_t& tex_info, renderer* rsys);
 
 /// @}
 
@@ -69,12 +63,12 @@ public :
 
 public :
 
-    v8_bool_t CheckIfValid() const {
+    v8_bool_t check_if_valid() const {
         return resource_ && tex_srv_.view;
     }
 
     operator int base::operator_bool::*() const {
-        return CheckIfValid() ? &base::operator_bool::a_member : nullptr;
+        return check_if_valid() ? &base::operator_bool::a_member : nullptr;
     }
 
 /// @}
@@ -84,18 +78,18 @@ public :
 
 public :
 
-    ID3D11ShaderResourceView* GetSRV() const {
-        assert(CheckIfValid());
+    ID3D11ShaderResourceView* get_srv() const {
+        assert(check_if_valid());
         return v8::base::scoped_pointer_get(tex_srv_.view);
     }
 
-    ID3D11UnorderedAccessView* GetUAV() const {
-        assert(CheckIfValid());
+    ID3D11UnorderedAccessView* get_uav() const {
+        assert(check_if_valid());
         return v8::base::scoped_pointer_get(tex_uav_.view);
     }
 
-    ID3D11RenderTargetView* GetRTV() const {
-        assert(CheckIfValid());
+    ID3D11RenderTargetView* get_rtv() const {
+        assert(check_if_valid());
         return v8::base::scoped_pointer_get(tex_rtv_.view);
     }
 

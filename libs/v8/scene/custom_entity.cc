@@ -6,9 +6,8 @@
 #include "v8/scene/custom_entity.hpp"
 
 v8::scene::custom_entity::custom_entity()
-    :   base_class()
-        , topology_(v8::rendering::PrimitiveTopology::Undefined)
-        , material_(nullptr)
+    :       base_class()
+        ,   topology_(v8::rendering::PrimitiveTopology::Undefined)
 {}
 
 v8::scene::custom_entity::~custom_entity() 
@@ -22,13 +21,12 @@ void v8::scene::custom_entity::draw(
     assert(technique_);
     assert(vertexbuffer_);
     assert(indexbuffer_);
-    assert(material_);
 
     pre_draw(scene_mgr, render_sys);
 
     vertexbuffer_.bind_to_pipeline(render_sys);
     indexbuffer_.bind_to_pipeline(render_sys);
-    material_->bind_to_effect(attached_effect_);
+    material_.bind_to_effect(attached_effect_);
 
     render_sys->ia_stage_set_primitive_topology_type(topology_);
 

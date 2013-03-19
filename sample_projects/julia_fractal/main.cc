@@ -6,11 +6,13 @@
 #include <v8/utility/win_util.hpp>
 #include <third_party/fast_delegate/fast_delegate.hpp>
 #include <v8/v8.hpp>
+#include <v8/base/debug_helpers.hpp>
 #include <v8/base/scoped_pointer.hpp>
 #include <v8/base/scoped_resource.hpp>
 #include <v8/math/color.hpp>
 #include <v8/math/vector3.hpp>
 #include <v8/math/matrix4X4.hpp>
+#include <v8/scene/scene_system.hpp>
 
 #include "fractal.hpp"
 #include "fractal_window.hpp"
@@ -86,6 +88,5 @@ int WINAPI WinMain(
         }
         app_context.window()->message_loop();
     }
-
     return 0;
 }

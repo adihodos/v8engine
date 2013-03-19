@@ -30,24 +30,13 @@ public :
 /// @{
 
 public :
-    virtual void pre_draw(
-        v8::scene::scene_system*,
-        v8::rendering::renderer*
-        ) = 0;
+    virtual void pre_draw(v8::scene::scene_system*, v8::rendering::renderer*) = 0;
 
-    virtual void draw(
-        v8::scene::scene_system*,
-        v8::rendering::renderer*
-        ) = 0;
+    virtual void draw(v8::scene::scene_system*, v8::rendering::renderer*) = 0;
 
-    virtual void post_draw(
-        v8::scene::scene_system*,
-        v8::rendering::renderer*
-        ) = 0;
+    virtual void post_draw(v8::scene::scene_system*, v8::rendering::renderer*) = 0;
 
-    virtual void update(
-        float delta
-        ) = 0;
+    virtual void update(float delta) = 0;
 
 /// @}
 
@@ -77,6 +66,14 @@ public :
         return world_transform_;
     }
 
+    v8::math::transformF& world_transform() {
+        return world_transform_;
+    }
+
+    const v8::math::transformF& world_transform() const {
+        return world_transform_;
+    }
+
 /// @}
 
 /// \name Members.
@@ -92,7 +89,7 @@ protected :
     rendering::effect_technique*                            technique_;
 
     ///< Stores the world transform for this entity.
-    v8::math::transformF                                        world_transform_;
+    v8::math::transformF                                    world_transform_;
 
 /// @}
 };

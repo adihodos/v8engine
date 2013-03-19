@@ -76,12 +76,13 @@ namespace v8 { namespace math {
  *  elem = arr(5, 5, 6); // returns element arr(2, 2, 0)
  *  }
  */
-template<
-        typename T,
-        v8_size_t X = 4,
-        v8_size_t Y = 4,
-        v8_size_t Z = 4,
-        typename out_of_bounds_access_policy = oob_assert_policy
+template
+<
+    typename T,
+    v8_size_t X = 4u,
+    v8_size_t Y = 4u,
+    v8_size_t Z = 4u,
+    typename out_of_bounds_access_policy = oob_assert_policy
 > class fixed_array_3D {
 public :
 
@@ -162,19 +163,19 @@ public :
     //! \name Attributes.
     //! @{
 
-    size_t size() const NOEXCEPT {
+    v8_size_t size() const NOEXCEPT {
         return X * Y * Z;
     }
 
-    size_t dimension_x() const NOEXCEPT {
+    v8_size_t dimension_x() const NOEXCEPT {
         return X;
     }
 
-    size_t dimension_y() const NOEXCEPT {
+    v8_size_t dimension_y() const NOEXCEPT {
         return Y;
     }
 
-    size_t dimension_z() const NOEXCEPT {
+    v8_size_t dimension_z() const NOEXCEPT {
         return Z;
     }
 
@@ -225,14 +226,14 @@ private :
     //! \name Internal accessor functions.
     //! @{
 
-    reference get_at(size_t x, size_t y, size_t z) {
-        const size_t e_location = y * X * Z + x * Z + z;
+    reference get_at(v8_size_t x, v8_size_t y, v8_size_t z) {
+        const v8_size_t e_location = X * Y * z + X * y + x;
         assert(e_location < size());
         return data_[e_location];
     }
 
-    const_reference get_at(size_t x, size_t y, size_t z) const {
-        const size_t e_location = y * X * Z + x * Z + z;
+    const_reference get_at(v8_size_t x, v8_size_t y, v8_size_t z) const {
+        const v8_size_t e_location = X * Y * z + X * y + x;
         assert(e_location < size());
         return data_[e_location];
     }

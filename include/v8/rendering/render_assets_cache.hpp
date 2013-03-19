@@ -2,18 +2,17 @@
 
 #include <v8/v8.hpp>
 #include <v8/base/scoped_pointer.hpp>
-
-#include <v8/utility/hash_string.hpp>
+#include <v8/rendering/effect_info.hpp>
+#include <v8/rendering/fwd_effect.hpp>
 #include <v8/rendering/fwd_renderer.hpp>
 #include <v8/rendering/fwd_texture.hpp>
 #include <v8/rendering/constants.hpp>
-
+#include <v8/rendering/texture_info.hpp>
+#include <v8/utility/hash_string.hpp>
 
 namespace v8 { namespace rendering {
 
-struct effect_info_t;
-
-struct material;
+class simple_mesh;    
 
 ///
 /// Creates, caches and manages rendering resources (textures, shaders, etc).
@@ -35,19 +34,25 @@ public :
 
 public :
 
-    texture* get_texture(const char* texture_file_name) {
-        return get_texture(hash_string(texture_file_name));
-    }
-
-    texture* get_texture(const hash_string& texture_file_name);
-
-    material* get_material(const char* material_name) {
-        return get_material(hash_string(material_name));
-    }
-
-    material* get_material(const hash_string& material_name);
+    texture* get_texture(const texture_info_t& tex_info);
 
 /// @}
+
+/// \name Effects.
+/// @{
+
+public :
+
+    effect* get_effect(const effect_info_t&); 
+
+/// @}
+
+/// \name Meshes    
+/// @{
+
+    simple_mesh* get_mesh(const hash_string& mesh_name);
+
+/// @}    
 
 private :
     struct implementation_details;

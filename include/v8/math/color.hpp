@@ -39,9 +39,9 @@ struct color_cmy {
     color_cmy() {}
 
     color_cmy(float cyan, float magenta, float yellow)
-        :   Cyan(cyan)
-            , Magenta(magenta)
-            , Yellow(yellow) {}
+        :       Cyan(cyan)
+            ,   Magenta(magenta)
+            ,   Yellow(yellow) {}
 };
 
 struct color_yiq {
@@ -52,9 +52,9 @@ struct color_yiq {
     color_yiq() {}
 
     color_yiq(float yval, float ival, float qval)
-        :   Y(yval)
-            , I(ival)
-            , Q(qval) {}
+        :       Y(yval)
+            ,   I(ival)
+            ,   Q(qval) {}
 };
 
 struct color_hsv {
@@ -65,9 +65,9 @@ struct color_hsv {
     color_hsv() {}
 
     color_hsv(float hue, float saturation, float value)
-        :   Hue(hue)
-            , Saturation(saturation)
-            , Value(value) {}
+        :       Hue(hue)
+            ,   Saturation(saturation)
+            ,   Value(value) {}
 };
 
 struct color_hls {
@@ -78,9 +78,9 @@ struct color_hls {
     color_hls() {}
 
     color_hls(float hue, float lightness, float saturation)
-        :   Hue(hue)
-            , Lightness(lightness)
-            , Saturation(saturation) {}
+        :       Hue(hue)
+            ,   Lightness(lightness)
+            ,   Saturation(saturation) {}
 };
 
 /*!
@@ -505,10 +505,7 @@ public :
 
 inline
 color_rgb
-operator+(
-    const color_rgb& lhs,
-    const color_rgb& rhs
-) {
+operator+(const color_rgb& lhs, const color_rgb& rhs) {
     color_rgb result(lhs);
     result += rhs;
     return result;
@@ -516,10 +513,7 @@ operator+(
 
 inline
 color_rgb
-operator-(
-    const color_rgb& lhs,
-    const color_rgb& rhs
-) {
+operator-(const color_rgb& lhs, const color_rgb& rhs) {
     color_rgb result(lhs);
     result -= rhs;
     return result;
@@ -527,10 +521,7 @@ operator-(
 
 inline
 color_rgb
-operator*(
-    const color_rgb& lhs,
-    const color_rgb& rhs
-    ) {
+operator*(const color_rgb& lhs, const color_rgb& rhs) {
     color_rgb result(lhs);
     result *= rhs;
     return result;
@@ -538,10 +529,7 @@ operator*(
 
 inline
 color_rgb
-operator*(
-    const color_rgb& lhs,
-    float k
-    ) {
+operator*(const color_rgb& lhs, float k) {
     color_rgb result(lhs);
     result *= k;
     return result;
@@ -549,19 +537,13 @@ operator*(
 
 inline
 color_rgb
-operator*(
-    float k,
-    const color_rgb& rhs
-    ) {
+operator*(float k, const color_rgb& rhs) {
     return rhs * k;
 }
 
 inline
 color_rgb
-operator/(
-    const color_rgb& lhs,
-    float scalar
-    ) {
+operator/(const color_rgb& lhs, float scalar) {
     float inv = 1.0f / scalar;
     return lhs * inv;
 }
@@ -591,28 +573,16 @@ inline void yiq_to_rgb(const color_yiq* yiq, color_rgb* rgb) {
 }
 
 void
-rgb_to_hsv(
-    const color_rgb* rgb,
-    color_hsv* hsv
-    );
+rgb_to_hsv(const color_rgb* rgb, color_hsv* hsv);
 
 void
-hsv_to_rgb(
-    const color_hsv* hsv,
-    color_rgb* rgb
-    );
+hsv_to_rgb(const color_hsv* hsv, color_rgb* rgb);
 
 void
-rgb_to_hls(
-    const color_rgb* rgb,
-    color_hls* hls
-    );
+rgb_to_hls(const color_rgb* rgb, color_hls* hls);
 
 void
-hls_to_rgb(
-    const color_hls* hls,
-    color_rgb *rgb
-    );
+hls_to_rgb(const color_hls* hls, color_rgb *rgb);
 
 } // namespace math
 } // namespace v8

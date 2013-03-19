@@ -29,18 +29,18 @@ void subdivide_geometry(v8::math::geometry_gen::mesh_data_t* mesh_data) {
 
 	uint32_t numTris = static_cast<uint32_t>(input_copy.md_indices.size() / 3);
 	for(uint32_t i = 0; i < numTris; ++i) {
-		vertex3F_t v0 = input_copy.md_vertices[input_copy.md_indices[i * 3 + 0]];
-		vertex3F_t v1 = input_copy.md_vertices[input_copy.md_indices[i * 3 + 1]];
-		vertex3F_t v2 = input_copy.md_vertices[input_copy.md_indices[i * 3 + 2]];
+		vertex_pntt v0 = input_copy.md_vertices[input_copy.md_indices[i * 3 + 0]];
+		vertex_pntt v1 = input_copy.md_vertices[input_copy.md_indices[i * 3 + 1]];
+		vertex_pntt v2 = input_copy.md_vertices[input_copy.md_indices[i * 3 + 2]];
 
 		//
 		// Generate the midpoints.
 		//
 
-		vertex3F_t m0, m1, m2;
+		vertex_pntt m0, m1, m2;
 
 		// For subdivision, we just care about the position component.  We derive the other
-		// vertex3F_t components in CreateGeosphere.
+		// vertex_pntt components in CreateGeosphere.
 
         m0.vt_position = vector3F(
 			0.5f*(v0.vt_position.x_ + v1.vt_position.x_),
@@ -113,12 +113,12 @@ void generate_cylinder_top_cap(
 		float v = z/height + 0.5f;
 
 		mesh_data->md_vertices.push_back(
-            vertex3F_t(x, y, z, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, u, v));
+            vertex_pntt(x, y, z, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, u, v));
 	}
 
 	// Cap center vertex.
 	mesh_data->md_vertices.push_back(
-        vertex3F_t(0.0f, y, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.5f, 0.5f));
+        vertex_pntt(0.0f, y, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.5f, 0.5f));
 
 	// Index of center vertex.
 	uint32_t center_index = static_cast<uint32_t>(
@@ -157,15 +157,15 @@ void generate_cylinder_bottom_cap(
 		float u = x / height + 0.5f;
 		float v = z / height + 0.5f;
 
-        mesh_data->md_vertices.push_back(vertex3F_t(
+        mesh_data->md_vertices.push_back(vertex_pntt(
             x, y, z, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, u, v));
 	}
 
-	// Cap center vertex3F_t.
+	// Cap center vertex_pntt.
 	mesh_data->md_vertices.push_back(
-        vertex3F_t(0.0f, y, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.5f, 0.5f));
+        vertex_pntt(0.0f, y, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.5f, 0.5f));
 
-	// Cache the index of center vertex3F_t.
+	// Cache the index of center vertex_pntt.
 	uint32_t center_index = static_cast<uint32_t>(
         mesh_data->md_vertices.size() - 1);
 
@@ -184,47 +184,47 @@ void v8::math::geometry_gen::create_box(
     float depth, 
     mesh_data_t* mesh_data
     ) {
-	vertex3F_t v[24];
+	vertex_pntt v[24];
 
 	float w2 = 0.5f*width;
 	float h2 = 0.5f*height;
 	float d2 = 0.5f*depth;
     
-	// Fill in the front face vertex3F_t data.
-	v[0] = vertex3F_t(-w2, -h2, -d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-	v[1] = vertex3F_t(-w2, +h2, -d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-	v[2] = vertex3F_t(+w2, +h2, -d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-	v[3] = vertex3F_t(+w2, -h2, -d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
+	// Fill in the front face vertex_pntt data.
+	v[0] = vertex_pntt(-w2, -h2, -d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+	v[1] = vertex_pntt(-w2, +h2, -d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	v[2] = vertex_pntt(+w2, +h2, -d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	v[3] = vertex_pntt(+w2, -h2, -d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
 
-	// Fill in the back face vertex3F_t data.
-	v[4] = vertex3F_t(-w2, -h2, +d2, 0.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
-	v[5] = vertex3F_t(+w2, -h2, +d2, 0.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-	v[6] = vertex3F_t(+w2, +h2, +d2, 0.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-	v[7] = vertex3F_t(-w2, +h2, +d2, 0.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	// Fill in the back face vertex_pntt data.
+	v[4] = vertex_pntt(-w2, -h2, +d2, 0.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
+	v[5] = vertex_pntt(+w2, -h2, +d2, 0.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+	v[6] = vertex_pntt(+w2, +h2, +d2, 0.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	v[7] = vertex_pntt(-w2, +h2, +d2, 0.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 
-	// Fill in the top face vertex3F_t data.
-	v[8]  = vertex3F_t(-w2, +h2, -d2, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-	v[9]  = vertex3F_t(-w2, +h2, +d2, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-	v[10] = vertex3F_t(+w2, +h2, +d2, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-	v[11] = vertex3F_t(+w2, +h2, -d2, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
+	// Fill in the top face vertex_pntt data.
+	v[8]  = vertex_pntt(-w2, +h2, -d2, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+	v[9]  = vertex_pntt(-w2, +h2, +d2, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	v[10] = vertex_pntt(+w2, +h2, +d2, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	v[11] = vertex_pntt(+w2, +h2, -d2, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
 
-	// Fill in the bottom face vertex3F_t data.
-	v[12] = vertex3F_t(-w2, -h2, -d2, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
-	v[13] = vertex3F_t(+w2, -h2, -d2, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-	v[14] = vertex3F_t(+w2, -h2, +d2, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-	v[15] = vertex3F_t(-w2, -h2, +d2, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	// Fill in the bottom face vertex_pntt data.
+	v[12] = vertex_pntt(-w2, -h2, -d2, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
+	v[13] = vertex_pntt(+w2, -h2, -d2, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+	v[14] = vertex_pntt(+w2, -h2, +d2, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	v[15] = vertex_pntt(-w2, -h2, +d2, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 
-	// Fill in the left face vertex3F_t data.
-	v[16] = vertex3F_t(-w2, -h2, +d2, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f);
-	v[17] = vertex3F_t(-w2, +h2, +d2, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f);
-	v[18] = vertex3F_t(-w2, +h2, -d2, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f);
-	v[19] = vertex3F_t(-w2, -h2, -d2, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f);
+	// Fill in the left face vertex_pntt data.
+	v[16] = vertex_pntt(-w2, -h2, +d2, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f);
+	v[17] = vertex_pntt(-w2, +h2, +d2, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f);
+	v[18] = vertex_pntt(-w2, +h2, -d2, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f);
+	v[19] = vertex_pntt(-w2, -h2, -d2, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f);
 
-	// Fill in the right face vertex3F_t data.
-	v[20] = vertex3F_t(+w2, -h2, -d2, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f);
-	v[21] = vertex3F_t(+w2, +h2, -d2, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
-	v[22] = vertex3F_t(+w2, +h2, +d2, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f);
-	v[23] = vertex3F_t(+w2, -h2, +d2, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+	// Fill in the right face vertex_pntt data.
+	v[20] = vertex_pntt(+w2, -h2, -d2, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f);
+	v[21] = vertex_pntt(+w2, +h2, -d2, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
+	v[22] = vertex_pntt(+w2, +h2, +d2, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f);
+	v[23] = vertex_pntt(+w2, -h2, +d2, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
 
     using namespace std;
 
@@ -283,8 +283,8 @@ void v8::math::geometry_gen::create_sphere(
 	// Poles: note that there will be texture coordinate distortion as there is
 	// not a unique point on the texture map to assign to the pole when mapping
 	// a rectangular texture onto a sphere.
-	vertex3F_t top_vertex(0.0f, +radius, 0.0f, 0.0f, +1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-	vertex3F_t bottom_vertex(0.0f, -radius, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+	vertex_pntt top_vertex(0.0f, +radius, 0.0f, 0.0f, +1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	vertex_pntt bottom_vertex(0.0f, -radius, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 
 	mesh_data->md_vertices.push_back( top_vertex );
 
@@ -299,7 +299,7 @@ void v8::math::geometry_gen::create_sphere(
 		for(uint32_t j = 0; j <= slice_count; ++j) {
 			float theta = j * thetaStep;
 
-			vertex3F_t v;
+			vertex_pntt v;
 
 			// spherical to cartesian
 			v.vt_position.x_ = radius * sinf(phi) * cosf(theta);
@@ -325,7 +325,7 @@ void v8::math::geometry_gen::create_sphere(
 	mesh_data->md_vertices.push_back(bottom_vertex);
 
 	//
-	// Compute indices for top stack.  The top stack was written first to the vertex3F_t buffer
+	// Compute indices for top stack.  The top stack was written first to the vertex_pntt buffer
 	// and connects the top pole to the first ring.
 	//
 
@@ -339,8 +339,8 @@ void v8::math::geometry_gen::create_sphere(
 	// Compute indices for inner stacks (not connected to poles).
 	//
 
-	// Offset the indices to the index of the first vertex3F_t in the first ring.
-	// This is just skipping the top pole vertex3F_t.
+	// Offset the indices to the index of the first vertex_pntt in the first ring.
+	// This is just skipping the top pole vertex_pntt.
 	uint32_t base_index = 1;
 	uint32_t ring_count = static_cast<uint32_t>(slice_count + 1);
 	for(uint32_t i = 0; i < stack_count - 2; ++i) {
@@ -356,14 +356,14 @@ void v8::math::geometry_gen::create_sphere(
 	}
 
 	//
-	// Compute indices for bottom stack.  The bottom stack was written last to the vertex3F_t buffer
+	// Compute indices for bottom stack.  The bottom stack was written last to the vertex_pntt buffer
 	// and connects the bottom pole to the bottom ring.
 	//
 
-	// South pole vertex3F_t was added last.
+	// South pole vertex_pntt was added last.
 	uint32_t south_pole_idx = (uint32_t) mesh_data->md_vertices.size() - 1;
 
-	// Offset the indices to the index of the first vertex3F_t in the last ring.
+	// Offset the indices to the index of the first vertex_pntt in the last ring.
 	base_index = south_pole_idx - ring_count;
 	
 	for(uint32_t i = 0; i < slice_count; ++i) {
@@ -464,7 +464,7 @@ void v8::math::geometry_gen::create_cylinder(
 		// md_vertices of ring
         float dTheta = numericsF::two_pi() / slice_count;
 		for(size_t j = 0; j <= slice_count; ++j) {
-			vertex3F_t vertex;
+			vertex_pntt vertex;
 
 			float c = cosf(j * dTheta);
 			float s = sinf(j * dTheta);
@@ -503,7 +503,7 @@ void v8::math::geometry_gen::create_cylinder(
 		}
 	}
 
-	// Add one because we duplicate the first and last vertex3F_t per ring
+	// Add one because we duplicate the first and last vertex_pntt per ring
 	// since the texture coordinates are different.
 	uint32_t ring_count = static_cast<uint32_t>(slice_count + 1);
 
@@ -600,25 +600,25 @@ void v8::math::geometry_gen::create_fullscreen_quad(
 	mesh_data->md_indices.resize(6);
 
 	// Position coordinates specified in NDC space.
-	mesh_data->md_vertices[0] = vertex3F_t(
+	mesh_data->md_vertices[0] = vertex_pntt(
 		-1.0f, -1.0f, 0.0f, 
 		0.0f, 0.0f, -1.0f,
 		1.0f, 0.0f, 0.0f,
 		0.0f, 1.0f);
 
-	mesh_data->md_vertices[1] = vertex3F_t(
+	mesh_data->md_vertices[1] = vertex_pntt(
 		-1.0f, +1.0f, 0.0f, 
 		0.0f, 0.0f, -1.0f,
 		1.0f, 0.0f, 0.0f,
 		0.0f, 0.0f);
 
-	mesh_data->md_vertices[2] = vertex3F_t(
+	mesh_data->md_vertices[2] = vertex_pntt(
 		+1.0f, +1.0f, 0.0f, 
 		0.0f, 0.0f, -1.0f,
 		1.0f, 0.0f, 0.0f,
 		1.0f, 0.0f);
 
-	mesh_data->md_vertices[3] = vertex3F_t(
+	mesh_data->md_vertices[3] = vertex_pntt(
 		+1.0f, -1.0f, 0.0f, 
 		0.0f, 0.0f, -1.0f,
 		1.0f, 0.0f, 0.0f,

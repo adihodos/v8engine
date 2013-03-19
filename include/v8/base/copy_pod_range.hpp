@@ -26,37 +26,49 @@
 
 #pragma once
 
-///
-/// \file lerp.hpp
-
-#include <cassert>
+#include <cstring>
 
 #include <v8/v8.hpp>
-#include <v8/math/math_utils.hpp>
+#include <v8/meta_programming/constraints.hpp>
 
-namespace v8 { namespace math {
+namespace v8 { namespace base {
 
-/// \addtogroup Algebra
-/// @{
+struct tag_pod_copy_memcpy {};
 
-///
-/// \brief Performs linear interpolation between two quantities.
-/// \param[in] q0 First quantity.
-/// \param[in] q1 Second quantity.
-/// \param[in] beta Interpolation factor. Must be a real number, in the [0, 1]
-/// range.
-/// \returns A quantity such that it lies beta percent of the way from q0 to q1.
-template<typename Quantity_Type, typename Real_Type>
-inline Quantity_Type lerp(
-    const Quantity_Type& q0, const Quantity_Type& q1, const Real_Type& beta
+struct tag_pod_copy_assign {};
+
+template<typename T, typename U>
+void copy_pod_range_impl(
+    const U* input, const v8_size_t count, T* output, tag_pod_copy_memcpy
     ) {
-    assert(operands_ge(beta, 0));
-    assert(operands_le(beta, 1));
-
-    return (1 - beta) * q0 + beta * q1;
+    memcpy(output, input, count * sizeof(T));
 }
 
-/// @{
+template<typename T, typename U>
+void copy_pod_range_impl(
+    const U* input, const v8_size_t count, T* output, tag_pod_copy_assign
+    ) {
+    for (v8_size_t i = 0; i < count; ++i) {
+        output[i] = input[i];
+    }
+}
 
-} // namespace math
+template<bool same_size = true>
+struct copy_type {
+    typedef tag_pod_copy_memcpy tag;
+};
+
+template<>
+struct copy_type<false> {
+    typedef tag_pod_copy_assign tag;
+};
+
+template<typename T, typename U>
+void copy_pod_range(const U* input, const v8_size_t count, T* output) {
+    constraint_must_be_pod<T>();
+    constraint_must_be_pod<U>();
+    copy_pod_range_impl(U, T, count, copy_type<sizeof(T) == sizeof(U)>::tag());
+}
+
+} // namespace base
 } // namespace v8

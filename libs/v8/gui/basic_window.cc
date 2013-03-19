@@ -7,7 +7,7 @@
 #include "v8/rendering/constants.hpp"
 #include "v8/gui/basic_window.hpp"
 #include "v8/input/key_syms.hpp"
-//#include "v8/scene/scene_manager.hpp"
+#include "v8/scene/scene_system.hpp"
 
 v8_bool_t v8::gui::basic_window::initialize(
     v8_uint32_t win_style,
@@ -405,8 +405,7 @@ void v8::gui::basic_window::frame_draw_impl() {
     state->render_sys()->clear_depth_stencil();
     state->render_sys()->clear_backbuffer();
 
-    /*
-    state->Scene->draw(
-        v8::base::scoped_pointer_get(global::state->render_sys()));
-        */
+    if (state->scene()) {
+        state->scene()->draw(state->render_sys());
+    }
 }

@@ -14,5 +14,7 @@ struct userdefined_object_loading_info_t;
 
 struct light_loading_info_t;
 
+struct standard_entity_load_info_t;
+
 } // namespace scene
 } // namespace v8

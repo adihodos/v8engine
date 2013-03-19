@@ -39,7 +39,6 @@ namespace v8 { namespace math {
 
 /**
  \class quaternion
-
  \brief Represents a quaternion, parameterized by the type of its elements.
  */
 template<typename real_t>

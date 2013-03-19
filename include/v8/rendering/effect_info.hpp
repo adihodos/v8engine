@@ -6,7 +6,7 @@
 
 namespace v8 { namespace rendering {
     
-    using directx::effect_info;
+    using directx::effect_info_t;
 
 } // namespace rendering
 } // namespace v8

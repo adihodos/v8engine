@@ -4,11 +4,18 @@
 #include <v8/base/scoped_pointer.hpp>
 #include <v8/rendering/fwd_renderer.hpp>
 #include <v8/rendering/fwd_render_assets_cache.hpp>
-//#include <framework/scene/fwd_scene_manager.hpp>
+#include <v8/scene/fwd_scene_system.hpp>
 
-namespace v8 { namespace gui { 
+namespace v8 { 
+
+namespace math {
+    class camera;
+}    
+
+namespace gui { 
     class basic_window;
 }
+
 }
 
 namespace v8 {
@@ -49,30 +56,34 @@ public :
         return base::scoped_pointer_get(window_);
     }
 
+    scene::scene_system* scene() const {
+        return base::scoped_pointer_get(scene_sys_);
+    }
+
+    math::camera* camera() const {
+        return cam_ptr_;
+    }
+
 /// \name Data members.
 /// @{
 
 protected :
 
     //! Renderer.
-
-    base::scoped_ptr<rendering::renderer>                           render_sys_;    
+    base::scoped_ptr<rendering::renderer>                       render_sys_;    
 
     //! Resource cache.
-    base::scoped_ptr<rendering::render_assets_cache>               asset_cache_;
+    base::scoped_ptr<rendering::render_assets_cache>            asset_cache_;
 
-/*
-    //! Scene manager.
-    v8::base::scoped_ptr<
-        v8_framework::scene::scene_manager
-    >                                                       Scene;
-*/
+    //! Scene system.
+    base::scoped_ptr<scene::scene_system>                       scene_sys_;
     //! File system config.
-    base::scoped_ptr<filesys>                                         file_sys_;
+    base::scoped_ptr<filesys>                                   file_sys_;
 
     //! Application window.
-    base::scoped_ptr<gui::basic_window>                                 window_;
+    base::scoped_ptr<gui::basic_window>                         window_;
 
+    v8::math::camera*                                           cam_ptr_;
 
 /// @}
 

@@ -31,6 +31,7 @@
 #include <cmath>
 
 #include <v8/base/count_of.hpp>
+#include <v8/base/copy_pod_range.hpp>
 #include <v8/base/fundamental_types.hpp>
 #include <v8/math/math_utils.hpp>
 #include <v8/math/matrix3X3.hpp>
@@ -124,6 +125,16 @@ public :
                     input, min((size_t)16, count) * sizeof(real_t));
     }
 
+    template<typename convertible_type>
+    matrix_4X4(const matrix_4X4<convertible_type>& rhs) {
+        base::copy_pod_range(rhs.elements_, 16, elements_);
+    }
+
+    template<typename convertible_type>
+    matrix_4X4(const convertible_type (&arr)[16]) {
+        base::copy_pod_range(&arr[0], 16, elements_);
+    }
+
     /**
      * \brief   Constructs a diagonal matrix.
      */
@@ -143,7 +154,13 @@ public :
         );
 
     matrix4X4_t& operator=(const matrix4X4_t& other) {
-        memcpy(elements_, other.elements_, sizeof(elements_));
+        base::copy_pod_range(other.elements_, 16, elements_);
+        return *this;
+    }
+
+    template<typename convertible_type>
+    matrix4X4_t& operator=(const matrix_4X4<convertible_type>& rhs) {
+        base::copy_pod_range(rhs.elements_, 16, elements_);
         return *this;
     }
 
@@ -585,16 +602,14 @@ const math::matrix_4X4<real_t>
 template<typename real_t>
 bool
 operator==(
-    const math::matrix_4X4<real_t>& lhs,
-    const math::matrix_4X4<real_t>& rhs
+    const math::matrix_4X4<real_t>& lhs, const math::matrix_4X4<real_t>& rhs
         );
 
 template<typename real_t>
 inline
 bool
 operator!=(
-    const math::matrix_4X4<real_t>& lhs,
-    const math::matrix_4X4<real_t>& rhs
+    const math::matrix_4X4<real_t>& lhs, const math::matrix_4X4<real_t>& rhs
         );
 
 /**
@@ -604,8 +619,7 @@ template<typename real_t>
 inline
 matrix_4X4<real_t>
 operator+(
-    const math::matrix_4X4<real_t>& lhs,
-    const math::matrix_4X4<real_t>& rhs
+    const math::matrix_4X4<real_t>& lhs, const math::matrix_4X4<real_t>& rhs
     );
 
 /**
@@ -615,8 +629,7 @@ template<typename real_t>
 inline
 matrix_4X4<real_t>
 operator-(
-    const math::matrix_4X4<real_t>& lhs,
-    const math::matrix_4X4<real_t>& rhs
+    const math::matrix_4X4<real_t>& lhs, const math::matrix_4X4<real_t>& rhs
     );
 
 /**
@@ -625,9 +638,7 @@ operator-(
 template<typename real_t>
 inline
 matrix_4X4<real_t>
-operator-(
-    const math::matrix_4X4<real_t>& mtx
-    );
+operator-(const math::matrix_4X4<real_t>& mtx);
 
 /**
  * \brief   Multiplication operator.
@@ -635,8 +646,7 @@ operator-(
 template<typename real_t>
 matrix_4X4<real_t>
 operator*(
-    const math::matrix_4X4<real_t>& lhs,
-    const math::matrix_4X4<real_t>& rhs
+    const math::matrix_4X4<real_t>& lhs, const math::matrix_4X4<real_t>& rhs
     );
 
 /**
@@ -645,9 +655,7 @@ operator*(
 template<typename real_t>
 inline
 matrix_4X4<real_t>
-operator*(
-    float k,
-    const math::matrix_4X4<real_t>& mtx
+operator*(float k, const math::matrix_4X4<real_t>& mtx
     );
 
 /**
@@ -656,10 +664,7 @@ operator*(
 template<typename real_t>
 inline
 matrix_4X4<real_t>
-operator*(
-    const math::matrix_4X4<real_t>& mtx,
-    real_t k
-    );
+operator*(const math::matrix_4X4<real_t>& mtx, real_t k);
 
 /**
  * \brief   matrix -> scalar division operator.
@@ -667,10 +672,7 @@ operator*(
 template<typename real_t>
 inline
 math::matrix_4X4<real_t>
-operator/(
-    const math::matrix_4X4<real_t>& mtx,
-    real_t k
-    );
+operator/(const math::matrix_4X4<real_t>& mtx, real_t k);
 
 /**
  * \brief matrix_4X4F 4x4 matrix, simple precision floating point components.

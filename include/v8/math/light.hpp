@@ -34,15 +34,16 @@ namespace v8 { namespace math {
 
 /**
  \class light
-
  \brief Abstract representation of a light source.
  */
 class light {
 public :
-  enum light_type {
-    light_type_directional,
-    light_type_point,
-    light_type_spot
+  struct type {
+      enum {
+          directional,
+          point,
+          spot
+      };
   };
 
 private :
@@ -189,7 +190,7 @@ public :
     return type_;
   }
 
-  void set_type(light_type type) {
+  void set_type(const v8_int_t type) {
     type_ = type;
   }
 
@@ -218,22 +219,22 @@ public :
   }
 
   void set_direction(const math::vector3F& light_dir) {
-    assert(type_ == light_type_directional || type_ == light_type_spot);
+    assert(type_ == light::type::directional || type_ == light::type::spot);
     direction_ = light_dir;
   }
 
   const math::vector3F& get_direction() const {
-    assert(type_ == light_type_directional || type_ == light_type_spot);
+    assert(type_ == light::type::directional || type_ == light::type::spot);
     return direction_;
   }
 
   void set_position(const math::vector3F& light_pos) {
-    assert(type_ != light_type_directional);
+    assert(type_ != light::type::directional);
     position_ = light_pos;
   }
 
   const math::vector3F& get_position() const {
-    assert(type_ != light_type_directional);
+    assert(type_ != light::type::directional);
     return position_;
   }
   
@@ -242,46 +243,46 @@ public :
   }
 
   void set_attenuation_factors(const float a, const float b, const float c) {
-    assert(type_ != light_type_directional);
+    assert(type_ != light::type::directional);
     attenuation_.x_ = a;
     attenuation_.y_ = b;
     attenuation_.z_ = c;
   }
 
   const math::vector3F& get_attenuation_factors() const {
-    assert(type_ != light_type_directional);
+    assert(type_ != light::type::directional);
     return attenuation_;
   }
 
   void set_max_range(const float max_range) {
-    assert(type_ == light_type_point || type_ == light_type_spot);
+    assert(type_ == light::type::spot || type_ == light::type::spot);
     max_range_ = max_range;
   }
 
   float get_max_range() const {
-    assert(type_ == light_type_point || type_ == light_type_spot);
+    assert(type_ == light::type::spot || type_ == light::type::spot);
     return max_range_;
   }
 
   void set_spot_power(const float spot_pow) {
-    assert(type_ == light_type_spot);
+    assert(type_ == light::type::spot);
     spot_power_ = spot_pow;
   }
 
   float get_spot_power() const {
-    assert(type_ == light_type_spot);
+    assert(type_ == light::type::spot);
     return spot_power_;
   }
 
   void set_spot_cone_angle_theta(const float theta) {
-    assert(type_ == light_type_spot);
-    spot_cone_theta_ = theta;
+    assert(type_ == light::type::spot);
+    spot_cone_theta_     = theta;
     spot_cos_half_theta_ = cos(theta * 0.5f);
   }
   
   void set_spot_cone_angle_phi(const float k_phi) {
-    assert(type_ == light_type_spot);
-    spot_cone_phi_ = k_phi;
+    assert(type_ == light::type::spot);
+    spot_cone_phi_     = k_phi;
     spot_cos_half_phi_ = cos(0.5f * k_phi);
   }
 };

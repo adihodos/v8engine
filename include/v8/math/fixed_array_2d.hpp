@@ -77,11 +77,12 @@ namespace v8 { namespace math {
  *  elem = arr(5, 5); // returns element arr(1, 1)
  *  }
  */
-template<
-        typename T,
-        v8_size_t X = 4,
-        v8_size_t Y = 4,
-        typename out_of_bounds_access_policy = oob_assert_policy
+template
+<
+    typename T,
+    v8_size_t X = 4u,
+    v8_size_t Y = 4u,
+    typename out_of_bounds_access_policy = oob_assert_policy
 > class fixed_array_2D {
 public :
 

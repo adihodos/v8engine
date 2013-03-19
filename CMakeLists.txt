@@ -1,6 +1,10 @@
 project(v8engine)
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
+set(RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
+include(BundleUtilities)
+
 set(CMAKE_DEBUG_POSTFIX "_d")
 
 # Add path for custom modules
@@ -26,7 +30,7 @@ if (MSVC)
     )
 
     link_directories(
-        ${DirectX_D3D11_LIBRARIES}
+        ${DirectX_LIBRARY_DIR}
     )
 
     set(cxx_disabled_warnings "/wd 4201")

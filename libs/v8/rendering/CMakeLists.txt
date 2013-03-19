@@ -21,20 +21,25 @@ add_library(
     directx/texture.cc
     material.cc
     render_assets_cache.cc
+    simple_mesh.cc
 )
 
-find_package(DirectX)
+find_package(DirectX REQUIRED)
+find_package(Assimp REQUIRED)
 
-if (NOT DirectX_D3D11_FOUND)
-    MESSAGE(FATAL_ERROR "Could not find dependency: DirectX")
-endif()
+#if (NOT DirectX_D3D11_FOUND)
+#    MESSAGE(FATAL_ERROR "Could not find dependency: DirectX")
+#endif()
 
 include_directories(
     ${DirectX_INCLUDE_DIRS}
 )
 
 link_directories(
-    ${DirectX_D3D11_LIBRARIES}
+    ${DirectX_LIBRARY_DIR} ${Assimp_LIBRARY_DIR}
 )
 
-target_link_libraries(v8_renderer_directx ${DirectX_D3D11_LIBRARIES})
+target_link_libraries(v8_renderer_directx 
+    ${DirectX_D3D11_LIBRARIES}
+    ${Assimp_LIBRARIES}
+)

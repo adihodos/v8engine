@@ -1,1 +1,2 @@
 add_subdirectory(julia_fractal)
+add_subdirectory(lighting)

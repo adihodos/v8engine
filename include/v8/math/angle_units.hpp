@@ -26,8 +26,8 @@
 
 #pragma once
 
-//!
-//! \file angle_unit.hpp Classes to abstract angle measurement units.
+///
+/// \file angle_unit.hpp Classes to abstract angle measurement units.
 
 #include <v8/v8.hpp>
 #include <v8/base/true_typedef.hpp>
@@ -43,32 +43,32 @@ V8_GEN_OPAQUE_TYPE(degree_u)
 
 } // namespace internal
 
-//! \addtogroup Algebra
-//! @{
+/// \addtogroup Algebra
+/// @{
 
-//!
-//! Radian type.
+///
+/// Radian type.
 typedef v8::base::true_typedef<float, internal::radian_u>   v8_radian_t;
 
-//!
-//! Degree type.
+///
+/// Degree type.
 typedef v8::base::true_typedef<float, internal::degree_u>   v8_degree_t;
 
-//!
-//! \brief Converts from degrees to radians.
+///
+/// \brief Converts from degrees to radians.
 inline v8_radian_t degrees_to_radians(const v8_degree_t& degree) {
     return v8_radian_t(degree.base_type_value()
                        * numericsF::pi_over180());
 }
 
-//!
-//! \brief Converts from radians to degrees.
+///
+/// \brief Converts from radians to degrees.
 inline v8_degree_t radians_to_degrees(const v8_radian_t& rads) {
     return v8_degree_t(rads.base_type_value()
                        * numericsF::one_eighty_over_pi());
 }
 
-//! @}
+/// @}
 
 } // namespace math
 } // namespace v8
