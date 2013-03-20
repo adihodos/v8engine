@@ -41,11 +41,17 @@ v8_bool_t fractal_app_context::initialize() {
     }
 
     render_sys_ = new v8::rendering::renderer();
-    if (!render_sys_->initialize(window_->get_handle(), 
-                                 static_cast<float>(window_width),
-                                 static_cast<float>(window_height),
-                                 v8::rendering::ElementType::Unorm8, 4,
-                                 24, 8)) {
+    v8::rendering::render_init_params initialization_params;
+    initialization_params.width = window_->get_width();
+    initialization_params.height = window_->get_height();
+    initialization_params.target_window = window_->get_handle();
+    initialization_params.render_targets_count = 1;
+    initialization_params.stencil_bits = 8;
+    initialization_params.depth_bits = 24;
+    initialization_params.buffer_element_type = v8::rendering::ElementType::Unorm8;
+    initialization_params.buffer_element_count = 4;
+
+    if (!render_sys_->initialize(initialization_params)) {
         return false;
     }
 
@@ -55,6 +61,8 @@ v8_bool_t fractal_app_context::initialize() {
 
     asset_cache_ = new v8::rendering::render_assets_cache(render_sys());
     file_sys_ = new v8::filesys();
+    //
+    // TODO : fix hard coded path, it sucks.
     const char* const app_data_dir = "D:\\games\\fractals";
     file_sys_->initialize(app_data_dir);
 
@@ -72,14 +80,9 @@ v8_bool_t fractal_app_context::initialize() {
 
 }
 
-int WINAPI WinMain(
-    HINSTANCE inst,
-    HINSTANCE,
-    LPSTR,
-    int
-    ) {
+int WINAPI WinMain(HINSTANCE inst, HINSTANCE, LPSTR, int) {
     //
-    // Must be the first constructed object.
+    // Must be the first constructed object to report any leaked memory.
     v8::utility::win32::scoped_mem_leak_checker leak_check_obj;
     {
         fractal_app_context app_context;

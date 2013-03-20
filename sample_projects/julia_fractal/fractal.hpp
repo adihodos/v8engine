@@ -22,10 +22,10 @@ public :
 
 public :
     fractal(
-        int width = 1024,
-        int height = 1024,
-        int iter = 256,
-        float zoom = 1.0f
+        const v8_int_t width = 1024,
+        const v8_int_t height = 1024,
+        const v8_int_t iter = 256,
+        const float zoom = 1.0f
         );
 
     ~fractal();
@@ -39,27 +39,27 @@ public :
 
 public :
 
-    int get_width() const;
+    v8_int_t get_width() const;
 
-    int get_height() const;
+    v8_int_t get_height() const;
 
-    void set_width(int w);
+    void set_width(const v8_int_t w);
 
-    void set_height(int h);
+    void set_height(const v8_int_t h);
 
-    int get_iteration_count() const;
+    v8_int_t get_iteration_count() const;
 
-    void set_iteration_count(int iterations);
+    void set_iteration_count(const v8_int_t iterations);
 
     float get_zoom_factor() const;
 
-    void set_zoom_factor(float z);
+    void set_zoom_factor(const float z);
 
-    void set_x_offset(float off_x);
+    void set_x_offset(const float off_x);
 
     float get_x_offset() const;
 
-    void set_y_offset(float off_y);
+    void set_y_offset(const float off_y);
 
     float get_y_offset() const;
 
@@ -74,7 +74,7 @@ public :
     //! \name Update and rendering
     //! @{
 
-    void evaluate(float delta_ms);
+    void evaluate(const float delta_ms);
 
     void draw();
 
@@ -94,24 +94,19 @@ public :
 private :
 
     v8_bool_t mouse_wheel_event(
-        v8_int_t rotations,
-        v8_int_t xpos, 
-        v8_int_t ypos
+        const v8_int_t rotations,
+        const v8_int_t xpos, 
+        const v8_int_t ypos
         );
 
-    v8_bool_t key_press_event(
-        v8_int_t key_code
-        );
+    v8_bool_t key_press_event(const v8_int_t key_code);
 
-    v8_bool_t key_depress_event(
-        v8_int_t key_code
-        );
+    v8_bool_t key_depress_event(const v8_int_t key_code);
 
     //! @}
 
 private :
     struct implementation;
-
     v8::base::scoped_ptr<implementation>                impl_;
 };
 

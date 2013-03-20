@@ -8,7 +8,6 @@
 #include "v8/rendering/material.hpp"
 #include "v8/rendering/render_assets_cache.hpp"
 #include "v8/scene/camera_controller.hpp"
-#include "v8/scene/geometric_entity.hpp"
 #include "v8/scene/scene_entity.hpp"
 #include "v8/scene/scene_loading_info.hpp"
 

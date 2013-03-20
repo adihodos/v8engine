@@ -57,21 +57,23 @@ void v8::scene::section_reader_lights::read_section_entry(
     v8_int_t light_type;
     se_entry.GetValue("type", light_type);
 
-    if (light_type == v8::math::light::light_type_directional) {
-        llinfo.light.set_type(v8::math::light::light_type_directional);
+    if (light_type == v8::math::light::type::directional) {
+        llinfo.light.set_type(v8::math::light::type::directional);
         v8::math::vector3F light_dirvec;
         se_entry.GetValue("direction", light_dirvec.elements_);
         llinfo.light.set_direction(light_dirvec);
-    } else if (light_type == v8::math::light::light_type_point) {
-        llinfo.light.set_type(v8::math::light::light_type_point);
-    } else if (light_type == v8::math::light::light_type_spot) {
-        llinfo.light.set_type(v8::math::light::light_type_spot);
+    } else if (light_type == v8::math::light::type::point) {
+        llinfo.light.set_type(v8::math::light::type::point);
+    } else if (light_type == v8::math::light::type::spot) {
+        llinfo.light.set_type(v8::math::light::type::spot);
     } else {
         OUTPUT_DBG_MSGA("Unknown light type (%d)", light_type);
         return;
     }
 
-    if (light_type != v8::math::light::light_type_directional) {
+    //
+    // Data common to point and spot light sources.
+    if (light_type != v8::math::light::type::directional) {
         v8::math::vector3F vec_data;
         se_entry.GetValue("position", vec_data.elements_);
         llinfo.light.set_position(vec_data);
@@ -84,7 +86,9 @@ void v8::scene::section_reader_lights::read_section_entry(
         llinfo.light.set_max_range(max_range);
     }
 
-    if (light_type == v8::math::light::light_type_spot) {
+    //
+    // Specific data for spots.
+    if (light_type == v8::math::light::type::spot) {
         float flt_value;
         se_entry.GetValue("cone_phi", flt_value);
         llinfo.light.set_spot_cone_angle_phi(flt_value);
@@ -96,6 +100,8 @@ void v8::scene::section_reader_lights::read_section_entry(
         llinfo.light.set_spot_power(flt_value);
     }
 
+    //
+    // Anything else is common to all light types.
     v8::math::color_rgb color_vec;
     se_entry.GetValue("ambient", color_vec.components_);
     llinfo.light.set_ambient_color(color_vec);

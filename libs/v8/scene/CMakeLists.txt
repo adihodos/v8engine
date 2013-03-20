@@ -2,7 +2,6 @@ add_library(v8_scene STATIC
     cam_controller_spherical_coordinates.cc
     camera_controller.cc
     custom_entity.cc
-    geometric_entity.cc
     group_node.cc
     null_camera_controller.cc
     scene_config_reader.cc

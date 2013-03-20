@@ -39,7 +39,6 @@ namespace v8 { namespace math {
 
 /**
  * \class   vector4
- *
  * \brief   A four component tuple in the form (x, y, z, w),
  * 			that is used to represent an affine vector/affine point/ 
  * 			homogeneous point.
@@ -56,8 +55,6 @@ private :
     };
 public :
     /**
-      * \typedef real_t element_type
-      *
       * \brief   Defines an alias representing type of the element.
       */
     typedef real_t          element_type;
@@ -86,24 +83,17 @@ public :
     static const vector4_t  unit_w;
 
    /**
-    * \fn    vector4::vector4()
-    *
     * \brief Default constructor. Leaves elements uninitialized.
-    *
     */
     vector4() {}
 
     /**
-     * \fn  vector4::vector4(float x, float y, float z, float w)
-     *
      * \brief   Constructs a vector4 with the specified values.
      */
     vector4(real_t x, real_t y, real_t z, real_t w) 
         : x_(x), y_(y), z_(z), w_(w) {}
 
     /**
-     * \fn  inline vector4::vector4(const real_t* inputs, size_t count);
-     *
      * \brief   Constructs a vector4 from an array of existing values.
      * \param   inputs  Pointer to an array of elements.
      * \param   count   Number of elements in the array
@@ -114,38 +104,31 @@ public :
         size_t count
         );
 
+    /**
+     * \brief Construct from a vector with element types convertible
+     * to the type of this vector's elements.
+     */
     template<typename Convertible_Type>
     vector4(const vector4<Convertible_Type>& other)
         : x_(other.x_), y_(other.y_), z_(other.z_), w_(other.w_) {}
 
     /**
-     * \fn    static inline vector4 vector4::as_affine_point(const math::vector3& pt)
-     *
      * \brief Constructs a vector4 representing an affine point (w = 1).
      */
     static 
     inline 
     vector4<real_t> 
-    as_affine_point(
-        const math::vector3<real_t>& pt
-        );
+    as_affine_point(const math::vector3<real_t>& pt);
 
     /**
-     * \fn  static inline vector4<real_t> vector4::as_affine_vector( const math::vector3<real_t>& v );
-     *
      * \brief   Constructs a vector4 representing an affine vector (w = 0).
      */
     static 
     inline 
     vector4<real_t> 
-    as_affine_vector(
-        const math::vector3<real_t>& v
-        );
+    as_affine_vector(const math::vector3<real_t>& v);
 
     /**
-     * \fn  static inline vector4<real_t> vector4::as_homogeneous_point( const math::vector3<real_t>& pt,
-     * real_t w );
-     *
      * \brief   Constructs a vector4 representing a homogeneous point 
      * 			(w <> 0 and generally not 1).
      * \param   w   Value for the w component.
@@ -153,26 +136,17 @@ public :
     static
     inline
     vector4<real_t>
-    as_homogeneous_point(
-        const math::vector3<real_t>& pt,
-        real_t w
-        );
+    as_homogeneous_point(const math::vector3<real_t>& pt, real_t w);
 
     template<typename Convertible_Type>
-    inline 
     vector4<real_t>& 
-    operator=(
-        const vector4<Convertible_Type>& other
-        ) {
+    operator=(const vector4<Convertible_Type>& other) {
         x_ = other.x_; y_ = other.y_; z_ = other.z_; w_ = other.w_;
         return *this;
     }
 
     /**
-     * \fn  inline vector4<real_t>& vector4::operator+=( const vector4<real_t>& rhs );
-     *
      * \brief   Addition assignment operator.
-     * 			
      * \remarks This operation applies to affine vectors. It can be applied
      * 			to affine points, if the following holds :
      * 			Let P, P0, .. Pn be affine points in R4. Then
@@ -186,15 +160,10 @@ public :
     template<typename Convertible_Type>
     inline
     vector4<real_t>& 
-    operator+=(
-        const vector4<Convertible_Type>& rhs
-        );
+    operator+=(const vector4<Convertible_Type>& rhs);
 
     /**
-     * \fn  inline vector4<real_t>& vector4::operator-=( const vector4<real_t>& rhs );
-     *
      * \brief   Subtraction assignment operator.
-     *
      * \remarks This operation is valid for vectors and affine points. 
      * 			Substracting two affine points result in an affine vector.
      */
@@ -206,28 +175,20 @@ public :
         );
 
     /**
-     * \fn  inline vector4<real_t>& vector4::operator*=( real_t k );
-     *
      * \brief   Multiplication assignment operator.
      */
     template<typename Convertible_Type>
     inline
     vector4<real_t>& 
-    operator*=(
-        Convertible_Type k
-        );
+    operator*=(Convertible_Type k);
 
     /**
-     * \fn  inline vector4<real_t>& vector4::operator/=( real_t k );
-     *
      * \brief   Division assignment operator.
      */
     template<typename Convertible_Type>
     inline
     vector4<real_t>&
-    operator/=(
-        Convertible_Type k
-        );
+    operator/=(Convertible_Type k);
 
     /**
      * \brief   Returns the sumation of the squares of the components.
@@ -244,10 +205,7 @@ public :
     length_squared() const;
 
     /**
-     * \fn  inline float vector4::magnitude() const;
-     *
      * \brief   Gets the magnitude(length) of the vector.
-     *
      * \remarks This function is valid only if the vector4 object represents
      * 			an affine vector.
      */
@@ -256,10 +214,7 @@ public :
     magnitude() const;
 
     /**
-     * \fn  inline vector4<real_t>& vector4::normalize();
-     *
      * \brief   Normalizes the vector, that is v = v / ||v||.
-     *
      * \remarks Only valid if the object represents a vector.
      */
     inline
@@ -299,9 +254,6 @@ template<typename real_t>
 const vector4<real_t> vector4<real_t>::unit_w(real_t(0), real_t(0), real_t(0), real_t(1));
 
 /**
- * \fn  template<typename real_t> inline bool operator==( const math::vector4<real_t>& lhs,
- * const math::vector4<real_t>& rhs );
- *
  * \brief   Equality operator.
  */
 template<typename real_t>
@@ -313,140 +265,84 @@ operator==(
     );
 
 /**
- * \fn  template<typename real_t> inline bool operator!=( const math::vector4<real_t>& lhs,
- * const math::vector4<real_t>& rhs );
- *
  * \brief   Inequality operator.
  */
 template<typename real_t>
 inline
 bool
-operator!=(
-    const math::vector4<real_t>& lhs,
-    const math::vector4<real_t>& rhs
-    );
+operator!=(const math::vector4<real_t>& lhs, const math::vector4<real_t>& rhs);
 
 /**
- * \fn  template<typename real_t> inline math::vector4<real_t> operator-( const math::vector4<real_t>& vec );
- *
  * \brief   Negation operator.
  */
 template<typename real_t>
 inline
 math::vector4<real_t>
-operator-(
-    const math::vector4<real_t>& vec
-    );
+operator-(const math::vector4<real_t>& vec);
 
 /**
- * \fn  template<typename real_t> inline math::vector4<real_t> operator+( const math::vector4<real_t>& lhs,
- * const math::vector4<real_t>& rhs )
- *
  * \brief   Addition operator.
- *
- * \see     vector4<real_t>::operator+=(const math::vector4<real_t>&)
  */
 template<typename real_t>
 inline
 math::vector4<real_t>
-operator+(
-    const math::vector4<real_t>& lhs,
-    const math::vector4<real_t>& rhs
-    );
+operator+(const math::vector4<real_t>& lhs, const math::vector4<real_t>& rhs);
 
 /**
- * \fn  template<typename real_t> inline math::vector4<real_t> operator-( const math::vector4<real_t>& lhs,
- * const math::vector4<real_t>& rhs );
- *
  * \brief   Subtraction operator.
  */
 template<typename real_t>
 inline
 math::vector4<real_t>
-operator-(
-    const math::vector4<real_t>& lhs,
-    const math::vector4<real_t>& rhs
-    );
+operator-(const math::vector4<real_t>& lhs, const math::vector4<real_t>& rhs);
 
 /**
- * \fn  template<typename real_t> inline math::vector4<real_t> operator*( float k,
- * const math::vector4<real_t>& vec, );
- *
  * \brief   Scalar multiplication operator.
  */
 template<typename real_t, typename Convertible_Type>
 inline
 math::vector4<real_t>
-operator*(
-    Convertible_Type k,
-    const math::vector4<real_t>& vec
-    );
+operator*(Convertible_Type k, const math::vector4<real_t>& vec);
 
 /**
- * \fn  template<typename real_t> inline math::vector4<real_t> operator*( const math::vector4<real_t>& vec,
- * float k );
- *
  * \brief   Scalar multiplication operator.
  */
 template<typename real_t, typename Convertible_Type>
 inline
 math::vector4<real_t>
-operator*(
-    const math::vector4<real_t>& vec,
-    Convertible_Type k
-    );
+operator*(const math::vector4<real_t>& vec, Convertible_Type k);
 
 /**
- * \fn  template<typename real_t> inline math::vector4<real_t> operator/( const math::vector4<real_t>& vec,
- * float k );
- *
  * \brief   Scalar division operator.
  */
 template<typename real_t, typename Convertible_Type>
 inline
 math::vector4<real_t>
-operator/(
-    const math::vector4<real_t>& vec,
-    Convertible_Type k
-    );
+operator/(const math::vector4<real_t>& vec, Convertible_Type k);
 
 /**
- * \fn  template<typename real_t> inline math::vector4<real_t> normalized_from( const math::vector4<real_t>& vec );
- *
  * \brief   Return the normalized form of a vector.
  */
 template<typename real_t>
 inline
 math::vector4<real_t>
-normalized_from(
-    const math::vector4<real_t>& vec
-    );
+normalized_from(const math::vector4<real_t>& vec);
     
 /**
- * \fn  template<typename real_t> inline real_t dot_product( const math::vector4<real_t>& lhs,
- * const math::vector4<real_t>& rhs );
- *
  * \brief   Computes the dot product of two vectors.
  */
 template<typename real_t>
 inline
 real_t
-dot_product(
-    const math::vector4<real_t>& lhs, 
-    const math::vector4<real_t>& rhs
-    );
+dot_product(const math::vector4<real_t>& lhs, const math::vector4<real_t>& rhs);
 
 /**
- * \typedef vector4<float> vector4F
- *
  * \brief   Defines an alias representing a vector4 having simple precision
  * 			floating point components.
  */
 typedef vector4<float>      vector4F;
 
 /**
- * \typedef vector4<double> vector4D
- *
  * \brief   Defines an alias representing a vector4 having double precision
  * 			floating point components.
  */

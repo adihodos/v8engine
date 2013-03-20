@@ -34,28 +34,25 @@ void v8::directx::renderer::on_viewport_resized(
 }
 
 v8_bool_t v8::directx::renderer::initialize(
-    HWND window, 
-    float width, 
-    float height,
-    ElementType::Type backbuffer_elem_type,
-    v8_int_t backbuffer_elem_count,
-    v8_int_t /*depth_bits*/,
-    v8_int_t /*stencil_bits*/,
-    v8_bool_t full_screen /*= false*/,
-    v8_bool_t handle_full_screen_transition /*= false*/
+    const v8::directx::render_init_params& init_params
     ) {
     if (check_if_object_state_valid()) {
         return true;
     }
 
-    m_target_window = window;
-    m_target_width = width;
-    m_target_height = height;
+    //
+    // TODO : add support for :
+    //      - multiple render targets
+    //      - antialiasing
+
+    m_target_window = static_cast<HWND>(init_params.target_window);
+    m_target_width = static_cast<float>(init_params.width);
+    m_target_height = static_cast<float>(init_params.height);
 
     //
     // Translate and validate requested backbuffer format.
     m_backbuffer_type = element_type_to_dxgi_format(
-        backbuffer_elem_type, backbuffer_elem_count
+        init_params.buffer_element_type, init_params.buffer_element_count
         );
     if (m_backbuffer_type == DXGI_FORMAT_UNKNOWN) {
         OUTPUT_DBG_MSGA("Invalid format requeste for the backbuffer");
@@ -64,16 +61,16 @@ v8_bool_t v8::directx::renderer::initialize(
 
     m_depth_stencil_type = DXGI_FORMAT_D24_UNORM_S8_UINT;
     
-    if (!initialize_swap_chain(full_screen)) {
+    if (!initialize_swap_chain(init_params.full_screen)) {
         return false;
     }
-    if (!handle_full_screen_transition) {
+    if (!init_params.handle_full_screen) {
         disable_auto_alt_enter();
     }
     if (!initialize_font_engine()) {
         return false;
     }
-    return handle_render_target_resized(width, height);
+    return handle_render_target_resized(m_target_width, m_target_height);
 }
 
 v8_bool_t v8::directx::renderer::handle_render_target_resized(

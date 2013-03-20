@@ -67,7 +67,7 @@ template<typename T, typename U>
 void copy_pod_range(const U* input, const v8_size_t count, T* output) {
     constraint_must_be_pod<T>();
     constraint_must_be_pod<U>();
-    copy_pod_range_impl(U, T, count, copy_type<sizeof(T) == sizeof(U)>::tag());
+    copy_pod_range_impl(input, count, output, copy_type<sizeof(T) == sizeof(U)>::tag());
 }
 
 } // namespace base

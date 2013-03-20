@@ -20,20 +20,54 @@ namespace v8 {
 
 namespace v8 { namespace directx {
 
-class renderer {
-public :
+///
+/// \brief Parameters for rrender device initialization.
+struct render_init_params {
+    ///< Destination output window.
+    void*       target_window;
+    ///< Window width.
+    v8_int_t    width;
+    ///< Window height.
+    v8_int_t    height;
+    ///< True if rendering full screen.
+    v8_bool_t   full_screen;
+    ///< True if pressing of ALT-ENTER is automatically handled. Set to false
+    ///< to handle it in application.
+    v8_bool_t   handle_full_screen;
+    ///< Enable support for antialiasing (not yet implemented).
+    v8_bool_t   antialiasing;
+    ///< Element type for the back buffer (see ElementType).
+    v8_int_t    buffer_element_type;
+    ///< Number of components of a single backbuffer entry.
+    v8_int_t    buffer_element_count;
+    ///< Number of render targets (only 1 atm).
+    v8_int_t    render_targets_count;
+    ///< Number of bits for depth testing.
+    v8_int_t    depth_bits;
+    ///< Number of bits for stenciling.
+    v8_int_t    stencil_bits;
 
-    //! \name Constructors.
-    //! @{
+    render_init_params() {
+        memset(this, 0, sizeof(*this));
+    }
+};    
+
+//!
+//! \brief Rendering device management and drawing.
+class renderer {
+//! \name Constructors.
+//! @{
+
+public :    
 
     renderer(); 
 
     ~renderer();
 
-    //! @}
+//! @}
 
-    //! \name Event delegates and event handling.
-    //! @{
+//! \name Event delegates and event handling.
+//! @{
 
 public :
 
@@ -45,12 +79,12 @@ private :
         float new_width, float new_height
     );
 
-    //! @}
+//! @}
 
-public :
+//! \name Attributes
+//! @{
 
-    //! \name Attributes
-    //! @{
+public :    
 
     v8_bool_t is_initialized() const {
         return m_swap_chain && m_device && m_device_context;
@@ -72,24 +106,14 @@ public :
         return m_target_height;
     }
 
-    //! @}
+//! @}
 
-public :
+//! \name Initialisation
+//! @{
 
-    //! \name Initialisation
-    //! @{
+public :    
 
-    v8_bool_t initialize(
-        HWND window, 
-        float width, 
-        float height,
-        ElementType::Type backbuffer_elem_type,
-        v8_int_t backbuffer_elem_count,
-        v8_int_t depth_bits,
-        v8_int_t stencil_bits,
-        v8_bool_t full_screen = false,
-        v8_bool_t handle_full_screen_transition = false
-        );
+    v8_bool_t initialize(const render_init_params& init_params);
 
 private :
 
@@ -99,36 +123,27 @@ private :
 
     v8_bool_t initialize_font_engine();
 
-    //! @}
+//! @}
 
-public :
+//! \name Operations
+//! @{
 
-    //! \name Operations
-    //! @{
+public :    
 
-    inline FramePresentResult::Type present_frame(
-        FramePresent::Type flags
-        );
-
-
-    //! @}
-
-public :
+    inline FramePresentResult::Type present_frame(FramePresent::Type flags);
 
     void ia_stage_set_primitive_topology_type(
         PrimitiveTopology::Type topology
-    ) const;
+        ) const;
 
-    inline void ia_stage_set_input_layout(
-        ID3D11InputLayout* input_layout
-    );
+    inline void ia_stage_set_input_layout(ID3D11InputLayout* input_layout);
 
-    // ! @}
+// ! @}
 
-public :
+//! \name Shader stage operations.
+//! @{
 
-    //! \name Shader stage operations.
-    //! @{
+public :    
 
     inline void unbind_vertex_shader() const;
 
@@ -136,12 +151,12 @@ public :
 
     inline void unbind_fragment_shader() const;
 
-    //! @}
+//! @}
 
-public :
+//! \name Output merger stage operations.
+//! @{
 
-    //! \name Output merger stage operations.
-    //! @{
+public :    
 
     inline void set_depth_stencil_state(
         const depth_stencil_state& dsstate, const v8_uint32_t ref_value = 0
@@ -153,11 +168,12 @@ public :
 
     void get_render_target(v8_size_t slot_id, ID3D11RenderTargetView** rtv);
 
-    //! @}
+//! @}
 
-public :
-    //! \name State manipulation.
-    //! @{
+//! \name State manipulation.
+//! @{
+
+public :    
 
     void set_clear_color(const v8::math::color_rgb& clear_color) {
         m_clear_color = clear_color;
@@ -175,22 +191,22 @@ public :
 
     inline void reset_blending_state();
 
-    //! @}
+//! @}
 
-public :
+//! \name Drawing operations
+//! @{
 
-    //! \name Drawing operations
-    //! @{
+public :    
 
     inline void draw(
         v8_uint_t vertex_count, v8_uint_t first_vertex_location = 0
-    ) const;
+        ) const;
 
     inline void draw_indexed(
         v8_uint_t index_count, 
         v8_uint_t first_index_location = 0,
         int index_offset = 0
-    ) const;
+        ) const;
 
     void draw_string(
         const wchar_t* text, 
@@ -198,7 +214,7 @@ public :
         float xpos, 
         float ypos, 
         const v8::math::color_rgb& color
-    );
+        );
 
     void draw_string(
         const char* text,
@@ -206,15 +222,14 @@ public :
         float xpos, 
         float ypos, 
         const v8::math::color_rgb& color
-    );
+        );
 
-    //! @}
+//! @}
 
-public :
+//! \name Internally reserved routines. Must not be called by client code.
+//! @{
 
-    //! \name Internally reserved routines.
-    //! Must not be called by client code.
-    //! @{
+public :    
 
     ID3D11Device* internal_np_get_device() const {
         return v8::base::scoped_pointer_get(m_device);
@@ -224,12 +239,12 @@ public :
         return v8::base::scoped_pointer_get(m_device_context);
     }
 
-    //! @}
+//! @}
 
-private :
+//! \name Sanity checking.
+//! @{
 
-    //! \name Sanity checking.
-    //! @{
+public :
 
     v8_bool_t check_if_object_state_valid() const {
         return  m_device && m_device_context && m_swap_chain 
@@ -237,7 +252,9 @@ private :
                 && m_rendertarget_view;
     }
 
-    //! @}
+//! @}
+
+//! \name Data members
 
 private :
     v8::base::com_exclusive_pointer
@@ -298,13 +315,15 @@ private :
     // Bound render targets.
     std::vector<ID3D11RenderTargetView*>                        m_rtvs;
 
-private :
-    //! \name Disabled functions.
-    //! @{
+//! @}
 
+//! \name Disabled functions.
+//! @{
+
+private :    
     NO_CC_ASSIGN(renderer);
 
-    //! @}
+//! @}
 };
 
 inline void renderer::ia_stage_set_input_layout(ID3D11InputLayout* input_layout) {
