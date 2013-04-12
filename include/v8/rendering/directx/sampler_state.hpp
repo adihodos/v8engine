@@ -21,22 +21,22 @@ struct sampler_descriptor_t {
     v8::math::color_rgb             border_color;
     float                           max_lod;
     float                           min_lod;
-    
-    static const sampler_descriptor_t& default() {
-        static sampler_descriptor_t def_state;
 
-        def_state.filter_type = Filter::Min_Mag_Mip_Linear;
-        def_state.tex_address_u = Texture_Address_Mode::Clamp;
-        def_state.tex_address_v = Texture_Address_Mode::Clamp;
-        def_state.tex_address_w = Texture_Address_Mode::Clamp;
-        def_state.mip_lod_bias = 0.0f;
-        def_state.max_aniso_level = 16U;
-        def_state.compare_func = CompareFunc::Never;
-        def_state.border_color = v8::math::color_rgb::C_Black;
-        def_state.max_lod = std::numeric_limits<float>::max(),
-        def_state.min_lod = std::numeric_limits<float>::min();
-        
-        return def_state;
+    sampler_descriptor_t() {
+        set_defaults();
+    }
+    
+    void set_defaults() {
+        filter_type = Filter::Min_Mag_Mip_Linear;
+        tex_address_u = Texture_Address_Mode::Clamp;
+        tex_address_v = Texture_Address_Mode::Clamp;
+        tex_address_w = Texture_Address_Mode::Clamp;
+        mip_lod_bias = 0.0f;
+        max_aniso_level = 16U;
+        compare_func = CompareFunc::Never;
+        border_color = v8::math::color_rgb::C_Black;
+        max_lod = std::numeric_limits<float>::max(),
+        min_lod = std::numeric_limits<float>::min();
     }
 
 };
@@ -74,7 +74,7 @@ struct samplerstate_traits {
         );
 };
 
-typedef api_state<samplerstate_traits>                          SamplerState_t;
+typedef api_state<samplerstate_traits>                          sampler_state;
 
 } // namespace directx
 } // namespace v8

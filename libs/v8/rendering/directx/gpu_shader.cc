@@ -275,7 +275,7 @@ void v8::directx::gpu_shader<T>::bind_to_pipeline(
         //
         // Sync uniform values with values stored in GPU memory
         for (v8_size_t i = 0U; i < num_uniform_blocks; ++i) {
-            pimpl_->shader_core.uniform_blocks[i].sync_data_with_gpu(k_devctx);
+            pimpl_->shader_core.uniform_blocks[i]->sync_data_with_gpu(k_devctx);
         }
 
         shader_traits::bind_uniform_blocks_to_pipeline_stage(

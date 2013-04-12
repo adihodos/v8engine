@@ -95,9 +95,7 @@ v8_bool_t v8::directx::texture::initialize(
     //  Create a shader resource view by default
     //  for each aditional resource views specified
     //      create the corresponding view
-    platformstl::path textureFilePath(state->file_sys()->get_dir_path(
-        filesys::Dir::Textures));
-    textureFilePath.push(tex_info.tex_filename.c_str());
+    platformstl::path textureFilePath(tex_info.tex_filename.c_str());
     utility::win32::scoped_wide_string_t filePathWideStr(
         utility::win32::multibyte_string_to_wide_string(textureFilePath.c_str()));
 
@@ -105,6 +103,7 @@ v8_bool_t v8::directx::texture::initialize(
     DirectX::TexMetadata    tex_metadata;
     DirectX::ScratchImage   scratch_image;
     HRESULT                 ret_code;
+    v8_bool_t               gen_mips = false;
 
     if (!strcmp(textureFilePath.get_ext(), "dds")) {
         ret_code = DirectX::LoadFromDDSFile(
@@ -116,6 +115,7 @@ v8_bool_t v8::directx::texture::initialize(
             scoped_pointer_get(filePathWideStr), DirectX::WIC_FLAGS_NONE, 
             &tex_metadata, scratch_image
             );
+        gen_mips = true;
     }
 
     if (FAILED(ret_code)) {
@@ -129,7 +129,7 @@ v8_bool_t v8::directx::texture::initialize(
     array_size_ = static_cast<v8_uint32_t>(tex_metadata.arraySize);
     flags_      = tex_info.tex_bindflags;
 
-    const D3D11_USAGE res_usage_flags   = D3D11_USAGE_IMMUTABLE;
+    const D3D11_USAGE res_usage_flags   = D3D11_USAGE_DEFAULT;
     const UINT res_bind_flags           = map_bindflags_to_directx_bindflags(flags_);
     const UINT cpu_access               = 0u;
     ID3D11Device* graphics_device       = rsys->internal_np_get_device();
@@ -147,7 +147,7 @@ v8_bool_t v8::directx::texture::initialize(
         D3D11_TEXTURE2D_DESC tex_desc = {
             width_,
             height_,
-            static_cast<UINT>(tex_metadata.mipLevels),
+            gen_mips ? 0 : static_cast<UINT>(tex_metadata.mipLevels),
             array_size_,
             format_,
             { 1, 0 },
@@ -157,8 +157,15 @@ v8_bool_t v8::directx::texture::initialize(
             0
         };
 
+        if (gen_mips) {
+            tex_desc.BindFlags |= D3D11_BIND_RENDER_TARGET;
+            tex_desc.MiscFlags |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
+        }
+
         D3D11_SUBRESOURCE_DATA tex_init_data = {
-            scratch_image.GetPixels(), width_ * height_, 0
+            scratch_image.GetPixels(), 
+            static_cast<UINT>(scratch_image.GetImages()->rowPitch),
+            static_cast<UINT>(scratch_image.GetImages()->slicePitch)
         };
 
         ID3D11Texture2D* tex2d_res = nullptr;

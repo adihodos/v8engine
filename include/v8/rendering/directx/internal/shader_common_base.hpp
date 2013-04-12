@@ -14,6 +14,7 @@ struct ID3D11ShaderReflection;
 #include <v8/base/com_exclusive_pointer.hpp>
 #include <v8/base/pointer_policies.hpp>
 #include <v8/base/scoped_pointer.hpp>
+#include <v8/base/sequence_container_veneer.hpp>
 #include <v8/rendering/directx/internal/shader_uniform.hpp>
 #include <v8/utility/algorithms.hpp>
 
@@ -23,6 +24,24 @@ namespace v8 { namespace directx { namespace internal {
 //! \brief Defines data and routines that are common to all types of
 //! shaders.
 struct shader_common_base {
+private :
+    struct shader_uniform_block_dtor_t {
+        void operator()(shader_uniform_block_t* uniform_blk) const {
+            delete uniform_blk;
+        }
+    };    
+
+    typedef std::vector
+    <
+        shader_uniform_block_t*
+    >                                               uniform_block_table_t;
+
+    typedef v8::base::sequence_container_veneer
+    <
+        uniform_block_table_t,
+        shader_uniform_block_dtor_t
+    >                                               scoped_uniform_block_table_t;
+        
 public :
     
     //!
@@ -40,7 +59,8 @@ public :
     >::type                                             input_signature;
 
     //! List of uniform blocks in the shader.
-    std::vector<shader_uniform_block_t>                 uniform_blocks;
+    //std::vector<shader_uniform_block_t>                 uniform_blocks;
+    scoped_uniform_block_table_t                        uniform_blocks;
 
     //! Uniform block handles. Passed to the shader before it starts
     //! execution on the GPU.
@@ -70,7 +90,10 @@ public :
 
     //! Default constructor. Does nothing, shader_common_base::reflect_shader() 
     //! must be called before using the object's members.
-    shader_common_base() : bytecode() {}
+    shader_common_base() : bytecode() {
+        uniform_blocks.reserve(128);
+        uniforms.reserve(128);
+    }
 
     ~shader_common_base() {}
 
@@ -124,11 +147,16 @@ public :
     shader_uniform_block_t* get_uniform_block_by_name(
         const char* block_name
         ) {
-        return get_resource_info(
-            uniform_blocks, 
-            [block_name](const shader_uniform_block_t& ublock) {
-                return strcmp(ublock.get_name().c_str(), block_name);
+        auto iter = utility::binary_search_container(
+            uniform_blocks,
+            [block_name](const shader_uniform_block_t* ublk) {
+            return strcmp(block_name, ublk->get_name().c_str());
         });
+        if (iter == std::end(uniform_blocks)) {
+            return nullptr;
+        }
+
+        return *iter;
     }
 
     //! \todo Debug output when querying invalid uniform

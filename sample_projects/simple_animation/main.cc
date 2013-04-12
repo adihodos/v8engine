@@ -9,33 +9,38 @@
 #include <v8/base/debug_helpers.hpp>
 #include <v8/base/scoped_pointer.hpp>
 #include <v8/base/scoped_resource.hpp>
+#include <v8/event/window_event.hpp>
+#include <v8/math/camera.hpp>
 #include <v8/math/color.hpp>
 #include <v8/math/vector3.hpp>
 #include <v8/math/matrix4X4.hpp>
 #include <v8/scene/scene_system.hpp>
 
-#include "fractal.hpp"
-#include "fractal_window.hpp"
+#include "main_window.hpp"
+
+#pragma comment(lib, "d3dx11.lib")
 
 namespace {
 
-class fractal_app_context : public v8::application_state {
+class animation_app_context : public v8::application_state {
 public :
     v8_bool_t initialize();
 
+public :
+    void on_window_resized(const v8::resize_event& resize_evt);    
+
 private :
-    fractal julia_;
 };
 
-v8_bool_t fractal_app_context::initialize() {
+v8_bool_t animation_app_context::initialize() {
     application_state::initialize();
 
-    window_ = new fractal_window();
+    window_ = new main_window();
     const v8_uint32_t window_style = WS_OVERLAPPEDWINDOW;
     const v8_int32_t window_width = 1024;
     const v8_int32_t window_height = 1024;
-    if (!window_->initialize(window_style, "FractalWindowClass", 
-                             "Julia fractal explorer",
+    if (!window_->initialize(window_style, "AnimWindowClass", 
+                             "Animation using quaternions",
                              window_width, window_height)) {
         return false;
     }
@@ -63,19 +68,28 @@ v8_bool_t fractal_app_context::initialize() {
     file_sys_ = new v8::filesys();
     //
     // TODO : fix hard coded path, it sucks.
-    const char* const app_data_dir = "D:\\games\\fractals";
+    const char* const app_data_dir = "D:\\games\\simple_anim";
     file_sys_->initialize(app_data_dir);
 
-    g_fractal = &julia_;
-    if (!g_fractal->initialize()) {
-        return false;
-    }
+    cam_ptr_ = new v8::math::camera();
+    cam_ptr_->look_at(v8::math::vector3F(0.0f, 10.0f, -10.0f),
+                      v8::math::vector3F::unit_y,
+                      v8::math::vector3F::zero);
+    cam_ptr_->set_symmetric_frustrum_perspective(
+        45.0f, window_->get_aspect_ratio(), 1.0f, 1000.0f
+        );
 
-    window()->Subscribers_InputEvents += 
-        fastdelegate::MakeDelegate(g_fractal, &fractal::on_input);
-    window()->Subscribers_ResizeEvent +=
-        fastdelegate::MakeDelegate(g_fractal, &fractal::on_resize);
-    return true;
+    window_->Subscribers_ResizeEvent += fastdelegate::MakeDelegate(
+        this, &animation_app_context::on_window_resized
+        );
+
+    return static_cast<main_window*>(window())->initialize_scene();
+}
+
+void animation_app_context::on_window_resized(const v8::resize_event&) {
+    cam_ptr_->set_symmetric_frustrum_perspective(
+        45.0f, window()->get_aspect_ratio(), 1.0f, 1000.0f
+        );
 }
 
 }
@@ -85,7 +99,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE, LPSTR, int) {
     // Must be the first constructed object to report any leaked memory.
     //v8::utility::win32::scoped_mem_leak_checker leak_check_obj;
     {
-        fractal_app_context app_context;
+        animation_app_context app_context;
         if (!app_context.initialize()) {
             return -1;
         }

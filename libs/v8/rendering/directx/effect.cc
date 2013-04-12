@@ -93,7 +93,7 @@ v8_bool_t v8::directx::effect::initialize(
 
     
     if (FAILED(ret_code)) {
-        OUTPUT_DBG_MSGA("Failed to compile effect [%s]", effect_file_path.c_str());
+        OUTPUT_DBG_MSGA("Failed to compile effect [%s]", eff_info.eff_filepath.c_str());
         OUTPUT_DBG_MSGA("Compiler error [%s]", error_message->GetBufferPointer() ?
             static_cast<const char*>(error_message->GetBufferPointer()) : "not available"
             );
@@ -137,7 +137,7 @@ v8_bool_t v8::directx::effect::on_effect_loaded(ID3DX11Effect* eff) {
         new_technique->internal_np_set_handle(technique_handle);
 
         if (!new_technique->is_valid()) {
-            OUTPUT_DBG_MSGA("Warning : technique @ index %u failed to be created",
+            OUTPUT_DBG_MSGA("Warning Failed to create technique with index %d",
                             i);
             continue;
         }
@@ -188,6 +188,81 @@ v8_bool_t v8::directx::effect::on_effect_loaded(ID3DX11Effect* eff) {
     }
 
     return true;
+}
+
+void v8::directx::effect::set_variable_srv(
+    ID3DX11EffectVariable* eff_var, 
+    ID3D11ShaderResourceView* resource
+    ) {
+    assert(is_effect_valid());
+    assert(eff_var);
+    assert(eff_var->IsValid());
+    assert(resource);
+
+    ID3DX11EffectShaderResourceVariable* eff_var_srv = eff_var->AsShaderResource();
+    if (!eff_var_srv->IsValid()) {
+        OUTPUT_DBG_MSGA("Warning : variable is not valid as a "
+                        "shader resource view");
+        return;
+    }
+    HRESULT ret_code;
+    CHECK_D3D(&ret_code, eff_var_srv->SetResource(resource));
+}
+
+void v8::directx::effect::set_resource_variable_by_name(
+    const char* const var_name,
+    ID3D11ShaderResourceView* srv_ptr
+    ) {
+    assert(var_name);
+    assert(srv_ptr);
+    
+    ID3DX11EffectVariable* effect_var = get_variable_by_name(var_name);
+    if (!effect_var) {
+        return;
+    }
+    set_variable_srv(effect_var, srv_ptr);
+}
+
+void v8::directx::effect::set_resource_variable_by_semantic(
+    const char* const var_semantic,
+    ID3D11ShaderResourceView* srv_ptr
+    ) {
+    assert(var_semantic);
+    assert(srv_ptr);
+
+    ID3DX11EffectVariable* effect_var = get_variable_by_semantic(var_semantic);
+    if (!effect_var) {
+        return;
+    }
+    set_variable_srv(effect_var, srv_ptr);
+}
+
+ID3DX11EffectVariable* v8::directx::effect::get_variable_by_name(
+    const char* const var_name
+    ) {
+    assert(is_effect_valid());
+    assert(var_name);
+
+    auto var_table_entry = parameters_by_name_.find(utility::FNV1AHash_t::hash_string(var_name));
+    if (var_table_entry != parameters_by_name_.end()) {
+        assert(var_table_entry->second->IsValid());
+        return var_table_entry->second;
+    }
+    return nullptr;
+}
+
+ID3DX11EffectVariable* v8::directx::effect::get_variable_by_semantic(
+    const char* const var_semantic
+    ) {
+    assert(is_effect_valid());
+    assert(var_semantic);
+
+    auto var_table_entry = parameters_by_semantic_.find(utility::FNV1AHash_t::hash_string(var_semantic));
+    if (var_table_entry != parameters_by_semantic_.end()) {
+        assert(var_table_entry->second->IsValid());
+        return var_table_entry->second;
+    }
+    return nullptr;
 }
 
 void v8::directx::effect::set_variable_raw(

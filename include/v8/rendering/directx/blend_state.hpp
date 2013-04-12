@@ -107,7 +107,7 @@ struct blendstate_traits {
         );
 };
 
-typedef api_state<blendstate_traits>                                BlendState_t;
+typedef api_state<blendstate_traits>                                blend_state;
 
 } // namespace directx
 } // namespace v8

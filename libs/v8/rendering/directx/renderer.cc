@@ -361,8 +361,7 @@ v8_bool_t v8::directx::renderer::initialize_swap_chain(
     swap_chain_description.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
     swap_chain_description.Windowed = !fullscreen;
 
-    //const UINT device_creation_flags = D3D11_CREATE_DEVICE_DEBUG;
-    const UINT device_creation_flags = 0;
+    const UINT device_creation_flags = D3D11_CREATE_DEVICE_DEBUG;
     D3D_FEATURE_LEVEL supported_feat_level = D3D_FEATURE_LEVEL_11_0;
 
     CHECK_D3D(

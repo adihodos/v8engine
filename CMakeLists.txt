@@ -33,12 +33,16 @@ if (MSVC)
         ${DirectX_LIBRARY_DIR}
     )
 
-    set(cxx_disabled_warnings "/wd 4201")
+    set(cxx_disabled_warnings "/wd4201 /wd4127")
     add_definitions(/DNOMINMAX)
 
-    if (uppercase_CMAKE_BUILD_TYPE STREQUAL "DEBUG")    
+    # Disabled retarded warnings about some functions (fopen) being deprecated
+    add_definitions(/D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS)
+
+    if (CMAKE_BUILD_TYPE MATCHES Debug)
+        #message("Debug mode is on")
+        add_definitions(/DV8_IS_DEBUG_BUILD)
         set(cxx_aditional_flags "/Od /Zi /RTC1")
-        add_definitions(/DDEBUG /D_DEBUG)
     endif()
     
     foreach(flags_var
@@ -49,6 +53,7 @@ if (MSVC)
     string(REPLACE "/W3" "/W4" "${flags_var}" "${${flags_var}}")
 
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${cxx_aditional_flags} ${cxx_disabled_warnings}")
+    message("${CMAKE_CXX_FLAGS}")
 endif()
 
 

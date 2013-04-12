@@ -95,6 +95,22 @@ public :
 public :
 
     ///
+    /// \brief Sets the value of a variable, representing a shader resource view,
+    /// using the variable's name.
+    void set_resource_variable_by_name(
+        const char* const var_name,
+        ID3D11ShaderResourceView* srv_ptr
+        );
+
+    ///
+    /// \brief Sets the value of a variable, representing a shader resource view,
+    /// using the variable's semantic.
+    void set_resource_variable_by_semantic(
+        const char* const var_semantic,
+        ID3D11ShaderResourceView* srv_ptr
+        );
+
+    ///
     /// \brief Sets the value of a variable, using its name.
     template<typename T>
     inline void set_variable_by_name(
@@ -133,6 +149,19 @@ private :
         const char* var_name, 
         const void* value, 
         v8_size_t byte_count
+        );
+
+    void set_variable_srv(
+        ID3DX11EffectVariable* eff_value, 
+        ID3D11ShaderResourceView* resource
+        );
+
+    ID3DX11EffectVariable* get_variable_by_name(
+        const char* const var_name
+        );
+
+    ID3DX11EffectVariable* get_variable_by_semantic(
+        const char* const var_semantic
         );
 
 /// @}

@@ -239,8 +239,8 @@ struct shader_uniform_t {
     //! @{
     
     shader_uniform_t(
-        shader_uniform_block_t* parent, 
-        const D3D11_SHADER_VARIABLE_DESC var_desc
+        const D3D11_SHADER_VARIABLE_DESC& var_desc,
+        shader_uniform_block_t* parent        
         )
         : parent_block_(parent),
           name_(var_desc.Name),

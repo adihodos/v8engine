@@ -27,8 +27,5 @@ const char* dx_get_error_string_from_hresult(
                                 *(ret_code_ptr), \
                                 v8::directx::internal::dx_get_error_string_from_hresult(*(ret_code_ptr))); \
         } \
-__pragma(warning(push)) \
-__pragma(warning(disable : 4127)) \
-    } while (0); \
-__pragma(warning(pop))
+    } while (0)
 #endif

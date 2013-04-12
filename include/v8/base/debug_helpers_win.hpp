@@ -121,14 +121,24 @@ inline void debug_break() {
     do {                            \
         v8::base::debug::output_debug_string(__FILE__, __LINE__, fmt, ##__VA_ARGS__);   \
     } while (0)
-#endif
+#endif    
 
 #else
 
-#define	NOT_REACHED				static_cast<void>(0)
-#define NOT_REACHED_MSG(msg, ...)		static_cast<void>(0)
-#define NOT_REACHED_MSGA(msg, ...)		static_cast<void>(0)
-#define OUTPUT_DBG_MSGW(msg, ...)		static_cast<void>(0)
-#define OUTPUT_DBG_MSGA(fmt, ...)		static_cast<void>(0)
+#define	NOT_REACHED()		                 static_cast<void>(0)
+#define NOT_REACHED_MSG(msg, ...)		     static_cast<void>(0)
+#define NOT_REACHED_MSGA(msg, ...)		     static_cast<void>(0)
+#define OUTPUT_DBG_MSGW(msg, ...)		     static_cast<void>(0)
+#define OUTPUT_DBG_MSGA(fmt, ...)		     static_cast<void>(0)
 
 #endif // !V8_IS_DEBUG_BUILD
+
+#ifndef WAIT_FOR_DEBUGGER_AND_BREAK
+#define WAIT_FOR_DEBUGGER_AND_BREAK()   \
+    do {                                \
+        while (!IsDebuggerPresent()) {  \
+            Sleep(100);                 \
+        }                               \
+        v8::base::debug::debug_break(); \
+    } while (0)
+#endif    

@@ -154,6 +154,7 @@ v8_bool_t fractal::initialize() {
     shader_info.compile_flags   = v8::rendering::Compile_Options::Generate_Debug_Info |
                                   v8::rendering::Compile_Options::IEEE_Strictness |
                                   v8::rendering::Compile_Options::Skip_Optimization |
+                                  v8::rendering::Compile_Options::Optimization_L0 |
                                   v8::rendering::Compile_Options::Matrix_Packing_Row_Major;
     shader_info.shader_model    = "vs_5_0";
 

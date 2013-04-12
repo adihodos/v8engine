@@ -90,5 +90,7 @@ struct rasterizerstate_traits {
         );
 };
 
+typedef api_state<rasterizerstate_traits>                       rasterizer_state;
+
 } // namespace directx
 } // namespace v8

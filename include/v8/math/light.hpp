@@ -255,7 +255,7 @@ public :
   }
 
   void set_max_range(const float max_range) {
-    assert(type_ == light::type::spot || type_ == light::type::spot);
+    assert(type_ == light::type::point || type_ == light::type::spot);
     max_range_ = max_range;
   }
 

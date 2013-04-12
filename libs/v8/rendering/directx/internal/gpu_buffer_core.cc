@@ -16,7 +16,7 @@ const D3D11_BIND_FLAG k_dx11_bind_flag_mappings[] = {
 }
 
 v8_bool_t v8::directx::gpu_buffer_core::initialize(
-    renderer*      rsys,
+    renderer*               rsys,
     const v8_size_t         k_num_elements,
     const v8_size_t         k_element_size,
     const v8_uint32_t       k_bind_flags,
@@ -116,7 +116,7 @@ void v8::directx::gpu_buffer_core::bind_to_pipeline_impl(
     assert(rsys);
     assert(buff);
     assert((buff->get_element_size() == sizeof(v8_uint16_t)) 
-          || (buff->get_element_size() == sizeof(v8_uint32_t)));
+           || (buff->get_element_size() == sizeof(v8_uint32_t)));
 
     const DXGI_FORMAT k_index_format[] = { 
         DXGI_FORMAT_R16_UINT, DXGI_FORMAT_R32_UINT

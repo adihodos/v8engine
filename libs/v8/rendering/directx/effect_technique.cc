@@ -1,6 +1,3 @@
-#include <v8/v8.hpp>
-#include <v8/base/debug_helpers.hpp>
-
 #include "v8/rendering/directx/internal/debug_helpers.hpp"
 #include "v8/rendering/directx/effect_technique.hpp"
 #include "v8/rendering/directx/effect_pass.hpp"
@@ -12,10 +9,11 @@ void v8::directx::effect_technique::on_technique_loaded() {
 
     reset_data();
 
-    HRESULT ret_code;
-    CHECK_D3D(&ret_code, technique_handle_->GetDesc(&technique_info_));
+    HRESULT ret_code = technique_handle_->GetDesc(&technique_info_);
+    //CHECK_D3D(&ret_code, technique_handle_->GetDesc(&technique_info_));
 
-    if (FAILED(ret_code)) {
+    //if (FAILED(ret_code)) {
+    if (ret_code != S_OK) {
         technique_handle_ = nullptr;
         return;
     }
