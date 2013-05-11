@@ -98,13 +98,6 @@ public :
 
     inline matrix_4X4(const matrix_4X4<real_t>& rhs);
 
-    /**
-     * \brief Construct from a 3x3 matrix with convertible type elements.
-     *        The 4th row and column is set to (0, 0, 0, 1).
-     */
-    template<typename real_u>
-    matrix_4X4(const matrix_3X3<real_u>& mtx3x3);
-
     matrix_4X4(
         real_t a11, real_t a12, real_t a13, real_t a14,
         real_t a21, real_t a22, real_t a23, real_t a24,
@@ -134,6 +127,9 @@ public :
     matrix_4X4(const convertible_type (&arr)[16]) {
         base::copy_pod_range(&arr[0], 16, elements_);
     }
+
+    template<typename convertible_type>
+    matrix_4X4(const matrix_3X3<convertible_type>& linear_tf);
 
     /**
      * \brief   Constructs a diagonal matrix.
@@ -688,84 +684,5 @@ typedef matrix_4X4<double>   matrix_4X4D;
 
 } // namespace math
 } // namespace v8
-
-template<typename real_t>
-v8::math::matrix_4X4<real_t>&
-v8::math::matrix_4X4<real_t>::make_symmetric_perspective_projection_rh(
-    real_t aspect_ratio,
-    real_t vertical_fov,
-    real_t d_min,
-    real_t d_max,
-    real_t ndc_min,
-    real_t ndc_max
-    ) {
-    make_zero();
-
-    const real_t d_val = real_t(1) / tan(vertical_fov / 2);
-    const real_t inv_depth = real_t(1) / (d_max - d_min);
-
-    a11_ = d_val / aspect_ratio;
-    a22_ = d_val;
-    a33_ = (d_min * ndc_min - d_max * ndc_max) * inv_depth;
-    a34_ = d_min * d_max * (ndc_min - ndc_max) * inv_depth;
-    a43_ = real_t(-1);
-
-    return *this;
-}
-
-template<typename real_t>
-v8::math::matrix_4X4<real_t>&
-v8::math::matrix_4X4<real_t>::make_symmetric_perspective_infinity_rh(
-    real_t aspect_ratio,
-    real_t vertical_fov,
-    real_t d_min,
-    real_t ndc_min,
-    real_t ndc_max
-    ) {
-    make_zero();
-
-    const real_t d_val = real_t(1) / tan(vertical_fov / 2);
-    a11_ = d_val / aspect_ratio;
-    a22_ = d_val;
-    a33_ = -ndc_max;
-    a34_ = d_min * (ndc_min - ndc_max);
-    a43_ = real_t(-1);
-
-    return *this;
-}
-
-template<typename real_t>
-v8::math::matrix_4X4<real_t>&
-v8::math::matrix_4X4<real_t>::make_perspective_projection_rh(
-    real_t r_min,
-    real_t r_max,
-    real_t u_min,
-    real_t u_max,
-    real_t d_min,
-    real_t d_max,
-    real_t ndc_min,
-    real_t ndc_max
-    ) {
-    make_zero();
-
-    const real_t inv_r_diff = real_t(1) / (r_max - r_min);
-    const real_t r_sum = r_max + r_min;
-    const real_t inv_u_diff = real_t(1) / (u_max - u_min);
-    const real_t u_sum = u_max + u_min;
-    const real_t inv_depth = real_t(1) / (d_max - d_min);
-
-    a11_ = real_t(2) * d_min * inv_r_diff;
-    a13_ = -(r_sum) * inv_r_diff;
-
-    a22_ = real_t(2) * d_min * inv_r_diff;
-    a23_ = -(u_sum) * inv_u_diff;
-
-    a33_ = (d_min * ndc_min - d_max * ndc_max) * inv_depth;
-    a34_ = d_min * d_max * (ndc_min - ndc_max) * inv_depth;
-
-    a43_ = real_t(-1);
-
-    return *this;
-}
 
 #include "matrix4X4.inl"

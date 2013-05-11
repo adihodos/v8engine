@@ -1,7 +1,8 @@
 #pragma once
 
 #include <d3d11.h>
-#include <d3dx11.h>
+#include <third_party/directx_tex/DirectXTex.h>
+//#include <d3dx11.h>
 #include <v8/v8.hpp>
 #include <v8/base/com_exclusive_pointer.hpp>
 #include <v8/rendering/renderer.hpp>
@@ -18,12 +19,15 @@ public :
         assert(!is_valid());
 
         ID3D11Device* graphics_dev = r_sys->internal_np_get_device();
-        HRESULT ret_code = D3DX11CreateShaderResourceViewFromFile(
+        assert(false && "Not implemented!");
+
+        /*HRESULT ret_code = D3DX11CreateShaderResourceViewFromFile(
             graphics_dev, file_path, nullptr, nullptr, 
             v8::base::scoped_pointer_get_impl(tex_srv_),
             nullptr
             );
-        return ret_code == S_OK;
+        return ret_code == S_OK;*/
+        return false;
     }
 
     ID3D11ShaderResourceView* get_srv() const {

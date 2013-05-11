@@ -5,7 +5,6 @@
 #include <v8/v8.hpp>
 #include <v8/base/com_exclusive_pointer.hpp>
 #include <v8/rendering/directx/constants.hpp>
-#include <v8/rendering/directx/internal/debug_helpers.hpp>
 
 namespace v8 { namespace directx {
 

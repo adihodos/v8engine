@@ -339,6 +339,13 @@ namespace stlsoft
 #   endif /* STLSOFT_COMPILE_VERBOSE */
 #   define STLSOFT_CF_STD_LIBRARY_DINKUMWARE_VC_VERSION      STLSOFT_CF_DINKUMWARE_VC_VERSION_10_0
 
+#  elif _CPPLIB_VER <= 540
+  /* Version 11.0 */
+#   ifdef STLSOFT_COMPILE_VERBOSE
+#    pragma message("  Dinkumware version 11.0")
+#   endif /* STLSOFT_COMPILE_VERBOSE */
+#   define STLSOFT_CF_STD_LIBRARY_DINKUMWARE_VC_VERSION      STLSOFT_CF_DINKUMWARE_VC_VERSION_10_0
+
 #  else
 #   error Dinkumware C++ Library version unrecognised: are you using a version of VC++ later than 10.0?
 

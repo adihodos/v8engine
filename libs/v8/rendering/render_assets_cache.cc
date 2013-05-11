@@ -1,9 +1,10 @@
+#include <unordered_map>
 #include "v8/base/associative_container_veneer.hpp"
 #include "v8/base/scoped_pointer.hpp"
 #include "v8/rendering/effect.hpp"
 #include "v8/rendering/effect_info.hpp"
 #include "v8/rendering/renderer.hpp"
-#include "v8/rendering/simple_mesh.hpp"
+// #include "v8/rendering/simple_mesh.hpp"
 #include "v8/rendering/texture.hpp"
 #include "v8/utility/hash_spooky.hpp"
 #include "v8/utility/hash_string.hpp"
@@ -13,13 +14,13 @@
 //
 // Resource initializer shims
 
-inline v8_bool_t resource_initialize(
-    const v8::rendering::effect_info_t& eff_info,
-    v8::rendering::renderer* render_sys,
-    v8::rendering::effect* eff_ptr
-    ) {
-    return eff_ptr->initialize(eff_info, render_sys);
-}
+//inline v8_bool_t resource_initialize(
+//    const v8::rendering::effect_info_t& eff_info,
+//    v8::rendering::renderer* render_sys,
+//    v8::rendering::effect* eff_ptr
+//    ) {
+//    return eff_ptr->initialize(eff_info, render_sys);
+//}
 
 inline v8_bool_t resource_initialize(
     const v8::rendering::texture_info_t& tex_info,
@@ -29,13 +30,13 @@ inline v8_bool_t resource_initialize(
     return tex_ptr->initialize(tex_info, render_sys);
 }
 
-inline v8_bool_t resource_initialize(
-    const v8::hash_string& mesh_name,
-    v8::rendering::renderer* render_sys,
-    v8::rendering::simple_mesh* simple_mesh
-    ) {
-    return simple_mesh->initialize(mesh_name, render_sys);
-}
+// inline v8_bool_t resource_initialize(
+//     const v8::hash_string& mesh_name,
+//     v8::rendering::renderer* render_sys,
+//     v8::rendering::simple_mesh* simple_mesh
+//     ) {
+//     return simple_mesh->initialize(mesh_name, render_sys);
+// }
 
 template
 <
@@ -115,12 +116,12 @@ struct v8::rendering::render_assets_cache::implementation_details {
     rendering::renderer*                                        render_sys_;
 
     ///< Pool of compiled effects.
-    resource_pool
+    /*resource_pool
     <
         v8_size_t, 
         v8::rendering::effect,
         v8::rendering::effect_info_t
-    >                                                           effects_pool_;
+    >                                                           effects_pool_;*/
 
     resource_pool
     <
@@ -129,11 +130,11 @@ struct v8::rendering::render_assets_cache::implementation_details {
         v8::rendering::texture_info_t
     >                                                           textures_pool_;
 
-    resource_pool
-    <
-        v8::hash_string,
-        v8::rendering::simple_mesh
-    >                                                           mesh_pool_;
+    // resource_pool
+    // <
+    //     v8::hash_string,
+    //     v8::rendering::simple_mesh
+    // >                                                           mesh_pool_;
 };
 
 v8::rendering::render_assets_cache::render_assets_cache(renderer* rsys)
@@ -144,13 +145,13 @@ v8::rendering::render_assets_cache::render_assets_cache(renderer* rsys)
 
 v8::rendering::render_assets_cache::~render_assets_cache() {}
 
-v8::rendering::effect* v8::rendering::render_assets_cache::get_effect(
-    const effect_info_t& eff_data
-    ) {
-    const v8_size_t effect_id = compute_effect_unique_id(eff_data);
-    return pimpl_->effects_pool_.get_resource(effect_id, eff_data, 
-                                              pimpl_->render_sys_);
-}
+//v8::rendering::effect* v8::rendering::render_assets_cache::get_effect(
+//    const effect_info_t& eff_data
+//    ) {
+//    const v8_size_t effect_id = compute_effect_unique_id(eff_data);
+//    return pimpl_->effects_pool_.get_resource(effect_id, eff_data, 
+//                                              pimpl_->render_sys_);
+//}
 
 v8::rendering::texture* v8::rendering::render_assets_cache::get_texture(
     const v8::rendering::texture_info_t& tex_info
@@ -172,10 +173,10 @@ v8::rendering::texture* v8::rendering::render_assets_cache::get_texture(
                                                pimpl_->render_sys_);
 }
 
-v8::rendering::simple_mesh* v8::rendering::render_assets_cache::get_mesh(
-    const v8::hash_string& mesh_name
-    ) {
-    return pimpl_->mesh_pool_.get_resource(mesh_name, 
-                                           mesh_name, 
-                                           pimpl_->render_sys_);
-}
+// v8::rendering::simple_mesh* v8::rendering::render_assets_cache::get_mesh(
+//     const v8::hash_string& mesh_name
+//     ) {
+//     return pimpl_->mesh_pool_.get_resource(mesh_name, 
+//                                            mesh_name, 
+//                                            pimpl_->render_sys_);
+// }

@@ -1,7 +1,7 @@
 add_library(
     v8_renderer_directx
 
-    directx/internal/debug_helpers.cc
+    directx/internal/dxerr.cc
     directx/internal/gpu_buffer_core.cc
     directx/internal/include_handler.cc
     directx/internal/shader_common_base.cc
@@ -11,9 +11,9 @@ add_library(
     directx/depthstencil_state.cc
     directx/gpu_shader.cc
     directx/input_layout.cc
-    directx/effect.cc
-    directx/effect_pass.cc
-    directx/effect_technique.cc
+#    directx/effect.cc
+#    directx/effect_pass.cc
+#    directx/effect_technique.cc
     directx/rasterizer_state.cc
     directx/renderer.cc
     directx/sampler_state.cc
@@ -21,25 +21,27 @@ add_library(
     directx/texture.cc
     material.cc
     render_assets_cache.cc
-    simple_mesh.cc
+#    simple_mesh.cc
 )
 
-find_package(DirectX REQUIRED)
-find_package(Assimp REQUIRED)
+#find_package(DirectX REQUIRED)
+#find_package(Assimp REQUIRED)
 
 #if (NOT DirectX_D3D11_FOUND)
 #    MESSAGE(FATAL_ERROR "Could not find dependency: DirectX")
 #endif()
 
-include_directories(
-    ${DirectX_INCLUDE_DIRS}
-)
+#include_directories(
+    #${DirectX_INCLUDE_DIRS}
+#)
 
-link_directories(
-    ${DirectX_LIBRARY_DIR} ${Assimp_LIBRARY_DIR}
-)
+#link_directories(
+#    ${DirectX_LIBRARY_DIR} ${Assimp_LIBRARY_DIR}
+#)
 
-target_link_libraries(v8_renderer_directx 
+target_link_libraries(
+    v8_renderer_directx 
+    directx_tex
     ${DirectX_D3D11_LIBRARIES}
-    ${Assimp_LIBRARIES}
+    #${Assimp_LIBRARIES}
 )

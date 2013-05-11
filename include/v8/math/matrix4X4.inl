@@ -32,14 +32,6 @@ inline v8::math::matrix_4X4<real_t>::matrix_4X4(
     memcpy(elements_, rhs.elements_, sizeof(elements_));
 }
 
-template<typename real>
-template<typename real_u>
-v8::math::matrix_4X4<real>::matrix_4X4(const v8::math::matrix_3X3<real_u>& mtx) {
-    set_upper3x3(mtx);
-    set_row(4, vector4F::unit_w);
-    set_column(4, vector4F::unit_w);
-}
-
 template<typename real_t>
 v8::math::matrix_4X4<real_t>::matrix_4X4(
     real_t a11, real_t a12, real_t a13, real_t a14,
@@ -115,6 +107,17 @@ v8::math::matrix_4X4<real_t>::matrix_4X4(
         a43_ = v4.z_;
         a44_ = v4.w_;
     }
+}
+
+template<typename real_type>
+template<typename convertible_type>
+v8::math::matrix_4X4<real_type>::matrix_4X4(
+    const matrix_3X3<convertible_type>& m_in
+    ) {
+    make_identity();
+    a11_ = m_in.a11_; a12_ = m_in.a12_; a13_ = m_in.a13_;
+    a21_ = m_in.a21_; a22_ = m_in.a22_; a23_ = m_in.a23_;
+    a31_ = m_in.a31_; a32_ = m_in.a32_; a33_ = m_in.a33_;
 }
 
 template<typename real_t>
@@ -736,6 +739,85 @@ v8::math::matrix_4X4<real_t>::make_perspective_infinity_lh(
     a34_ = -(d_min * (ndc_max - ndc_min));
 
     a43_ = 1.0f;
+
+    return *this;
+}
+
+template<typename real_t>
+v8::math::matrix_4X4<real_t>&
+v8::math::matrix_4X4<real_t>::make_symmetric_perspective_projection_rh(
+    real_t aspect_ratio,
+    real_t vertical_fov,
+    real_t d_min,
+    real_t d_max,
+    real_t ndc_min,
+    real_t ndc_max
+    ) {
+    make_zero();
+
+    const real_t d_val = real_t(1) / tan(vertical_fov / 2);
+    const real_t inv_depth = real_t(1) / (d_max - d_min);
+
+    a11_ = d_val / aspect_ratio;
+    a22_ = d_val;
+    a33_ = (d_min * ndc_min - d_max * ndc_max) * inv_depth;
+    a34_ = d_min * d_max * (ndc_min - ndc_max) * inv_depth;
+    a43_ = real_t(-1);
+
+    return *this;
+}
+
+template<typename real_t>
+v8::math::matrix_4X4<real_t>&
+v8::math::matrix_4X4<real_t>::make_symmetric_perspective_infinity_rh(
+    real_t aspect_ratio,
+    real_t vertical_fov,
+    real_t d_min,
+    real_t ndc_min,
+    real_t ndc_max
+    ) {
+    make_zero();
+
+    const real_t d_val = real_t(1) / tan(vertical_fov / 2);
+    a11_ = d_val / aspect_ratio;
+    a22_ = d_val;
+    a33_ = -ndc_max;
+    a34_ = d_min * (ndc_min - ndc_max);
+    a43_ = real_t(-1);
+
+    return *this;
+}
+
+template<typename real_t>
+v8::math::matrix_4X4<real_t>&
+v8::math::matrix_4X4<real_t>::make_perspective_projection_rh(
+    real_t r_min,
+    real_t r_max,
+    real_t u_min,
+    real_t u_max,
+    real_t d_min,
+    real_t d_max,
+    real_t ndc_min,
+    real_t ndc_max
+    ) {
+    make_zero();
+
+    const real_t inv_r_diff = real_t(1) / (r_max - r_min);
+    const real_t r_sum = r_max + r_min;
+    const real_t inv_u_diff = real_t(1) / (u_max - u_min);
+    const real_t u_sum = u_max + u_min;
+    const real_t inv_depth = real_t(1) / (d_max - d_min);
+
+    a11_ = real_t(2) * d_min * inv_r_diff;
+    a13_ = -(r_sum) * inv_r_diff;
+
+    a22_ = real_t(2) * d_min * inv_r_diff;
+    a23_ = -(u_sum) * inv_u_diff;
+
+    a33_ = (d_min * ndc_min - d_max * ndc_max) * inv_depth;
+    a34_ = d_min * d_max * (ndc_min - ndc_max) * inv_depth;
+
+    a43_ = real_t(-1);
 
     return *this;
 }

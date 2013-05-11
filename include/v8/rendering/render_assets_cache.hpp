@@ -12,7 +12,7 @@
 
 namespace v8 { namespace rendering {
 
-class simple_mesh;    
+// class simple_mesh;
 
 ///
 /// Creates, caches and manages rendering resources (textures, shaders, etc).
@@ -43,14 +43,14 @@ public :
 
 public :
 
-    effect* get_effect(const effect_info_t&); 
+    /*effect* get_effect(const effect_info_t&); */
 
 /// @}
 
 /// \name Meshes    
 /// @{
 
-    simple_mesh* get_mesh(const hash_string& mesh_name);
+    // simple_mesh* get_mesh(const hash_string& mesh_name);
 
 /// @}    
 

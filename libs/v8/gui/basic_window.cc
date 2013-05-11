@@ -2,27 +2,22 @@
 #include <windowsx.h>
 #include <v8/base/debug_helpers.hpp>
 
-#include "v8/global_state.hpp"
 #include "v8/rendering/renderer.hpp"
 #include "v8/rendering/constants.hpp"
 #include "v8/gui/basic_window.hpp"
 #include "v8/input/key_syms.hpp"
-#include "v8/scene/scene_system.hpp"
 
-v8_bool_t v8::gui::basic_window::initialize(
-    v8_uint32_t win_style,
-    const std::string& class_name,
-    const std::string& window_title,
-    v8_int32_t width, 
-    v8_int32_t height
-    ) {
-    if (m_windata.initialized)
+v8_bool_t v8::gui::basic_window::initialize(const window_init_params_t& init_params) {
+    if (m_windata.initialized) {
         return true;
+    }
 
     m_windata.instance = GetModuleHandle(nullptr);
-    m_windata.width = width;
-    m_windata.height = height;
-    m_windata.style = win_style;
+    m_windata.width = init_params.width;
+    m_windata.height = init_params.height;
+    m_windata.style = WS_OVERLAPPEDWINDOW;
+
+    const char* const kWindowClassName = "__##@@D3DAPPWindowCLass@@##__$$__";
 
     WNDCLASS wc;
     wc.style         = CS_HREDRAW | CS_VREDRAW;
@@ -34,7 +29,7 @@ v8_bool_t v8::gui::basic_window::initialize(
     wc.hCursor       = LoadCursor(0, IDC_ARROW);
     wc.hbrBackground = reinterpret_cast<HBRUSH>(GetStockObject(NULL_BRUSH));
     wc.lpszMenuName  = 0;
-    wc.lpszClassName = class_name.c_str();
+    wc.lpszClassName = kWindowClassName;
 
     if (!RegisterClass(&wc))
         return false;
@@ -48,8 +43,8 @@ v8_bool_t v8::gui::basic_window::initialize(
     assert(ret_code && "Failed to adjust window rectangle");
 
     m_windata.win = CreateWindow(
-        class_name.c_str(), 
-        window_title.c_str(), 
+        kWindowClassName, 
+        init_params.title, 
         m_windata.style, 
         CW_USEDEFAULT, 
         CW_USEDEFAULT, 
@@ -59,8 +54,9 @@ v8_bool_t v8::gui::basic_window::initialize(
         this
         );
 
-    if (!m_windata.win)
+    if (!m_windata.win) {
         return false;
+    }
 
     m_windata.initialized = true;
     m_windata.active = true;
@@ -71,12 +67,14 @@ v8_bool_t v8::gui::basic_window::initialize(
     return true;
 }
 
-void v8::gui::basic_window::message_loop() {
+void v8::gui::basic_window::message_loop(
+    v8::rendering::renderer* graphics_context
+    ) {
     MSG msg = { 0 };
     
     while (msg.message != WM_QUIT && !m_windata.quitflag) {
         while (!PeekMessage(&msg, nullptr, 0, 0, PM_NOREMOVE)) {
-            app_main_loop();
+            app_main_loop(graphics_context);
         }
 
         do {
@@ -98,7 +96,9 @@ void v8::gui::basic_window::message_loop() {
     }
 }
 
-void v8::gui::basic_window::app_main_loop() {
+void v8::gui::basic_window::app_main_loop(
+    v8::rendering::renderer* graphics_context
+    ) {
     if (!m_windata.initialized)
         return;
     
@@ -108,7 +108,7 @@ void v8::gui::basic_window::app_main_loop() {
     }
 
     if (m_windata.active) {
-        app_do_frame();
+        app_do_frame(graphics_context);
         Sleep(2);
         return;
     } else {
@@ -120,18 +120,22 @@ void v8::gui::basic_window::app_main_loop() {
     }
 }
 
-void v8::gui::basic_window::app_do_frame() {
+void 
+v8::gui::basic_window::app_do_frame(v8::rendering::renderer* graphics_context) {
     app_frame_tick();
-    app_frame_draw();
+    app_frame_draw(graphics_context);
+}
+
+void v8::gui::basic_window::app_frame_tick() {
+    const float delta_tm = m_runstats.timer.tick();
+    m_runstats.fpscount.frame_tick(delta_tm);
+    Delegates_UpdateEvent.call_delegates(delta_tm);
 }
 
 LRESULT 
 WINAPI 
 v8::gui::basic_window::window_procedure_stub(
-    HWND window, 
-    UINT msg, 
-    WPARAM w_param, 
-    LPARAM l_param
+    HWND window, UINT msg, WPARAM w_param, LPARAM l_param
     ) {
     if (msg == WM_CREATE) {
         basic_window* objPtr = static_cast<basic_window*>(
@@ -375,7 +379,8 @@ v8::gui::basic_window::window_procedure(
     return DefWindowProc(m_windata.win, msg, w_param, l_param);
 }
 
-void v8::gui::basic_window::app_frame_draw() {
+void 
+v8::gui::basic_window::app_frame_draw(v8::rendering::renderer* graphics_context) {
     v8::rendering::FramePresent::Type present_flag = rendering::FramePresent::All;
 
     //
@@ -384,10 +389,11 @@ void v8::gui::basic_window::app_frame_draw() {
         on_app_idle();
         present_flag = rendering::FramePresent::Test;
     } else {
-        frame_draw_impl();
+        //frame_draw_impl(graphics_context);
+        Delegates_DrawEvent.call_delegates();
     }
 
-    auto ret_code = state->render_sys()->present_frame(present_flag);
+    auto ret_code = graphics_context->present_frame(present_flag);
 
     if (ret_code == rendering::FramePresentResult::Ok) {
         m_windata.occluded = false;
@@ -396,16 +402,5 @@ void v8::gui::basic_window::app_frame_draw() {
     } else {
         OUTPUT_DBG_MSGA("Frame present error");
         m_windata.quitflag = true;
-    }
-}
-
-void v8::gui::basic_window::frame_draw_impl() {
-    state->render_sys()->reset_blending_state();
-    state->render_sys()->reset_depth_stencil_state();
-    state->render_sys()->clear_depth_stencil();
-    state->render_sys()->clear_backbuffer();
-
-    if (state->scene()) {
-        state->scene()->draw(state->render_sys());
     }
 }

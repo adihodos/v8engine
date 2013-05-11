@@ -1,14 +1,15 @@
+#include <v8/v8.hpp>
+#include <v8/base/auto_buffer.hpp>
+#include <v8/base/debug_helpers.hpp>
+#include <v8/base/scoped_pointer.hpp>
+#include <v8/base/scoped_resource.hpp>
+#include <v8/base/string_util.hpp>
 #include <v8/io/filesystem.hpp>
-#include <v8/global_state.hpp>
 #include <v8/rendering/constants.hpp>
 #include <v8/rendering/renderer.hpp>
 #include <v8/rendering/render_assets_cache.hpp>
 #include <v8/utility/win_util.hpp>
 #include <third_party/fast_delegate/fast_delegate.hpp>
-#include <v8/v8.hpp>
-#include <v8/base/debug_helpers.hpp>
-#include <v8/base/scoped_pointer.hpp>
-#include <v8/base/scoped_resource.hpp>
 #include <v8/math/color.hpp>
 #include <v8/math/vector3.hpp>
 #include <v8/math/matrix4X4.hpp>
@@ -19,28 +20,50 @@
 
 namespace {
 
-class fractal_app_context : public v8::application_state {
+class fractal_application {
 public :
+
     v8_bool_t initialize();
 
-private :
-    fractal julia_;
-};
-
-v8_bool_t fractal_app_context::initialize() {
-    application_state::initialize();
-
-    window_ = new fractal_window();
-    const v8_uint32_t window_style = WS_OVERLAPPEDWINDOW;
-    const v8_int32_t window_width = 1024;
-    const v8_int32_t window_height = 1024;
-    if (!window_->initialize(window_style, "FractalWindowClass", 
-                             "Julia fractal explorer",
-                             window_width, window_height)) {
-        return false;
+    void run() {
+        assert(is_valid());
+        window_->message_loop(v8::base::scoped_pointer_get(rendersys_));
     }
 
-    render_sys_ = new v8::rendering::renderer();
+private :
+    void update_scene(const float delta);
+
+    void draw_scene();    
+
+    bool is_valid() const {
+        return window_ && rendersys_ && filesys_ && julia_;
+    }
+
+private :
+    v8::base::scoped_ptr<fractal_window>                  window_;
+    v8::base::scoped_ptr<v8::rendering::renderer>         rendersys_;
+    v8::base::scoped_ptr<v8::filesys>                     filesys_;
+    v8::base::scoped_ptr<fractal>                         julia_;
+    fractal_app_context                                   app_context_;
+};
+
+v8_bool_t fractal_application::initialize() {
+    assert(!is_valid());
+
+    //
+    // Initialize windowing system.
+    window_ = new fractal_window();
+    v8::gui::window_init_params_t win_init_params = {
+        1024, 1024, "Julia Fractal Visualiser"
+    };
+
+    if (!window_->initialize(win_init_params)) {
+        return false;
+    }
+    
+    //
+    //  Initialize the rendering system.
+    rendersys_ = new v8::rendering::renderer();
     v8::rendering::render_init_params initialization_params;
     initialization_params.width = window_->get_width();
     initialization_params.height = window_->get_height();
@@ -51,31 +74,93 @@ v8_bool_t fractal_app_context::initialize() {
     initialization_params.buffer_element_type = v8::rendering::ElementType::Unorm8;
     initialization_params.buffer_element_count = 4;
 
-    if (!render_sys_->initialize(initialization_params)) {
+    if (!rendersys_->initialize(initialization_params)) {
         return false;
     }
 
+    //
+    // Rendering system must receive window resize events for proper viewport
+    // resizing.
     window_->Subscribers_ResizeEvent += fastdelegate::MakeDelegate(
-        render_sys(), &v8::rendering::renderer::on_viewport_resized
+        v8::base::scoped_pointer_get(rendersys_), 
+        &v8::rendering::renderer::on_viewport_resized
         );
 
-    asset_cache_ = new v8::rendering::render_assets_cache(render_sys());
-    file_sys_ = new v8::filesys();
+    //
+    // Initialize file system manager.
+    filesys_ = new v8::filesys();
     //
     // TODO : fix hard coded path, it sucks.
     const char* const app_data_dir = "D:\\games\\fractals";
-    file_sys_->initialize(app_data_dir);
+    filesys_->initialize(app_data_dir);
 
-    g_fractal = &julia_;
-    if (!g_fractal->initialize()) {
+    //
+    // Setup application context data.
+    app_context_.Window   = v8::base::scoped_pointer_get(window_);
+    app_context_.Renderer = v8::base::scoped_pointer_get(rendersys_);
+    app_context_.Filesys  = v8::base::scoped_pointer_get(filesys_);
+
+    //
+    // initialize the scene (its just the fractal object)
+    julia_ = new fractal();
+    if (!julia_->initialize(app_context_)) {
         return false;
     }
 
-    window()->Subscribers_InputEvents += 
-        fastdelegate::MakeDelegate(g_fractal, &fractal::on_input);
-    window()->Subscribers_ResizeEvent +=
-        fastdelegate::MakeDelegate(g_fractal, &fractal::on_resize);
+    //
+    // The fractal responds to certain key/mouse input events and
+    // resize events, so register the fractal object for those.
+    window_->Subscribers_InputEvents += 
+        fastdelegate::MakeDelegate(v8::base::scoped_pointer_get(julia_), 
+                                   &fractal::on_input);
+    window_->Subscribers_ResizeEvent +=
+        fastdelegate::MakeDelegate(v8::base::scoped_pointer_get(julia_), 
+                                   &fractal::on_resize);
+
+    //
+    // Since this class also acts as "the scene" for all the objects,
+    // it is registered with the windowing system to receive update(tick) 
+    // and draw events notifications, so that in turn can pass them to the
+    // objects.
+    window_->Delegates_DrawEvent += fastdelegate::MakeDelegate(
+        this, &fractal_application::draw_scene
+        );
+    window_->Delegates_UpdateEvent += fastdelegate::MakeDelegate(
+        this, &fractal_application::update_scene
+        ) ;
+
     return true;
+}
+
+void fractal_application::update_scene(const float delta_tm) {
+    assert(is_valid());
+    julia_->evaluate(delta_tm);
+}
+
+void fractal_application::draw_scene() {
+    assert(is_valid());
+    julia_->draw(app_context_.Renderer);
+
+    const wchar_t* const C_fractal_stats_fmt_str = 
+        L"Zoom : %4.6f \n"
+        L"Iterations : %d \n"
+        L"Offset : [%4.4f, %4.4f] \n"
+        L"Constant : [%4.6f, %4.6f]";
+
+    v8::base::auto_buffer<wchar_t> fractal_stats_str;
+    v8::base::snwprintf(fractal_stats_str.begin(), 
+                        fractal_stats_str.size(), 
+                        C_fractal_stats_fmt_str, 
+                        julia_->get_zoom_factor(),
+                        julia_->get_iteration_count(),
+                        julia_->get_x_offset(),
+                        julia_->get_y_offset(),
+                        julia_->get_constant().real(),
+                        julia_->get_constant().imag());
+
+    app_context_.Renderer->draw_string(
+        fractal_stats_str.begin(), 12.0f, 5.0f, 5.0f, v8::math::color_rgb::C_White
+        );
 }
 
 }
@@ -83,13 +168,13 @@ v8_bool_t fractal_app_context::initialize() {
 int WINAPI WinMain(HINSTANCE inst, HINSTANCE, LPSTR, int) {
     //
     // Must be the first constructed object to report any leaked memory.
-    //v8::utility::win32::scoped_mem_leak_checker leak_check_obj;
+    v8::utility::win32::scoped_mem_leak_checker leak_check_obj;
     {
-        fractal_app_context app_context;
-        if (!app_context.initialize()) {
+        fractal_application fractal_app;
+        if (!fractal_app.initialize()) {
             return -1;
         }
-        app_context.window()->message_loop();
+        fractal_app.run();
     }
     return 0;
 }

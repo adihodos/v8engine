@@ -7,12 +7,16 @@
 #include "v8/base/crt_handle_policies.hpp"
 #include "v8/base/debug_helpers.hpp"
 #include "v8/base/scoped_handle.hpp"
-
-#include "v8/io/filesystem.hpp"
-#include "v8/global_state.hpp"
 #include "v8/utility/string_ext.hpp"
 
 #include "v8/rendering/directx/internal/include_handler.hpp"
+
+v8::directx::internal::compiler_include_handler::compiler_include_handler(
+    const char* root_dir
+    )
+    :       ID3D10Include()
+        ,   root_directory_(root_dir)
+{}
 
 HRESULT v8::directx::internal::compiler_include_handler::Open(
     D3D10_INCLUDE_TYPE IncludeType, 
@@ -21,6 +25,9 @@ HRESULT v8::directx::internal::compiler_include_handler::Open(
     LPCVOID *ppData, 
     UINT *pBytes
     ) {
+    if (!root_directory_) {
+        return E_INVALIDARG;
+    }
 
     UNREFERENCED_PARAMETER(pParentData);
     UNREFERENCED_PARAMETER(IncludeType);
@@ -30,8 +37,7 @@ HRESULT v8::directx::internal::compiler_include_handler::Open(
 
     using namespace v8;
 
-    platformstl::path include_file_path(state->file_sys()->get_dir_path(
-        filesys::Dir::Shaders));
+    platformstl::path include_file_path(root_directory_);
     include_file_path.push(pFileName);
 
     using namespace v8::base;
@@ -45,33 +51,26 @@ HRESULT v8::directx::internal::compiler_include_handler::Open(
     }
 
     scoped_handle<crt_file_handle> fp(fopen(include_file_path.c_str(), "r"));
-
     if (!fp) {
         return E_FAIL;
     }
 
     file_contents_ = new char[file_data.st_size + 1];
-
     char tmp_buff[1024];
     v8_uint32_t offset = 0;
-
     while (fgets(tmp_buff, _countof(tmp_buff), scoped_handle_get(fp))) {
-
         v8_uint32_t byte_count = static_cast<v8_uint32_t>(strlen(tmp_buff));
         memcpy(scoped_pointer_get(file_contents_) + offset, tmp_buff, byte_count);
         offset += byte_count;
 
     }
-
     *ppData = scoped_pointer_get(file_contents_);
     *pBytes = offset;
 
     return S_OK;
 }
 
-HRESULT v8::directx::internal::compiler_include_handler::Close(
-    LPCVOID
-    ) {
+HRESULT v8::directx::internal::compiler_include_handler::Close(LPCVOID) {
     file_contents_ = nullptr;
     return S_OK;
 }

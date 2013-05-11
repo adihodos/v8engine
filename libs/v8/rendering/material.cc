@@ -93,14 +93,14 @@ void v8::rendering::material::bind_to_effect(effect* eff) {
     assert(eff);
 
     if (type == Type_Texture) {
-        eff->set_variable_by_semantic("SpecularMap", tex.specular);
+        /*eff->set_variable_by_semantic("SpecularMap", tex.specular);
         eff->set_variable_by_semantic("DiffuseMap", tex.diffuse);
-        eff->set_variable_by_semantic("AmbientMap", tex.ambient);
+        eff->set_variable_by_semantic("AmbientMap", tex.ambient);*/
     } else {
-        eff->set_variable_by_semantic("EmissiveColor", color.emissive);
+        /*eff->set_variable_by_semantic("EmissiveColor", color.emissive);
         eff->set_variable_by_semantic("AmbientColor", color.ambient);
         eff->set_variable_by_semantic("DiffuseColor", color.diffuse);
-        eff->set_variable_by_semantic("SpecularColor", color.specular);
+        eff->set_variable_by_semantic("SpecularColor", color.specular);*/
     }
 }
 

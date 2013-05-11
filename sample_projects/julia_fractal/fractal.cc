@@ -1,13 +1,12 @@
 #include <D3D11.h>
 #include <D3Dcompiler.h>
-#include <third_party/stlsoft/platformstl/filesystem/path.hpp>
 
+#include <third_party/stlsoft/platformstl/filesystem/path.hpp>
 #include <v8/v8.hpp>
 #include <v8/base/count_of.hpp>
 #include <v8/io/filesystem.hpp>
 #include <v8/event/input_event.hpp>
 #include <v8/event/window_event.hpp>
-#include <v8/global_state.hpp>
 #include <v8/rendering/constants.hpp>
 #include <v8/rendering/depth_stencil_state.hpp>
 #include <v8/rendering/fragment_shader.hpp>
@@ -21,8 +20,6 @@
 #include <v8/input/key_syms.hpp>
 
 #include "fractal.hpp"
-
-fractal* g_fractal = nullptr;
 
 namespace {
 
@@ -106,13 +103,17 @@ fractal::implementation::implementation(
 }
 
 fractal::fractal(
-    const v8_int_t width, const v8_int_t height, const v8_int_t iter, const float zoom
+    const v8_int_t width, 
+    const v8_int_t height, 
+    const v8_int_t iter, 
+    const float zoom
     )
-    :   impl_(new implementation(width, height, iter, zoom)) {}
+    :       impl_(new implementation(width, height, iter, zoom)) 
+{}
 
 fractal::~fractal() {}
 
-v8_bool_t fractal::initialize() {
+v8_bool_t fractal::initialize(fractal_app_context& app_context) {
     if (impl_->initialized) {
         return true;
     }
@@ -125,15 +126,14 @@ v8_bool_t fractal::initialize() {
         v8::rendering::vertex_pt(+1.0f, -1.0f, 0.0f, 1.0f, 1.0f)
     };
 
-    v8::rendering::renderer* k_rsys = v8::state->render_sys();
-    impl_->vertexbuffer.initialize(k_rsys, dimension_of(quad_vertices),
+    impl_->vertexbuffer.initialize(app_context.Renderer, dimension_of(quad_vertices),
                                    sizeof(quad_vertices[0]), quad_vertices);
     if (!impl_->vertexbuffer) {
         return false;
     }
 
     const v8_short_t indices[] = { 0, 1, 2, 0, 2, 3 };
-    impl_->indexbuffer.initialize(k_rsys, dimension_of(indices), 
+    impl_->indexbuffer.initialize(app_context.Renderer, dimension_of(indices), 
                                   sizeof(indices[0]), indices);
 
     if (!impl_->indexbuffer) {
@@ -142,31 +142,38 @@ v8_bool_t fractal::initialize() {
 
     rendering::depthstencil_descriptor_t state_nodepth;
     state_nodepth.depth_enable = false;
-    impl_->no_depth_test.initialize(state_nodepth, k_rsys);
+    impl_->no_depth_test.initialize(state_nodepth, app_context.Renderer);
     if (!impl_->no_depth_test) {
         return false;
     }
 
+    using v8::rendering::Compile_Options;
+    const v8_uint32_t compile_flags = 
+        Compile_Options::Generate_Debug_Info | Compile_Options::IEEE_Strictness |
+        Compile_Options::Skip_Optimization | Compile_Options::Optimization_L0 |
+        Compile_Options::Matrix_Packing_Row_Major;
+
     v8::rendering::shader_info_t shader_info;
-    shader_info.name_or_source  = v8::state->file_sys()->make_shader_path("vertex_to_ndc");
+    shader_info.name_or_source  = 
+        app_context.Filesys->make_shader_path("vertex_to_ndc");
+    shader_info.shader_root_directory = 
+        app_context.Filesys->get_dir_path(v8::filesys::Dir::Shaders);
     shader_info.is_filename     = true;
     shader_info.entrypoint      = "vertex_pt_to_ndc";
-    shader_info.compile_flags   = v8::rendering::Compile_Options::Generate_Debug_Info |
-                                  v8::rendering::Compile_Options::IEEE_Strictness |
-                                  v8::rendering::Compile_Options::Skip_Optimization |
-                                  v8::rendering::Compile_Options::Optimization_L0 |
-                                  v8::rendering::Compile_Options::Matrix_Packing_Row_Major;
+    shader_info.compile_flags   = compile_flags;
     shader_info.shader_model    = "vs_5_0";
 
-    impl_->vert_shader.initialize(shader_info, k_rsys);
+    impl_->vert_shader.initialize(shader_info, app_context.Renderer);
     if (!impl_->vert_shader) {
         return false;
     }
-    shader_info.name_or_source  = v8::state->file_sys()->make_shader_path("fractals");
+
+    shader_info.name_or_source  = 
+        app_context.Filesys->make_shader_path("fractals");
     shader_info.entrypoint      = "ps_julia";
     shader_info.shader_model    = "ps_5_0";
 
-    impl_->frag_shader.initialize(shader_info, k_rsys);
+    impl_->frag_shader.initialize(shader_info, app_context.Renderer);
     if (!impl_->frag_shader) {
         return false;
     }
@@ -275,7 +282,7 @@ void fractal::evaluate(const float delta_ms) {
     impl_->solution_is_current = true;
 }
 
-void fractal::draw() {
+void fractal::draw(v8::rendering::renderer* draw_context) {
     const wchar_t* const key_settings = 
         L"Keys :\n"
         L"Zoom in/out : mouse wheel\n"
@@ -285,23 +292,21 @@ void fractal::draw() {
         L"Arrow keys : move left, right, up, down\n"
         L"Home : reset and center position";
 
-    v8::rendering::renderer* k_rendersys = v8::state->render_sys();
-
-    impl_->vertexbuffer.bind_to_pipeline(k_rendersys);
-    impl_->indexbuffer.bind_to_pipeline(k_rendersys);
-    k_rendersys->ia_stage_set_input_layout(
+    impl_->vertexbuffer.bind_to_pipeline(draw_context);
+    impl_->indexbuffer.bind_to_pipeline(draw_context);
+    draw_context->ia_stage_set_input_layout(
         impl_->vert_shader.get_input_signature()
         );
-    k_rendersys->ia_stage_set_primitive_topology_type(
+    draw_context->ia_stage_set_primitive_topology_type(
         v8::rendering::PrimitiveTopology::TriangleList
         );
 
-    impl_->vert_shader.bind_to_pipeline(k_rendersys);
-    impl_->frag_shader.bind_to_pipeline(k_rendersys);
+    impl_->vert_shader.bind_to_pipeline(draw_context);
+    impl_->frag_shader.bind_to_pipeline(draw_context);
 
-    v8::state->render_sys()->set_depth_stencil_state(impl_->no_depth_test);
-    v8::state->render_sys()->draw_indexed(impl_->indexbuffer.get_element_count());
-    v8::state->render_sys()->draw_string(
+    draw_context->set_depth_stencil_state(impl_->no_depth_test);
+    draw_context->draw_indexed(impl_->indexbuffer.get_element_count());
+    draw_context->draw_string(
         key_settings, 16.0f, 5.0f, 60.0f, v8::math::color_rgb::C_Yellow
         );
 }
@@ -309,7 +314,7 @@ void fractal::draw() {
 v8_bool_t fractal::mouse_wheel_event(
     const v8_int_t rotations, const v8_int_t /*xpos*/, const v8_int_t /*ypos*/
     ) {
-    float zoom_val          = g_fractal->get_zoom_factor();
+    float zoom_val          = get_zoom_factor();
     const float C_Exponent  = 3.0f;
     const float C_Base      = 1.5f;
 
@@ -318,7 +323,7 @@ v8_bool_t fractal::mouse_wheel_event(
     } else {
         zoom_val /= pow(C_Base, C_Exponent);
     }
-    g_fractal->set_zoom_factor(zoom_val);
+    set_zoom_factor(zoom_val);
     return true;
 }
 
@@ -361,13 +366,16 @@ void fractal::on_input(const v8::input_event& ev_input) {
         mouse_wheel_event(ev_input.mouse_wheel_ev.delta, 
                           ev_input.mouse_wheel_ev.x_pos,
                           ev_input.mouse_wheel_ev.y_pos);
-    } else if (ev_input.type == InputEventType::Key) {
+        return;
+    }
+
+    if (ev_input.type == InputEventType::Key) {
         if (ev_input.key_ev.down) {
             key_press_event(ev_input.key_ev.key);
         } else {
             key_depress_event(ev_input.key_ev.key);
         }
-    } else {
+        return;
     }
 }
 

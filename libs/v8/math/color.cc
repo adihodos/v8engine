@@ -308,8 +308,8 @@ void v8::math::hls_to_rgb(
     color_rgb *rgb
     ) {
 
-    float m1;
-    float m2;
+    float m1 = 0.0f;
+    float m2 = 0.0f;
 
     if (operands_le(hls->Lightness, 0.5f)) {
         m2 = hls->Lightness * (1.0f + hls->Saturation);

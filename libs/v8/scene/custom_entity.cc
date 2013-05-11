@@ -32,11 +32,12 @@ void v8::scene::custom_entity::draw(
 
     using namespace v8;
 
-    for (v8_uint32_t pass_index = 0; pass_index < technique_->get_pass_count();
-         ++pass_index) {
-        rendering::effect_pass* current_pass = technique_->get_pass_by_index(pass_index);
-        current_pass->apply();
-        render_sys->draw_indexed(indexbuffer_.get_element_count());
-    }
+    assert(false);
+    //for (v8_uint32_t pass_index = 0; pass_index < technique_->get_pass_count();
+    //     ++pass_index) {
+    //    rendering::effect_pass* current_pass = technique_->get_pass_by_index(pass_index);
+    //    current_pass->apply();
+    //    render_sys->draw_indexed(indexbuffer_.get_element_count());
+    //}
     post_draw(scene_mgr, render_sys);
 }

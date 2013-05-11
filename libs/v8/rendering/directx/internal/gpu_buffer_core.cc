@@ -26,8 +26,8 @@ v8_bool_t v8::directx::gpu_buffer_core::initialize(
     ) {
     assert(!m_buff);
 
-    e_count_    = static_cast<v8_uint32_t>(k_num_elements);
-    e_size_     = static_cast<v8_uint32_t>(k_element_size);
+    e_count_ = static_cast<v8_uint32_t>(k_num_elements);
+    e_size_  = static_cast<v8_uint32_t>(k_element_size);
 
     UINT cpu_access_flags = 0;
     if (k_cpu_flags & CPUAccess::Read) {

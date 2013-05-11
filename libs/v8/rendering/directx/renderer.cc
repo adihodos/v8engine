@@ -46,8 +46,9 @@ v8_bool_t v8::directx::renderer::initialize(
     //      - antialiasing
 
     m_target_window = static_cast<HWND>(init_params.target_window);
-    m_target_width = static_cast<float>(init_params.width);
+    m_target_width  = static_cast<float>(init_params.width);
     m_target_height = static_cast<float>(init_params.height);
+    m_clear_color   = init_params.clear_color;
 
     //
     // Translate and validate requested backbuffer format.
@@ -294,88 +295,154 @@ v8_bool_t v8::directx::renderer::disable_auto_alt_enter() const {
 v8_bool_t v8::directx::renderer::initialize_swap_chain(
     v8_bool_t fullscreen
     ) {
-    using namespace v8::base;
-
-    scoped_ptr<IDXGIFactory, com_storage> dxgifactory;
-    HRESULT ret_code = ::CreateDXGIFactory(
-        __uuidof(IDXGIFactory), 
-        reinterpret_cast<void**>(scoped_pointer_get_impl(dxgifactory))
-        );
-    if (FAILED(ret_code)) {
-        OUTPUT_DBG_MSGW(L"Failed to create IDXGIFactory, %#08x", ret_code);
-        return false;
-    }
-
-    scoped_ptr<IDXGIAdapter, com_storage> firstAdapter;
-    ret_code = dxgifactory->EnumAdapters(
-        0, scoped_pointer_get_impl(firstAdapter)
-        );
-    if (FAILED(ret_code)) {
-        OUTPUT_DBG_MSGW(L"Failed to enum adapters, %#08x", ret_code);
-        return false;
-    }
-
-    ret_code = S_OK;
-    DXGI_MODE_DESC closestMode;
-    memset(&closestMode, 0, sizeof(closestMode));
-    for (unsigned int outputIdx = 0; ; ++outputIdx) {
-        scoped_ptr<IDXGIOutput, com_storage> adapterOutput;
-        ret_code = firstAdapter->EnumOutputs(
-            outputIdx, scoped_pointer_get_impl(adapterOutput)
-            );
-
-        if (FAILED(ret_code)) {
-            break;
-        }
-        DXGI_MODE_DESC requestedMode;
-        requestedMode.Format = static_cast<DXGI_FORMAT>(m_backbuffer_type);
-        requestedMode.Width = static_cast<UINT>(m_target_width);
-        requestedMode.Height = static_cast<UINT>(m_target_height);
-        requestedMode.RefreshRate.Numerator = 60;
-        requestedMode.RefreshRate.Denominator = 1;
-        requestedMode.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-        requestedMode.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-
-        ret_code = adapterOutput->FindClosestMatchingMode(
-            &requestedMode, &closestMode, nullptr);
-        if (ret_code == S_OK) {
-            break;
-        }
-    }
-
-    if (FAILED(ret_code)) {
-        OUTPUT_DBG_MSGW(L"No suitable mode found for %3f %3f "
-                        L"DXGI_FORMAT_R8G8B8U8A8_UNORM", 
-                        m_target_width, m_target_height);
-        return false;
-    }
-
-    DXGI_SWAP_CHAIN_DESC swap_chain_description;
-    swap_chain_description.BufferCount = 1;
-    swap_chain_description.BufferDesc = closestMode;
-    swap_chain_description.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    swap_chain_description.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-    swap_chain_description.OutputWindow = m_target_window;
-    swap_chain_description.SampleDesc.Count = 1;
-    swap_chain_description.SampleDesc.Quality = 0;
-    swap_chain_description.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
-    swap_chain_description.Windowed = !fullscreen;
-
-    const UINT device_creation_flags = D3D11_CREATE_DEVICE_DEBUG;
-    D3D_FEATURE_LEVEL supported_feat_level = D3D_FEATURE_LEVEL_11_0;
-
+    const UINT create_device_flag   = D3D11_CREATE_DEVICE_DEBUG;
+    D3D_FEATURE_LEVEL feat_level;
+    HRESULT ret_code;
     CHECK_D3D(
         &ret_code,
-        D3D11CreateDeviceAndSwapChain(
-            nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, device_creation_flags, 
-            nullptr, 0, D3D11_SDK_VERSION, &swap_chain_description,
-            scoped_pointer_get_impl(m_swap_chain), 
-            scoped_pointer_get_impl(m_device),
-            &supported_feat_level, 
-            scoped_pointer_get_impl(m_device_context)));
+        D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr,
+                          create_device_flag, nullptr, 0, D3D11_SDK_VERSION,
+                          v8::base::scoped_pointer_get_impl(m_device),
+                          &feat_level,
+                          v8::base::scoped_pointer_get_impl(m_device_context)));
+    if (FAILED(ret_code)) {
+        return false;
+    }
+    if (feat_level != D3D_FEATURE_LEVEL_11_0) {
+        return false;
+    }
+
+    DXGI_SWAP_CHAIN_DESC swap_chain_info;
+    swap_chain_info.BufferDesc.Width = static_cast<UINT>(m_target_width);
+    swap_chain_info.BufferDesc.Height = static_cast<UINT>(m_target_height);
+    swap_chain_info.BufferDesc.RefreshRate.Numerator = 60;
+    swap_chain_info.BufferDesc.RefreshRate.Denominator = 1;
+    swap_chain_info.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    swap_chain_info.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+    swap_chain_info.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+    swap_chain_info.SampleDesc.Count = 1;
+    swap_chain_info.SampleDesc.Quality = 0;
+    swap_chain_info.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    swap_chain_info.BufferCount = 1;
+    swap_chain_info.OutputWindow = m_target_window;
+    swap_chain_info.Windowed = !fullscreen;
+    swap_chain_info.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+    swap_chain_info.Flags = 0;
+
+    using v8::base::com_exclusive_pointer;
+    com_exclusive_pointer<IDXGIDevice>::type dxgi_device;
+    CHECK_D3D(&ret_code, m_device->QueryInterface(
+        __uuidof(IDXGIDevice), reinterpret_cast<void**>(&dxgi_device)));
+    if (FAILED(ret_code)) {
+        return false;
+    }
+
+    com_exclusive_pointer<IDXGIAdapter>::type dxgi_adapter;
+    CHECK_D3D(&ret_code, dxgi_device->GetParent(
+        __uuidof(IDXGIAdapter), reinterpret_cast<void**>(&dxgi_adapter)));
+    if (FAILED(ret_code)) {
+        return false;
+    }
+
+    com_exclusive_pointer<IDXGIFactory>::type dxgi_factory;
+    CHECK_D3D(&ret_code, dxgi_adapter->GetParent(
+        __uuidof(IDXGIFactory), reinterpret_cast<void**>(&dxgi_factory)));
+    if (FAILED(ret_code)) {
+        return false;
+    }
+
+    CHECK_D3D(&ret_code, dxgi_factory->CreateSwapChain(
+        v8::base::scoped_pointer_get(m_device), &swap_chain_info, 
+        v8::base::scoped_pointer_get_impl(m_swap_chain)));
 
     return ret_code == S_OK;
 }
+
+//v8_bool_t v8::directx::renderer::initialize_swap_chain(
+//    v8_bool_t fullscreen
+//    ) {
+//    using namespace v8::base;
+//
+//    scoped_ptr<IDXGIFactory, com_storage> dxgifactory;
+//    HRESULT ret_code = ::CreateDXGIFactory(
+//        __uuidof(IDXGIFactory), 
+//        reinterpret_cast<void**>(scoped_pointer_get_impl(dxgifactory))
+//        );
+//    if (FAILED(ret_code)) {
+//        OUTPUT_DBG_MSGW(L"Failed to create IDXGIFactory, %#08x", ret_code);
+//        return false;
+//    }
+//
+//    scoped_ptr<IDXGIAdapter, com_storage> firstAdapter;
+//    ret_code = dxgifactory->EnumAdapters(
+//        0, scoped_pointer_get_impl(firstAdapter)
+//        );
+//    if (FAILED(ret_code)) {
+//        OUTPUT_DBG_MSGW(L"Failed to enum adapters, %#08x", ret_code);
+//        return false;
+//    }
+//
+//    ret_code = S_OK;
+//    DXGI_MODE_DESC closestMode;
+//    memset(&closestMode, 0, sizeof(closestMode));
+//    for (unsigned int outputIdx = 0; ; ++outputIdx) {
+//        scoped_ptr<IDXGIOutput, com_storage> adapterOutput;
+//        ret_code = firstAdapter->EnumOutputs(
+//            outputIdx, scoped_pointer_get_impl(adapterOutput)
+//            );
+//
+//        if (FAILED(ret_code)) {
+//            break;
+//        }
+//        DXGI_MODE_DESC requestedMode;
+//        requestedMode.Format = static_cast<DXGI_FORMAT>(m_backbuffer_type);
+//        requestedMode.Width = static_cast<UINT>(m_target_width);
+//        requestedMode.Height = static_cast<UINT>(m_target_height);
+//        requestedMode.RefreshRate.Numerator = 60;
+//        requestedMode.RefreshRate.Denominator = 1;
+//        requestedMode.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+//        requestedMode.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+//
+//        ret_code = adapterOutput->FindClosestMatchingMode(
+//            &requestedMode, &closestMode, nullptr);
+//        if (ret_code == S_OK) {
+//            break;
+//        }
+//    }
+//
+//    if (FAILED(ret_code)) {
+//        OUTPUT_DBG_MSGW(L"No suitable mode found for %3f %3f "
+//                        L"DXGI_FORMAT_R8G8B8U8A8_UNORM", 
+//                        m_target_width, m_target_height);
+//        return false;
+//    }
+//
+//    DXGI_SWAP_CHAIN_DESC swap_chain_description;
+//    swap_chain_description.BufferCount = 1;
+//    swap_chain_description.BufferDesc = closestMode;
+//    swap_chain_description.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+//    swap_chain_description.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+//    swap_chain_description.OutputWindow = m_target_window;
+//    swap_chain_description.SampleDesc.Count = 1;
+//    swap_chain_description.SampleDesc.Quality = 0;
+//    swap_chain_description.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+//    swap_chain_description.Windowed = !fullscreen;
+//
+//    const UINT device_creation_flags = D3D11_CREATE_DEVICE_DEBUG;
+//    D3D_FEATURE_LEVEL supported_feat_level = D3D_FEATURE_LEVEL_11_0;
+//
+//    CHECK_D3D(
+//        &ret_code,
+//        D3D11CreateDeviceAndSwapChain(
+//            nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, device_creation_flags, 
+//            nullptr, 0, D3D11_SDK_VERSION, &swap_chain_description,
+//            scoped_pointer_get_impl(m_swap_chain), 
+//            scoped_pointer_get_impl(m_device),
+//            &supported_feat_level, 
+//            scoped_pointer_get_impl(m_device_context)));
+//
+//    return ret_code == S_OK;
+//}
 
 v8_bool_t v8::directx::renderer::initialize_font_engine() {
     assert(m_device);

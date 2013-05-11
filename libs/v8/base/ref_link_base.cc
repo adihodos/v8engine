@@ -10,7 +10,7 @@ v8_bool_t v8::base::internal::ref_linked_base::release() {
         return false;
 
     } else if (m_next == this) {
-        assert(m_prev = this);
+        assert(m_prev == this);
 
         //
         // Set to null to avoid double deletion.

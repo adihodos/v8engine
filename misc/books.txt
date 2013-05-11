@@ -1,0 +1,97 @@
+Books
+C++
+
+    The C++ Programming Language
+    Design and Evolution of C++
+    Effective C++
+    More Effective C++
+    Effective STL
+    Exceptional C++
+    More Exceptional C++
+    Modern C++ Design
+    C++ Templates
+    C++ Templates Metaprogramming
+    Beyond C++ Standard Library – An introduction to BOOST
+    C++ Standard Library – Tutorial and Reference
+    Large Scale C++ Software Design
+    Thinking in C++, vol 1 and 2
+    Algorithms and Data Structures in C++
+    C++ Object Model
+    Scientific and Engineering C++
+    C++ Cookbook
+    C++ FAQs
+    Multi-paradigm C++
+
+Programming
+
+    Thinking in JAVA
+    Windows Internals, 5th Edition
+    Pro C# 2010 & .NET 4.0
+    Mastering Regular Expressions
+    Learning Python
+    Learning Perl
+    Professional WordPress
+    Cocoa Programming for Mac OS X, 3rd Edition
+    Objective-C and Cocoa Programming
+    Advanced Mac OS X Programming
+    Objective-C Phrasebook, 2nd Edition
+    Mac OS X Internals
+    Windows via C++
+    CLR via C#
+    Advanced Windows Debugging
+    Advanced .NET Debugging
+    Effective C#
+    Professional .NET Framework
+    Introduction to Algorithms
+
+Functional Programming
+
+    Learn you a Haskell
+    Programming F#
+    Beginning F#
+    C++ Template Metaprogramming
+
+General
+
+    The pragmatic programmer
+    Clean Code
+    Code Complete
+    Hackers: Heroes of computer revolution
+    A History of internet revolution and digital future
+    The code book
+    Code breakers
+    Fermat’s Enigma
+    The annotated Turing guide
+    The Man Who Knew Too Much: Alan Turing and the Invention of the Computer
+    History of Programming Langugages (ACM)
+    Thinking Recursively
+    The mythical man-month
+    Design Patterns – Elements of Reusable Object Oriented Software
+    Seven Languages in seven weeks
+    Built to last
+    Tipping Point
+    Outliers
+    Talent is overrated
+    The art of readable code
+    Paradox of choice
+    Clean Code
+
+Parallel Programming
+
+    Intel Threading Building Blocks
+    OpenCL programming guide
+    CUDA by Example
+    An introduction to Parallel Programming
+    Concurrent Programming on Windows
+    Pro .NET 4 Parallel Programming in C#
+    Parallel Programming with Microsoft Visual C++
+    Heterogeneous Computing with OpenCL
+
+CAGD
+
+    The NURBS book – Piegl & Tiller
+    Geometric and Solid Modeling – Hoffman
+    Curves and Surfaces for CAGD – Farin
+    Geometric Tools for Computer Graphics – Schneider
+    Computer Graphics and Geometric Modeling – Agoston
+    Interactive computer graphics – Angel

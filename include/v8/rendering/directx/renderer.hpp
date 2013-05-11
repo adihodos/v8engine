@@ -46,6 +46,8 @@ struct render_init_params {
     v8_int_t    depth_bits;
     ///< Number of bits for stenciling.
     v8_int_t    stencil_bits;
+    ///< Backbuffer clear color.
+    math::color_rgb clear_color;
 
     render_init_params() {
         memset(this, 0, sizeof(*this));

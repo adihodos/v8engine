@@ -19,28 +19,24 @@ if( CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR AND NOT MSVC_IDE )
 endif()
 
 if (MSVC)
-    find_package(DirectX)
+    set(DirectX_D3D11_LIBRARIES "d3d11.lib;d3dcompiler.lib;dxgi.lib;dxguid.lib")
 
-    if (NOT DirectX_D3D11_FOUND)
-        MESSAGE(FATAL_ERROR "Could not find dependency: DirectX")
-    endif()
+    set(cxx_disabled_warnings "/wd4201 /wd4127 /wd4005")
 
-    include_directories(
-        ${DirectX_INCLUDE_DIRS}
-    )
-
-    link_directories(
-        ${DirectX_LIBRARY_DIR}
-    )
-
-    set(cxx_disabled_warnings "/wd4201 /wd4127")
+    # define NOMINMAX so that code that uses STL can compile
     add_definitions(/DNOMINMAX)
 
-    # Disabled retarded warnings about some functions (fopen) being deprecated
-    add_definitions(/D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS)
+    # Disabled retarded warnings about some functions being deprecated
+    add_definitions(/D_CRT_SECURE_NO_WARNINGS)
+    add_definitions(/D_CRT_NONSTDC_NO_WARNINGS)
+    add_definitions(/D_CRT_SECURE_NO_DEPRECATE)
+
+    #
+    # Compile for Windows 7 and later
+    add_definitions(/D_WIN32_WINNT=0x0601)
+    add_definitions(/DWINVER=0x0601)
 
     if (CMAKE_BUILD_TYPE MATCHES Debug)
-        #message("Debug mode is on")
         add_definitions(/DV8_IS_DEBUG_BUILD)
         set(cxx_aditional_flags "/Od /Zi /RTC1")
     endif()
@@ -49,11 +45,12 @@ if (MSVC)
             CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
             CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINF)
         string(REPLACE "/MD" "/MT" "${flags_var}" "${${flags_var}}")
+        string(REPLACE "/W3" "/W4" "${flags_var}" "${${flags_var}}")
     endforeach()
-    string(REPLACE "/W3" "/W4" "${flags_var}" "${${flags_var}}")
 
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${cxx_aditional_flags} ${cxx_disabled_warnings}")
     message("${CMAKE_CXX_FLAGS}")
+    message("FLAGS VAR = ${flags_var}")
 endif()
 
 

@@ -12,10 +12,24 @@
 #include <v8/event/input_event.hpp>
 #include <v8/event/window_event.hpp>
 #include <v8/rendering/fps_counter.hpp>
+#include <v8/rendering/fwd_renderer.hpp>
 #include <v8/input/key_syms.hpp>
 
 namespace v8 { namespace gui {
 
+///
+/// \brief Parameters that control window initialization.
+struct window_init_params_t {
+    ///< Window width, in pixels.
+    v8_int32_t      width;
+    ///< Window height in pixels.
+    v8_int32_t      height;
+    ///< Window title.
+    const char*     title;
+};    
+
+///
+/// \brief Displays the output from the renderer aand provides input events.
 class basic_window {
 //! \name Construction/initialisation
 //! @{
@@ -27,22 +41,26 @@ public :
 
     virtual ~basic_window() {}
 
-    virtual v8_bool_t initialize(
-        v8_uint32_t win_style,
-        const std::string& class_name,
-        const std::string& window_title,
-        v8_int32_t width, 
-        v8_int32_t height
-        );
+    virtual v8_bool_t initialize(const window_init_params_t& init_params);
 
 //! @}
 
 //! \name Event delegates.
 //! @{
 
-    event_handler_list1<const input_event&>                    Subscribers_InputEvents;
+    /// \brief List of delegates for input events.
+    event_handler_list1<const input_event&>         Subscribers_InputEvents;
 
-    event_handler_list1<const resize_event&>                   Subscribers_ResizeEvent;
+    /// \brief List of delegates for window resize events.
+    event_handler_list1<const resize_event&>        Subscribers_ResizeEvent;
+
+    /// \brief List of delegates for the update event. Any object that must
+    /// update its state must register for this event.
+    event_handler_list1<float>                      Delegates_UpdateEvent;
+
+    /// \brief List of delegates for a drawing call. 
+    /// Any object that needs to draw itself must register for this event.
+    event_handler_list0<>                           Delegates_DrawEvent;
 
 //! @}
 
@@ -63,6 +81,7 @@ public :
         return m_windata.height;
     }
 
+    /// \brief Returns the aspect ratio of the window (Width/Height).
     float get_aspect_ratio() const {
         return static_cast<float>(m_windata.width) 
                / static_cast<float>(m_windata.height);
@@ -75,23 +94,23 @@ public :
 
 public :
 
-    virtual void message_loop();
+    /// \brief Pumps messages from the system and fires the update and draw
+    /// events.
+    virtual void message_loop(v8::rendering::renderer* graphics_sys);
 
 protected :
 
-    virtual void app_main_loop();
+    virtual void app_main_loop(v8::rendering::renderer* graphics_sys);
 
-    virtual void app_do_frame();
+    virtual void app_do_frame(v8::rendering::renderer* graphics_sys);
 
-    virtual void app_frame_tick() {}
+    virtual void app_frame_tick();
 
-    virtual void app_frame_draw();
+    virtual void app_frame_draw(v8::rendering::renderer* graphics_sys);
 
     virtual void on_app_idle() {
         Sleep(1000);
     }
-
-    virtual void frame_draw_impl();
 
 //! @}
 
@@ -157,9 +176,7 @@ protected :
         LPARAM l_param
         );
 
-    virtual void handle_wm_getminmaxinfo(
-        MINMAXINFO* mmInfo
-        ) {
+    virtual void handle_wm_getminmaxinfo(MINMAXINFO* mmInfo) {
         mmInfo->ptMinTrackSize.x = 320;
         mmInfo->ptMinTrackSize.y = 240;
     }

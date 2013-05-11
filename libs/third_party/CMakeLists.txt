@@ -1,1 +1,2 @@
 add_subdirectory(fw1_fontwrapper)
+add_subdirectory(directx_tex)

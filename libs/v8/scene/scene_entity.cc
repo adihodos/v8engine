@@ -16,6 +16,6 @@ void v8::scene::scene_entity::set_active_technique(
     ) {
     assert(attached_effect_);
     assert(technique_name);
-    technique_ = attached_effect_->get_technique_by_name(technique_name);
+    /*technique_ = attached_effect_->get_technique_by_name(technique_name);*/
     assert(technique_);
 }

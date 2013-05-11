@@ -1,4 +1,6 @@
 #include <d3dcompiler.h>
+#include <d3d11shader.h>
+
 #include <algorithm>
 
 #include "v8/base/debug_helpers.hpp"
@@ -69,65 +71,6 @@ v8_uint32_t reflect_shader_const_buffers(
     }
     return num_global_vars;
 }
-
-/*
-void v8::directx::internal::shader_common_base::reflect_constant_buffer(
-    ID3D11Device*   device,
-    ID3D11ShaderReflection* shader_reflect,
-    v8_uint32_t buff_index
-    ) {
-
-    //
-    // Get a constant buffer reflection interface pointer based on
-    // the buffer's index.
-    ID3D11ShaderReflectionConstantBuffer* constbuffer_reflector = 
-        shader_reflect->GetConstantBufferByIndex(buff_index);
-    if (!constbuffer_reflector) {
-        OUTPUT_DBG_MSGW(L"Warning : failed to reflect constant buffer @ slot %ud",
-                        buff_index);
-        return;
-    }
-
-    //
-    // Reflect the buffer and build the corresponding shader uniform block.
-    D3D11_SHADER_BUFFER_DESC sbd;
-    HRESULT ret_code;
-    CHECK_D3D(&ret_code, constbuffer_reflector->GetDesc(&sbd));
-    if (FAILED(ret_code)) 
-        return;
-
-    uniform_blocks.push_back(shader_uniform_block_t());
-
-    if (!uniform_blocks.back().initialize(device, sbd, buff_index)) {
-        uniform_blocks.pop_back();
-        return;
-    }
-
-    //
-    // Push handle of constant buffer into list. 
-    uniform_block_binding_list.push_back(uniform_blocks.back().get_handle());
-
-    //
-    // Reflect each individual variable in the cbuffer.
-    for (v8_uint32_t i = 0; i < sbd.Variables; ++i) {
-        auto V_reflector = constbuffer_reflector->GetVariableByIndex(i);
-        if (!V_reflector) {
-            OUTPUT_DBG_MSGA("Warning : failed to reflect variable @ %ud "
-                            "for constant buffer %s",
-                            i, sbd.Name);
-            return;
-        }
-
-        D3D11_SHADER_VARIABLE_DESC var_desc;
-        CHECK_D3D(&ret_code, V_reflector->GetDesc(&var_desc));
-        if (FAILED(ret_code)) {
-            continue;
-        }
-
-        uniforms.push_back(shader_uniform_t(var_desc, &uniform_blocks.back()));
-    }
-}
-*/
 
 void v8::directx::internal::shader_common_base::reflect_bound_resource(
     ID3D11ShaderReflection* shader_reflector,

@@ -5,10 +5,6 @@
 #include <v8/base/debug_helpers.hpp>
 #include <v8/io/filesystem.hpp>
 #include <v8/rendering/render_assets_cache.hpp>
-#include <v8/rendering/effect.hpp>
-#include <v8/rendering/effect_info.hpp>
-#include <v8/rendering/effect_technique.hpp>
-#include <v8/rendering/effect_pass.hpp>
 #include <v8/rendering/renderer.hpp>
 #include <v8/rendering/index_buffer.hpp>
 #include <v8/rendering/vertex_buffer.hpp>
@@ -34,11 +30,10 @@ struct animated_aircraft::implementation_details {
     v8_int_t                                topology;
     v8::rendering::vertex_buffer            vertex_buff;
     v8::rendering::index_buffer             index_buff;
-    //v8::rendering::texture                  diffuse_mat;
-    texture_wrapper                         diffuse_mat;
+    v8::rendering::texture                  diffuse_mat;
+    //texture_wrapper                         diffuse_mat;
     v8::math::color_rgb                     specular_mat;
     v8::rendering::effect*                  draw_effect;
-    v8::rendering::effect_technique*        draw_technique;
     v8::math::matrix_4X4F                   model_rotate_translate;
     float                                   model_scale;
 };
@@ -46,7 +41,6 @@ struct animated_aircraft::implementation_details {
 animated_aircraft::implementation_details::implementation_details()
     :       topology(v8::rendering::PrimitiveTopology::Undefined)
         ,   draw_effect(nullptr)
-        ,   draw_technique(nullptr)
         ,   model_rotate_translate(v8::math::matrix_4X4F::identity)
         ,   model_scale(1.0f)
 {}    
@@ -67,11 +61,6 @@ v8_bool_t animated_aircraft::initialize(
     if (!load_mesh(mesh_fullpath.c_str(), r_sys)) {
         return false;
     }
-
-    if (!load_effect()) {
-        return false;
-    }
-
     return true;
 }
 
@@ -240,15 +229,15 @@ v8_bool_t animated_aircraft::load_mesh(
         "f4\\f4_texture.jpg"
         );
 
-    if (!pimpl_->diffuse_mat.initialize(r_sys, tex_info.tex_filename.c_str())) {
+    //if (!pimpl_->diffuse_mat.initialize(r_sys, tex_info.tex_filename.c_str())) {
+    if (!pimpl_->diffuse_mat.initialize(tex_info, r_sys)) {
         return false;
     }    
     return true;
 }
 
 v8_bool_t animated_aircraft::load_effect() {
-    assert(!pimpl_->draw_effect);
-    assert(!pimpl_->draw_technique);
+    /*assert(!pimpl_->draw_effect);
 
     v8::rendering::effect_info_t eff_info;
     eff_info.eff_compile_macros = "[__VERTEX_PNT__]";
@@ -272,5 +261,7 @@ v8_bool_t animated_aircraft::load_effect() {
     pimpl_->draw_technique = pimpl_->draw_effect->get_technique_by_name(
         draw_technique_name
         );
-    return pimpl_->draw_technique != nullptr;
+    return pimpl_->draw_technique != nullptr;*/
+    assert(false && "Not implemented!");
+    return false;
 }

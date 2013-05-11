@@ -285,7 +285,8 @@ v8::base::duo<v8_bool_t, ID3D10Blob*> v8::directx::compile_shader(
 
     v8::base::com_exclusive_pointer<ID3D10Blob>::type   bytecode;
     v8::base::com_exclusive_pointer<ID3D10Blob>::type   err_msg;
-    internal::compiler_include_handler                  include_handler;
+    internal::compiler_include_handler                  include_handler(
+        shdr_info.shader_root_directory.c_str());
     HRESULT                                             ret_code;
 
     if (shdr_info.is_filename) {
@@ -486,7 +487,6 @@ v8_uint32_t
 v8::directx::translate_compiler_options_to_directx_value(
     const v8_uint32_t options
     ) {
-
     v8_uint32_t dx_flag_value = 0;
 
     if (options & Compile_Options::Avoid_Flow_Control) {
@@ -566,4 +566,5 @@ v8::directx::translate_compiler_options_to_directx_value(
     }
 
     return dx_flag_value;
+    /*return options;*/
 }

@@ -147,7 +147,8 @@ v8_bool_t v8::directx::texture::initialize(
         D3D11_TEXTURE2D_DESC tex_desc = {
             width_,
             height_,
-            gen_mips ? 0 : static_cast<UINT>(tex_metadata.mipLevels),
+            //gen_mips ? 0 : static_cast<UINT>(tex_metadata.mipLevels),
+            1,
             array_size_,
             format_,
             { 1, 0 },

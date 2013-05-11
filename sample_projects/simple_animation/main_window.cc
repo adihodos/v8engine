@@ -17,6 +17,9 @@
 #include <v8/rendering/fragment_shader.hpp>
 #include <v8/event/window_event.hpp>
 
+#include <d3d11.h>
+#include <d3dcompiler.h>
+
 #include "animated_aircraft.hpp"
 #include "draw_context.hpp"
 #include "main_window.hpp"
@@ -87,11 +90,14 @@ v8_bool_t main_window::initialize_scene() {
     vs_info.name_or_source = v8::state->file_sys()->make_shader_path("vs_anim");
     vs_info.shader_model = "vs_5_0";
     vs_info.compile_flags = 
-        Compile_Options::Generate_Debug_Info | Compile_Options::IEEE_Strictness |
-        Compile_Options::Matrix_Packing_Column_Major | 
-        Compile_Options::Optimization_L0 |
-        Compile_Options::Skip_Optimization | 
-        Compile_Options::Warnings_Are_Errors;
+        //Compile_Options::Generate_Debug_Info | Compile_Options::IEEE_Strictness |
+        //Compile_Options::Matrix_Packing_Column_Major | 
+        //Compile_Options::Optimization_L0 |
+        //Compile_Options::Skip_Optimization | 
+        //Compile_Options::Warnings_Are_Errors;
+        D3DCOMPILE_DEBUG | 
+        D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_SKIP_OPTIMIZATION |
+        D3DCOMPILE_WARNINGS_ARE_ERRORS | D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR;
 
     if (!scene_->vert_shader.initialize(vs_info, v8::state->render_sys())) {
         return false;
@@ -104,11 +110,8 @@ v8_bool_t main_window::initialize_scene() {
     ps_info.name_or_source = v8::state->file_sys()->make_shader_path("ps_lighting");
     ps_info.shader_model = "ps_5_0";
     ps_info.compile_flags = 
-        Compile_Options::Generate_Debug_Info | Compile_Options::IEEE_Strictness |
-        Compile_Options::Matrix_Packing_Column_Major | 
-        Compile_Options::Optimization_L0 |
-        Compile_Options::Skip_Optimization | 
-        Compile_Options::Warnings_Are_Errors;
+        D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION |
+        D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR | D3DCOMPILE_WARNINGS_ARE_ERRORS;
 
     if (!scene_->frag_shader.initialize(ps_info, v8::state->render_sys())) {
         return false;

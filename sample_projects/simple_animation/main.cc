@@ -18,8 +18,6 @@
 
 #include "main_window.hpp"
 
-#pragma comment(lib, "d3dx11.lib")
-
 namespace {
 
 class animation_app_context : public v8::application_state {
@@ -68,7 +66,7 @@ v8_bool_t animation_app_context::initialize() {
     file_sys_ = new v8::filesys();
     //
     // TODO : fix hard coded path, it sucks.
-    const char* const app_data_dir = "D:\\games\\simple_anim";
+    const char* const app_data_dir = "E:\\games\\simple_anim";
     file_sys_->initialize(app_data_dir);
 
     cam_ptr_ = new v8::math::camera();

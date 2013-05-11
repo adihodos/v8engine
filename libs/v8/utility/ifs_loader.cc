@@ -1,3 +1,4 @@
+#include <memory>
 #include <Windows.h>
 #include <v8/base/scoped_handle.hpp>
 #include <v8/base/win32_handle_policies.hpp>

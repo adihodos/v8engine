@@ -17,6 +17,11 @@ struct shader_info_t {
     ///< True if name_or_source represents a file name.
     v8_bool_t                   is_filename;
 
+    ///< Path of the directory containing the shader. If the shader contains
+    ///< #include directives, the #included files will be searched 
+    ///< in this directory.
+    std::string                 shader_root_directory;
+
     ///< List of macros to be passed to the compiler.
     const char*                 compile_macros;
 

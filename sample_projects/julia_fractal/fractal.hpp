@@ -4,7 +4,9 @@
 
 #include <v8/v8.hpp>
 #include <v8/event/fwd_event_types.hpp>
+#include <v8/rendering/fwd_renderer.hpp>
 #include <v8/base/scoped_pointer.hpp>
+#include "application_context.hpp"
 
 class fractal {
 
@@ -30,7 +32,7 @@ public :
 
     ~fractal();
 
-    v8_bool_t initialize();
+    v8_bool_t initialize(fractal_app_context& app_context);
 
     //! @}
 
@@ -76,7 +78,7 @@ public :
 
     void evaluate(const float delta_ms);
 
-    void draw();
+    void draw(v8::rendering::renderer* draw_context);
 
     //! @}
 
@@ -108,6 +110,7 @@ private :
 private :
     struct implementation;
     v8::base::scoped_ptr<implementation>                impl_;
-};
 
-extern fractal* g_fractal;
+private :
+    NO_CC_ASSIGN(fractal);
+};
