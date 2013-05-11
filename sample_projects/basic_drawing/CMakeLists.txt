@@ -3,7 +3,6 @@ project(basic_drawing)
 add_executable(
     basic_drawing WIN32
     main.cc
-    window.cc
 )
 
 target_link_libraries(

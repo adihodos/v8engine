@@ -7,8 +7,13 @@ namespace v8 { namespace directx {
 
 struct shader_info_t {
 
-    shader_info_t() {
-        memset(this, 0, sizeof(*this));
+    shader_info_t()
+        :       is_filename(false)
+            ,   compile_macros(nullptr)
+            ,   entrypoint(nullptr)
+            ,   compile_flags(0)
+            ,   shader_model(nullptr)
+    {
     }
 
     ///< Either the name of a shader file or the source code.
