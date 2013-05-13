@@ -97,13 +97,13 @@ public :
     }
 
     void rotate_z(bool counter_clockwise) {
-        float modifier[2] = { -1.0f, 1.0f };
+        const float modifier[2] = { -1.0f, 1.0f };
         angle_theta_ += rotate_speed_ * modifier[counter_clockwise];
         updated_ = false;
     }
 
     void zoom(bool inwards) {
-        float modifier[2] = { +1.0f, -1.0f };
+        const float modifier[2] = { +1.0f, -1.0f };
         
         const float new_val = radius_ + zoom_speed_ * modifier[inwards];
         if (fabs(new_val) >= kZoomMin && fabs(new_val) <= kZoomMax) {
@@ -126,7 +126,7 @@ public :
         updated_ = false;
     }
 
-    void update(float /*delta*/) {
+    void update(const float /*delta*/) {
         if (!updated_)
             update_cam_data();
     }

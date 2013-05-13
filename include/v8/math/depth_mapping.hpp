@@ -47,8 +47,8 @@ struct z_ndc<real_t, Depth_Map_DirectX> {
     }
 };
 
-typedef z_ndc<float, Depth_Map_DirectX>     z_ndc_dxF;
-typedef z_ndc<double, Depth_Map_DirectX>    z_ndc_dxD;
+typedef z_ndc<float, Depth_Map_DirectX>     z_ndc_D3DF;
+typedef z_ndc<double, Depth_Map_DirectX>    z_ndc_D3DD;
 
 template<typename real_t>
 struct z_ndc<real_t, Depth_Map_OpenGL> {
@@ -61,8 +61,8 @@ struct z_ndc<real_t, Depth_Map_OpenGL> {
     }
 };
 
-typedef z_ndc<float, Depth_Map_OpenGL>      z_ndc_glF;
-typedef z_ndc<double, Depth_Map_OpenGL>     z_ndc_glD;
+typedef z_ndc<float, Depth_Map_OpenGL>      z_ndc_GLF;
+typedef z_ndc<double, Depth_Map_OpenGL>     z_ndc_GLD;
 
 } // namespace math
 } // namespace v8

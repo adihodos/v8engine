@@ -11,8 +11,8 @@ namespace v8 { namespace math {
 }
 
 namespace v8 {
-struct resize_event;
-struct input_event;
+    struct resize_event;
+    struct input_event;
 }
 
 namespace v8 { namespace scene {
@@ -41,9 +41,9 @@ public :
 
     void set_camera(v8::math::camera* cam) { cam_ptr_ = cam; }
 
-    virtual v8_bool_t initialize() { return true; }
+    virtual v8_bool_t initialize(const void*) { return true; }
 
-    virtual void update(float delta_ms) = 0;
+    virtual void update(const float delta_ms) = 0;
 
 /// @}
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <v8/event/fwd_event_types.hpp>
 #include <v8/scene/camera_controller.hpp>
 
 //
@@ -21,40 +22,9 @@ public :
     explicit null_camera_controller(v8::math::camera* cam = nullptr)
         : base_class(cam) {}
 
-    void update(float);
+    void update(const float);
 
-    v8_bool_t key_press_event(
-        v8_int_t key_code
-        );
-
-    v8_bool_t key_depress_event(
-        v8_int_t key_code
-        );
-
-    v8_bool_t mouse_wheel_event(
-        v8_int_t rotations, 
-        v8_int_t key_flags, 
-        v8_int_t xpos, 
-        v8_int_t ypos
-        );
-
-    v8_bool_t left_button_press_event(
-        v8_int_t key_flags, 
-        v8_int_t xpos, 
-        v8_int_t ypos
-        );
-
-    v8_bool_t left_button_depress_event(
-        v8_int_t key_flags, 
-        v8_int_t xpos, 
-        v8_int_t ypos
-        );
-
-    v8_bool_t mouse_moved_event(
-        v8_int_t key_flags, 
-        v8_int_t xpos, 
-        v8_int_t ypos
-        );
+    void on_input_event(const input_event& ev_input);
 
     std::string get_debug_stats();
 };
