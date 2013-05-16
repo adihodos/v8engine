@@ -313,9 +313,9 @@ v8::math::quaternion<real_t>::is_identity() const {
 }
 
 template<typename real_t>
-v8::math::quaternion<real_t>&
+void 
 v8::math::quaternion<real_t>::extract_rotation_matrix(
-    v8::math::matrix_3X3<real_t>* mtx
+    v8::math::matrix_4X4<real_t>* mtx
     ) const {
     real_t s, xs, ys, zs, wx, wy, wz, xx, xy, xz, yy, yz, zz;
 
@@ -341,16 +341,20 @@ v8::math::quaternion<real_t>::extract_rotation_matrix(
     mtx->a11_ = real_t(1) - (yy + zz);
     mtx->a12_ = xy - wz;
     mtx->a13_ = xz + wy;
+    mtx->a14_ = real_t(0);
 
     mtx->a21_ = xy + wz;
     mtx->a22_ = real_t(1) - (xx + zz);
     mtx->a23_ = yz - wx;
+    mtx->a24_ = real_t(0);
 
     mtx->a31_ = xz - wy;
     mtx->a32_ = yz + wx;
     mtx->a33_ = real_t(1) - (xx + yy);
+    mtx->a34_ = real_t(0);
 
-    return *this;
+    mtx->a41_ = mtx->a42_ = mtx->a43_ = real_t(0);
+    mtx->a44_ = real_t(1);
 }
 
 template<typename real_t>
@@ -385,7 +389,7 @@ template<typename real_t>
 inline
 v8::math::quaternion<real_t>
 v8::math::inverse_of(
-    const v8::math::quaternion<real_t> quat
+    const v8::math::quaternion<real_t>& quat
     ) {
     quaternion<real_t> result(quat);
     return result.invert();
@@ -395,7 +399,7 @@ template<typename real_t>
 inline
 v8::math::quaternion<real_t>
 v8::math::normal_of(
-    const v8::math::quaternion<real_t> quat
+    const v8::math::quaternion<real_t>& quat
     ) {
     quaternion<real_t> result(quat);
     return result.normalize();
@@ -405,7 +409,7 @@ template<typename real_t>
 inline
 v8::math::quaternion<real_t>
 v8::math::conjugate_of(
-    const v8::math::quaternion<real_t> quat
+    const v8::math::quaternion<real_t>& quat
     ) {
     quaternion<real_t> result(quat);
     return result.make_conjugate();

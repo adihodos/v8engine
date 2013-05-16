@@ -32,7 +32,7 @@
 #include <v8/v8.hpp>
 #include <v8/base/fundamental_types.hpp>
 #include <v8/math/math_utils.hpp>
-#include <v8/math/matrix3X3.hpp>
+#include <v8/math/matrix4X4.hpp>
 #include <v8/math/vector3.hpp>
 
 namespace v8 { namespace math {
@@ -85,7 +85,6 @@ public :
     /**
      \brief Constructs a quaternion, using the specified array of values for
         initialization.
-
      \param init_data   Pointer to an array of at least 4 elements. Must not be
         null.
      */
@@ -95,7 +94,6 @@ public :
 
     /**
      \brief Construct from axis-angle format.
-    
      \param angle   The angle of rotation, expressed in radians.
      \param axis    Vector that represents the axis of rotation. It is not 
         necessary to be in normalized form.
@@ -135,7 +133,6 @@ public :
 
     /**
      \brief Construct from axis-angle format.
-    
      \param angle   The angle of rotation, expressed in radians.
      \param axis    Vector that represents the axis of rotation. It is not 
         necessary to be in normalized form.
@@ -191,17 +188,16 @@ public :
     quaternion<real_t>& invert();
 
     /**
-     \brief Converts this quaternion to a rotation matrix.
-     \param [in,out]    mtx Pointer to a matrix_3X3 that performs the rotation
+     \brief Store the rotation encoded by this quaternion into a matrix.
+     \param [in,out]    mtx Pointer to a matrix_4X4 that performs the rotation
         encoded by this quaternion.
      */
-    quaternion<real_t>& extract_rotation_matrix(
-        math::matrix_3X3<real_t>* mtx
+    void extract_rotation_matrix(
+        math::matrix_4X4<real_t>* mtx
         ) const;
 
     /**
      \brief Converts this quaternion to axis-angle format.
-    
      \param [in,out]    axis    Pointer to a vector3 that receives the axis of
         rotation. Must not be null.
      \param [in,out]    angle   Pointer to a value that receives the angle of
@@ -273,21 +269,21 @@ template<typename real_t>
 inline
 math::quaternion<real_t>
 inverse_of(
-    const math::quaternion<real_t> quat
+    const math::quaternion<real_t>& quat
     );
 
 template<typename real_t>
 inline
 math::quaternion<real_t>
 normal_of(
-    const math::quaternion<real_t> quat
+    const math::quaternion<real_t>& quat
     );
 
 template<typename real_t>
 inline
 math::quaternion<real_t>
 conjugate_of(
-    const math::quaternion<real_t> quat
+    const math::quaternion<real_t>& quat
     );
 
 template<typename real_t>

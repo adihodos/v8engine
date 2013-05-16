@@ -161,7 +161,7 @@ projection<real_t>::perspective_oblique(
     proj_matrix.a33_ = ndc_min + d_max * ndc_diff * inv_depth;
     proj_matrix.a34_ = -(d_min * d_max * ndc_diff * inv_depth);
 
-    proj_matrix.a43_ = real_type(1);
+    proj_matrix.a43_ = real_t(1);
 
     return proj_matrix;
 }

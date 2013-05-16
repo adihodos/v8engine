@@ -57,7 +57,7 @@ handle_key_press(const v8_int_t key_code) {
         break;
 
     case Key_Sym_t::F9 :
-        initialize();
+        defaults();
         break;
 
     default :

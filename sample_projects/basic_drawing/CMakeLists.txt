@@ -8,6 +8,7 @@ add_executable(
 target_link_libraries(
     basic_drawing
     ${DirectX_D3D11_LIBRARIES}
+    ${Assimp_LIBRARIES}
     fw1_fontwrapper
     v8_renderer_directx
     v8_base

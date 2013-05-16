@@ -9,10 +9,13 @@ set(CMAKE_DEBUG_POSTFIX "_d")
 
 # Add path for custom modules
 set(CMAKE_MODULE_PATH
-  ${CMAKE_MODULE_PATH}
   "${CMAKE_CURRENT_SOURCE_DIR}/cmake"
   "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules"
   )
+
+message("Module path = ${CMAKE_MODULE_PATH}")
+
+find_package(Assimp REQUIRED)
 
 if( CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR AND NOT MSVC_IDE )
   message(FATAL_ERROR "In-source builds are not allowed.")

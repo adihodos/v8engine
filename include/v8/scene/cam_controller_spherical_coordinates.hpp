@@ -28,7 +28,7 @@ class camera_controller_spherical_coords : public camera_controller {
     static const float          kZoomMax;
 
     void defaults() {
-        angle_phi_ = 45.0f;
+        angle_phi_ = -90.0f;
         angle_theta_ = 0.0f;
         radius_ = 10.0f;
         rotate_speed_ = 0.2f;

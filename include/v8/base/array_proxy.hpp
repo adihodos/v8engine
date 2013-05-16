@@ -85,12 +85,15 @@ public :
     typedef std::reverse_iterator<const_iterator>   const_reverse_iterator;
     
     //! Type used for indexing and size.
-    typedef v8_size_t                   size_type;
+    typedef v8_size_t                               size_type;
+
+    //! Fully qualified type of this class.
+    typedef array_proxy<T>                          class_type;
     
     //! @}
 
-    //! \todo Suppress implicit ctors
 public :
+
     /** \name Constructors
      * @{
      */
@@ -103,7 +106,7 @@ public :
     /**
      * \brief Construct with a pointer and an element count.
      */
-    array_proxy(T* beg, v8_size_t num_elements)
+    array_proxy(T* beg, const v8_size_t num_elements)
         : begin_(beg), end_(begin_ + num_elements) {}
 
     /**
@@ -126,17 +129,56 @@ public :
      *        same size.
      */
     template<typename U>
-    array_proxy(U* beg, v8_size_t num_elements)
+    array_proxy(U* beg, const v8_size_t num_elements)
         : begin_(beg), end_(begin_ + num_elements) {
         must_be_same_size<T, U>();
     }
 
     /**
-     * \brief Construct from an existing array of objects with the same
-     *        size.
+     * \brief Construct from an existing array of objects with the same size.
      */
     template<typename U, v8_size_t N>
-    array_proxy(U (&arr)[N]) : begin_(&arr[0]), end_(&arr[0] + N) {}
+    array_proxy(U (&arr)[N]) : begin_(&arr[0]), end_(&arr[0] + N) {
+        must_be_same_size<T, U>();
+    }
+
+    /**
+     * \brief   Construct from temporary.
+     */
+    array_proxy(class_type&& rval)
+        : begin_(rval.begin_), end_(rval.end_)
+    {}
+
+    /**
+     * \brief   Construct from temporary that holds objects of the same size.
+     */
+    template<typename U>
+    array_proxy(array_proxy<U>&& rval)
+        : begin_(rval.begin()), end_(rval.end()) {
+        must_be_same_size<T, U>();
+    }
+
+    /**
+     * \brief   Assign from temporary.
+     */
+    class_type& operator=(class_type&& rval) {
+        begin_ = rval.begin_;
+        end_ = rval.end_;
+        return *this;
+    }
+
+    /**
+     * \brief   Assign from temporary that holds objects of the same size.
+     */
+    template<typename U>
+    class_type& operator=(array_proxy<U>& rval) {
+        must_be_same_size<T, U>();
+
+        begin_ = rval.begin();
+        end_ = rval.end();
+        return *this;
+    }
+
     /** @} */
 
 public :
@@ -226,11 +268,11 @@ public :
 
     /** @} */
 
-public :
-
     /** \name Subscripting
      * @{
      */
+
+public :
 
     /**
      * \brief Returns a reference to an element.
@@ -249,10 +291,20 @@ public :
         assert((idx < length()) && "Out of bounds index");
         return *(begin_ + idx);
     }
+
+    /** @ */
+
+    /** \name Data members.
+     *  @{
+     */
     
 private :
+
     T* const    begin_; //! Pointer to the first element.
-    T* const    end_; //! Pointer to the one past end element.    
+    T* const    end_; //! Pointer to the one past end element.
+
+private :
+    NO_CC_ASSIGN(array_proxy);
 
     /** @} */
 };
