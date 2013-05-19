@@ -1,72 +1,36 @@
 #include <algorithm>
 #include <v8/v8.hpp>
-#include <v8/base/array_proxy.hpp>
+#include <v8/base/auto_buffer.hpp>
 #include <v8/base/debug_helpers.hpp>
 #include <v8/base/sequence_container_veneer.hpp>
 #include <v8/base/scoped_pointer.hpp>
 #include <v8/base/count_of.hpp>
+#include <v8/base/string_util.hpp>
 #include <v8/event/window_event.hpp>
 #include <v8/event/input_event.hpp>
 #include <v8/input/key_syms.hpp>
 #include <v8/gui/basic_window.hpp>
 #include <v8/io/filesystem.hpp>
 #include <v8/rendering/constants.hpp>
-#include <v8/rendering/fragment_shader.hpp>
-#include <v8/rendering/index_buffer.hpp>
 #include <v8/rendering/renderer.hpp>
-#include <v8/rendering/material.hpp>
-#include <v8/rendering/shader_info.hpp>
-#include <v8/rendering/vertex_buffer.hpp>
-#include <v8/rendering/vertex_pn.hpp>
-#include <v8/rendering/vertex_pc.hpp>
-#include <v8/rendering/vertex_shader.hpp>
-#include <v8/utility/geometry_importer.hpp>
 #include <v8/utility/win_util.hpp>
 #include <v8/math/camera.hpp>
 #include <v8/math/color.hpp>
-#include <v8/math/depth_mapping.hpp>
+#include <v8/graphis_api_traits.hpp>
 #include <v8/math/light.hpp>
 #include <v8/math/math_constants.hpp>
 #include <v8/math/projection.hpp>
-#include <v8/math/quaternion.hpp>
-#include <v8/math/vector3.hpp>
-#include <v8/math/matrix3X3.hpp>
-#include <v8/math/matrix4X4.hpp>
 #include <v8/scene/null_camera_controller.hpp>
 #include <v8/scene/cam_controller_spherical_coordinates.hpp>
 #include <third_party/fast_delegate/fast_delegate.hpp>
+#include <third_party/stlsoft/stlsoft/string/static_string.hpp>
 
-template<typename T>
-struct zero_initialize : public T {
-    static_assert(std::is_pod<T>::value == true, "Type must be POD!");
-
-    zero_initialize() {
-        memset(this, 0, sizeof(*this));
-    }
-};
+#include "app_context.hpp"
+#include "igeometry_shape.hpp"
+#include "aircraft_f4.hpp"
 
 struct cam_init_data {
     v8::gui::basic_window* window;
-};
-
-struct DrawingContext {
-    DrawingContext(const v8::math::light* lights, const v8_size_t num_lights)
-        : ActiveLights(lights, num_lights)
-    {}
-
-    v8::rendering::renderer*                        Renderer;
-    v8::math::matrix_4X4F                           ProjectionViewXForm;
-    v8::base::array_proxy<const v8::math::light>    ActiveLights;
-    v8::math::vector3F                              EyePosition;
-};
-
-struct InitContext {
-    v8::rendering::renderer*    Renderer;
-    v8::filesys*                FileSystem;
-
-    InitContext() {
-        memset(this, 0, sizeof(*this));
-    }
 };
 
 template<typename T>
@@ -76,395 +40,153 @@ struct DefaultDeleter {
     }
 };
 
-class IGeometryShape {
+class sph_cam : public v8::scene::camera_controller_spherical_coords {
 public :
-    virtual ~IGeometryShape() {}
+    typedef v8::scene::camera_controller_spherical_coords   base_class;
 
-    virtual v8_bool_t Initialize(const InitContext* init_context) = 0;
+    sph_cam(v8::math::camera* cam_ptr = nullptr);
+public :
+    v8_bool_t initialize(const void* init_params);
 
-    virtual void Update(const float delta) = 0;
+    void on_input_event(const v8::input_event& in_evt);
 
-    virtual void Draw(const DrawingContext* draw_context) = 0;
+    void on_viewport_resized(const v8::resize_event& resize_evt);
+
+    std::string cam_data_as_string() const;
+
+private :
+    void setup_camera();
+
+private :
+    v8::gui::basic_window*      app_window_;
+    v8_uint32_t                 proj_type_;
+    float                       fov_;
 };
 
+sph_cam::sph_cam(v8::math::camera* cam_ptr /*= nullptr*/)
+    :       base_class(cam_ptr)
+        ,   app_window_(nullptr)
+        ,   proj_type_(v8::math::projection::type::perspective)
+        ,   fov_(45.0f)
+{}
 
-class F4Phantom : public IGeometryShape {
-/// \name Init
-/// @{
+v8_bool_t sph_cam::initialize(const void* init_params) {
+    assert(init_params);
 
-public :
-
-    F4Phantom();
-
-    ~F4Phantom();
-
-    v8_bool_t Initialize(const InitContext* init_context);
-
-private :
-
-    /// \brief Resets aricraft parameters to their default values.
-    void SetDefaultAicraftDefaultParameters();
-
-/// @}
-
-
-/// \name Updating, events and drawing.
-/// @{
-
-public :
-
-    void Update(const float delta);
-
-    void Draw(const DrawingContext* draw_context);
-
-    void InputEvent(const v8::input_event& in_evt);
-
-/// @}
-
-
-/// \name Movement & rotation
-/// @{
-
-private :
-
-    inline void MoveX(const float modifier);
-
-    inline void MoveY(const float modifier);
-
-    inline void MoveZ(const float modifier);
-
-    /// \brief Rotates the aircraft around the Z axis.
-    inline void Roll(const float modifier);
-
-    /// \brief Rotates the aircraft around the X axis.
-    inline void Pitch(const float modifier);
-
-    /// \brief Rotates the aircraft around the Y axis.
-    inline void Yaw(const float modifier);
-
-    inline void UpdateRotationAngle(const float amount, float* angle);
-
-/// @}
-
-
-private :
-    v8_bool_t is_valid() const {
-        return is_valid_;
-    }
-
-private :
-
-    ///
-    /// \brief Parameters that control the flight characteristics of an aicraft.
-    struct F4PhantomFlightCharacteristics_t {
-        F4PhantomFlightCharacteristics_t() {
-            SetDefaultValues();
-        }
-
-        float   roll_speed;
-        float   yaw_speed;
-        float   pitch_speed;
-
-        void SetDefaultValues() {
-            roll_speed = 0.003f;
-            yaw_speed = 0.0015f;
-            pitch_speed = 0.0045f;
-        }
-    };
-
-private :
-    v8::rendering::index_buffer         indexbuffer_;
-    v8::rendering::vertex_buffer        vertexbuffer_;
-    v8::rendering::vertex_shader        vertexshader_;
-    v8::rendering::fragment_shader      fragshader_;
-    v8::math::vector3F                  position_;
-    v8_bool_t                           keystates_[v8::input::Key_Sym_t::Last];
-    v8_bool_t                           is_valid_;
-    ///< Z axis rotation (radians)
-    float                               roll_angle_;
-    ///< X axis rotation (radians)
-    float                               pitch_angle_;
-    ///< Y axis rotation (radians)
-    float                               yaw_angle_;
-    ///< Flight parameters.
-    F4PhantomFlightCharacteristics_t    flight_characteristics_;
-
-private :
-    NO_CC_ASSIGN(F4Phantom);
-};
-
-F4Phantom::F4Phantom() 
-    : is_valid_(false), position_(v8::math::vector3F::zero) {}
-
-F4Phantom::~F4Phantom() {
-}
-
-v8_bool_t F4Phantom::Initialize(const InitContext* init_context) {
-    if (is_valid()) {
-        return true;
-    }
-
-    memset(keystates_, 0, sizeof(keystates_));
-    SetDefaultAicraftDefaultParameters();
-
-    using namespace v8::base;
-    using namespace v8::rendering;
-
-    scoped_ptr<vertex_pn, default_array_storage>    vertices;
-    scoped_ptr<v8_uint32_t, default_array_storage>  indices;
-    v8_uint32_t num_vertices;
-    v8_uint32_t num_indices;
-    const std::string model_path = init_context->FileSystem->make_model_path(
-        "f4_phantom.obj");
-
-    const v8_bool_t load_succeeded = v8::utility::import_geometry(
-        model_path.c_str(), scoped_pointer_get_impl(vertices),
-        scoped_pointer_get_impl(indices), &num_vertices, &num_indices
-        );
-    if (!load_succeeded) {
-        return false;
-    }
-
-    const v8_bool_t vb_created = vertexbuffer_.initialize(
-        init_context->Renderer, num_vertices, sizeof(*vertices),
-        scoped_pointer_get(vertices)
-        );
-    if (!vb_created) {
-        return false;
-    }
-
-    const v8_bool_t ib_created = indexbuffer_.initialize(
-        init_context->Renderer, num_indices, sizeof(*indices),
-        scoped_pointer_get(indices)
-        );
-    if (!ib_created) {
-        return false;
-    }
-
-    using v8::rendering::Compile_Options;
-    const v8_uint32_t kShaderCompileFlags = 
-        Compile_Options::Generate_Debug_Info | Compile_Options::IEEE_Strictness |
-        Compile_Options::Matrix_Packing_Row_Major | Compile_Options::Optimization_L0 |
-        Compile_Options::Skip_Optimization | Compile_Options::Warnings_Are_Errors;
-
-    v8::rendering::shader_info_t shader_info;
-    shader_info.compile_flags         = kShaderCompileFlags;
-    shader_info.is_filename           = true;
-    shader_info.name_or_source        = 
-        init_context->FileSystem->make_shader_path("ps_lighting");
-    shader_info.shader_root_directory = init_context->FileSystem->get_dir_path(
-        v8::filesys::Dir::Shaders
-        );
-    shader_info.entrypoint            = "ps_main";
-    shader_info.shader_model          = "ps_5_0";
-    shader_info.compile_macros        = "[__VERTEX_PN__]";
-
-    if (!fragshader_.initialize(shader_info, init_context->Renderer)) {
-        OUTPUT_DBG_MSGA("Failed to compile shader [%s]", 
-                        shader_info.name_or_source.c_str());
-        return false;
-    }
-
-    shader_info.name_or_source =
-        init_context->FileSystem->make_shader_path("basic_transform");
-    shader_info.entrypoint = "xform_vertex_pn";
-    shader_info.shader_model = "vs_5_0";
-    if (!vertexshader_.initialize(shader_info, init_context->Renderer)) {
-        OUTPUT_DBG_MSGA("Failed to compile shader [%s]", 
-                        shader_info.name_or_source.c_str());
-        return false;
-    }
-
-    //
-    // Mark object as valid.
-    is_valid_ = true;
+    const cam_init_data* init_ctx = static_cast<const cam_init_data*>(init_params);
+    app_window_ = init_ctx->window;
+    
+    setup_camera();
     return true;
 }
 
-void F4Phantom::SetDefaultAicraftDefaultParameters() {
-    yaw_angle_ = 0.0f;
-    pitch_angle_ = 0.0f;
-    roll_angle_ = 0.0f;
-    position_ = v8::math::vector3F::zero;
-    flight_characteristics_.SetDefaultValues();
-}
-
-void F4Phantom::Update(const float /*delta*/) {
-    using v8::input::Key_Sym_t;
-
-    v8::math::vector3F translate(v8::math::vector3F::zero);
-
-    if (keystates_[Key_Sym_t::Key_W]) {
-        MoveZ(1.0f);
-    }
-
-    if (keystates_[Key_Sym_t::Key_S]) {
-        MoveZ(-1.0f);
-    }
-
-    if (keystates_[Key_Sym_t::Key_A]) {
-        MoveX(-1.0f);
-    }
-
-    if (keystates_[Key_Sym_t::Key_D]) {
-        MoveX(1.0f);
-    }
-
-    if (keystates_[Key_Sym_t::Key_X]) {
-        MoveY(1.0f);
-    }
-
-    if (keystates_[Key_Sym_t::Key_C]) {
-        MoveY(-1.0f);
-    }
-
-    if (keystates_[Key_Sym_t::Key_Q]) {
-        Roll(1.0f);
-    }
-
-    if (keystates_[Key_Sym_t::Key_E]) {
-        Roll(-1.0f);
-    }
-
-    if (keystates_[Key_Sym_t::Key_U]) {
-        Pitch(+1.0f);
-    }
-
-    if (keystates_[Key_Sym_t::Key_J]) {
-        Pitch(-1.0f);
-    }
-
-    if (keystates_[Key_Sym_t::Key_N]) {
-        Yaw(+1.0f);
-    }
-
-    if (keystates_[Key_Sym_t::Key_M]) {
-        Yaw(-1.0f);
-    }
-}
-
-struct Material {
-    v8::math::color_rgb emissive;
-    v8::math::color_rgb specular;
-    v8::math::color_rgb ambient;
-    v8::math::color_rgb diffuse;
-};
-
-void F4Phantom::Draw(const DrawingContext* draw_ctx) {
-    assert(is_valid());
+void sph_cam::setup_camera() {
+    assert(app_window_);
+    assert(cam_ptr_);
 
     using namespace v8::math;
+    matrix_4X4F proj_xform;
 
-    indexbuffer_.bind_to_pipeline(draw_ctx->Renderer);
-    vertexbuffer_.bind_to_pipeline(draw_ctx->Renderer);
-    draw_ctx->Renderer->ia_stage_set_input_layout(
-        vertexshader_.get_input_signature()
-        );
-    draw_ctx->Renderer->ia_stage_set_primitive_topology_type(
-        v8::rendering::PrimitiveTopology::TriangleList
-        );
+    const float aspect_ratio = app_window_->get_aspect_ratio();
 
-    quaternionF quat_roll(roll_angle_, vector3F::unit_z);
-    quaternionF quat_pitch(pitch_angle_, vector3F::unit_x);
-    quaternionF quat_yaw(yaw_angle_, vector3F::unit_y);
-
-    quaternionF quat_rotation(quat_roll * quat_pitch * quat_yaw);
-
-    matrix_4X4F rotation_xform;
-    quat_rotation.extract_rotation_matrix(&rotation_xform);
-
-    matrix_4X4F translation_xform;
-    translation_xform.make_identity();
-    translation_xform.set_column(4, position_.x_, position_.y_, position_.z_, 1.0f);
-
-    matrix_4X4F model_to_world = translation_xform * rotation_xform;
-    
-    vertexshader_.set_uniform_by_name(
-        "world_view_projection", draw_ctx->ProjectionViewXForm * model_to_world
-        );
-
-    vertexshader_.set_uniform_by_name(
-        "normal_transform", model_to_world.transpose()
-        );
-
-    fragshader_.set_uniform_by_name("k_lighting_model", 0);
-
-    fragshader_.set_uniform_by_name(
-        "k_scene_lights", draw_ctx->ActiveLights.base(),
-        8 * sizeof(draw_ctx->ActiveLights[0])
-        );
-
-    fragshader_.set_uniform_by_name("k_eye_pos", draw_ctx->EyePosition);
-    fragshader_.set_uniform_by_name("k_light_count", 1);
-
-    Material mtl;
-    mtl.diffuse = color_rgb::C_DarkBlue;
-    mtl.specular = color_rgb::C_White;
-    mtl.ambient = color_rgb::C_LightBlue;
-
-    //fragshader_.set_uniform_block_by_name("material_globals", mtl);
-    fragshader_.set_uniform_by_name("mat_diffuse", mtl.diffuse);
-    fragshader_.set_uniform_by_name("mat_specular", mtl.specular);
-    fragshader_.set_uniform_by_name("mat_ambient", mtl.ambient);
-
-    vertexshader_.bind_to_pipeline(draw_ctx->Renderer);
-    fragshader_.bind_to_pipeline(draw_ctx->Renderer);
-
-    draw_ctx->Renderer->draw_indexed(indexbuffer_.get_element_count());
-}
-
-void F4Phantom::InputEvent(const v8::input_event& in_evt) {
-    if (in_evt.type != v8::InputEventType::Key) {
-        return;
+    if (proj_type_ == v8::math::projection::type::perspective) {
+        proj_xform = projection::perspective(
+            aspect_ratio, fov_, 1.0f, 1000.0f, 
+            v8::graphics_traitsF::zmin(), v8::graphics_traitsF::zmax()
+            );
+    } else if (proj_type_ == v8::math::projection::type::perspective_oblique) {
+        proj_xform = projection::perspective_oblique(
+            -1.0f * aspect_ratio, 1.0f * aspect_ratio,
+            -1.0f, 1.0f, 3.0f, 1000.0f,
+            v8::graphics_traitsF::zmin(), v8::graphics_traitsF::zmax()
+            );
+    } else if (proj_type_ == v8::math::projection::type::perspective_infinity) {
+        proj_xform = projection::perspective_infinity(
+            aspect_ratio, 45.0f, 0.1f, 
+            v8::graphics_traitsF::zmin(), v8::graphics_traitsF::zmax()
+            );
+    } else if (proj_type_ == v8::math::projection::type::parallel_orthographic) {
+        proj_xform = projection::parallel_orthographic(
+            -4.0f * aspect_ratio, 4.0f * aspect_ratio,
+            -4.0f, 4.0f, 0.1f, 1000.0f, 
+            v8::graphics_traitsF::zmin(), v8::graphics_traitsF::zmax()
+            );
     }
 
-    if ((in_evt.key_ev.key == v8::input::Key_Sym_t::Backspace)
-        && (in_evt.key_ev.down)) {
-        SetDefaultAicraftDefaultParameters();
-        return;
+    cam_ptr_->set_projection_matrix(proj_xform);
+    cam_ptr_->set_projection_type(proj_type_);
+}
+
+void sph_cam::on_input_event(const v8::input_event& in_evt) {
+    if (in_evt.type == v8::InputEventType::Key) {
+        if (in_evt.key_ev.down 
+            && in_evt.key_ev.key == v8::input::Key_Sym_t::PageDown) {
+            proj_type_++;
+            proj_type_ %= 4;
+            setup_camera();
+            return;
+        }
+
+        if (in_evt.key_ev.key == v8::input::Key_Sym_t::Insert) {
+            fov_ += 1.0f;
+            setup_camera();
+            return;
+        }
+
+        if (in_evt.key_ev.key == v8::input::Key_Sym_t::Delete) {
+            fov_ -= 1.0f;
+            setup_camera();
+            return;
+        }
+
+        if (in_evt.key_ev.key == v8::input::Key_Sym_t::Space) {
+            fov_ = 1.0f;
+            setup_camera();
+            proj_type_ = v8::math::projection::type::perspective;
+            return;
+        }
     }
 
-    keystates_[in_evt.key_ev.key] = in_evt.key_ev.down;
+    base_class::on_input_event(in_evt);
 }
 
-inline void F4Phantom::MoveX(const float modifier) {
-    position_.x_ += modifier * 0.025f;
+void sph_cam::on_viewport_resized(const v8::resize_event&) {
+    setup_camera();
 }
 
-inline void F4Phantom::MoveY(const float modifier) {
-    position_.y_ += modifier * 0.025f;
-}
+std::string sph_cam::cam_data_as_string() const {
+    const char* const kPerspTypeStrings[] = {
+        "Perspective",
+        "Perspective oblique",
+        "Perspective infinite",
+        "Parallel orthographic",
+        "Parallel oblique"
+    };
 
-inline void F4Phantom::MoveZ(const float modifier) {
-    position_.z_ += modifier * 0.025f;
-}
+    v8::base::auto_buffer<char, 512> cam_stats;
+    const v8::math::vector3F& cam_origin = cam_ptr_->get_origin();
+    const v8::math::vector3F& x_axis = cam_ptr_->get_right_vector();
+    const v8::math::vector3F& y_axis = cam_ptr_->get_up_vector();
+    const v8::math::vector3F& z_axis = cam_ptr_->get_direction_vector();
 
-inline void F4Phantom::Roll(const float modifier) {
-    UpdateRotationAngle(modifier * flight_characteristics_.roll_speed,
-                        &roll_angle_);
-}
+    v8::base::snprintf(
+        &cam_stats[0], cam_stats.size(), 
+        "Projection type [%s]\n"
+        "Camera origin  [%3.3f, %3.3f, %3.3f]\n"
+        "Camera X axis  [%3.3f, %3.3f, %3.3f]\n"
+        "Camera Y axis  [%3.3f, %3.3f, %3.3f]\n"
+        "Camera Z axis  [%3.3f, %3.3f, %3.3f]\n"
+        "Field of view [%3.3f]",
+        kPerspTypeStrings[proj_type_],
+        cam_origin.x_, cam_origin.y_, cam_origin.z_,
+        x_axis.x_, x_axis.y_, x_axis.z_,
+        y_axis.x_, y_axis.y_, y_axis.z_,
+        z_axis.x_, z_axis.y_, z_axis.z_,
+        fov_
+        );
 
-inline void F4Phantom::Yaw(const float modifier) {
-    UpdateRotationAngle(modifier * flight_characteristics_.yaw_speed,
-                        &yaw_angle_);
-}
-
-inline void F4Phantom::Pitch(const float modifier) {
-    UpdateRotationAngle(modifier * flight_characteristics_.pitch_speed,
-                        &pitch_angle_);
-}
-
-inline void F4Phantom::UpdateRotationAngle(const float amount, float* angle) {
-    *angle += amount;
-    if (*angle >= v8::math::numericsF::two_pi()) {
-        *angle -= v8::math::numericsF::two_pi();
-        return;
-    }
-
-    if (*angle <= -v8::math::numericsF::two_pi()) {
-        *angle += v8::math::numericsF::two_pi();
-    }
-}
+    return cam_stats.get_buffer();
+};
 
 class basic_drawing_app {
 public :
@@ -484,14 +206,6 @@ private :
 
     v8_bool_t is_valid() const {
         return window_ && rendersys_;
-    }
-
-    void setup_camera() {
-        assert(is_valid());
-        camera_->set_projection_matrix(v8::math::projectionF::perspective(
-            window_->get_aspect_ratio(), 45.0f, 0.1f, 1000.0f, 
-            v8::math::z_ndc_D3DF::min(), v8::math::z_ndc_D3DF::max()
-            ));
     }
 
 private :
@@ -566,7 +280,7 @@ v8_bool_t basic_drawing_app::initialize() {
     //
     // Setup filesystem manager.
     filesys_ = new v8::filesys();
-    filesys_->initialize("E:\\games\\basic_drawing");
+    filesys_->initialize("D:\\games\\basic_drawing");
 
     //
     // Register for update and draw notifications.
@@ -580,9 +294,7 @@ v8_bool_t basic_drawing_app::initialize() {
     //
     // Setup camera and camera controller.
     camera_ = new v8::math::camera();
-    setup_camera();
-    cam_controller_ = new v8::scene::camera_controller_spherical_coords(
-        v8::base::scoped_pointer_get(camera_));
+    cam_controller_ = new sph_cam(v8::base::scoped_pointer_get(camera_));
 
     cam_init_data init_cam_data = { v8::base::scoped_pointer_get(window_) };
     if (!cam_controller_->initialize(&init_cam_data)) {
@@ -615,7 +327,6 @@ v8_bool_t basic_drawing_app::initialize() {
 void basic_drawing_app::update(const float delta_tm) {
     using namespace std;
 
-    setup_camera();
     cam_controller_->update(delta_tm);
 
     for_each(begin(geometric_objects_), end(geometric_objects_),
@@ -627,8 +338,6 @@ void basic_drawing_app::update(const float delta_tm) {
 void basic_drawing_app::draw() {
     assert(is_valid());
     
-    //rendersys_->reset_blending_state();
-    //rendersys_->reset_depth_stencil_state();
     rendersys_->clear_depth_stencil();
     rendersys_->clear_backbuffer();
 
@@ -644,6 +353,11 @@ void basic_drawing_app::draw() {
              [kDrawCtx](IGeometryShape* shape) {
         shape->Draw(kDrawCtx);
     });
+
+    const std::string cam_stats = cam_controller_->cam_data_as_string();
+
+    rendersys_->draw_string(cam_stats.c_str(), 14.0f, 5.0f, 5.0f, 
+                            v8::math::color_rgb::C_Black);
 }
 
 void basic_drawing_app::initialize_objects() {

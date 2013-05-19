@@ -1,6 +1,7 @@
 add_library(
     v8_renderer_directx
 
+    directx/internal/dds_texture_loader.cc
     directx/internal/dxerr.cc
     directx/internal/gpu_buffer_core.cc
     directx/internal/include_handler.cc

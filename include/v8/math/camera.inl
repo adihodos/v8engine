@@ -71,7 +71,7 @@ inline
 void
 v8::math::camera::set_projection_type(v8_int32_t projection_type) {
     this->projection_type_ = projection_type;
-    handle_frustrum_param_change();
+    //handle_frustrum_param_change();
 }
 
 inline 

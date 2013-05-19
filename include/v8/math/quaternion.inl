@@ -259,21 +259,20 @@ v8::math::quaternion<real_t>::invert() {
 }
 
 template<typename real_t>
-v8::math::vector3<real_t>
-v8::math::quaternion<real_t>::rotate_vector(
-    const v8::math::vector3<real_t>& p
-    ) {
+void
+v8::math::quaternion<real_t>::rotate_vector(v8::math::vector3<real_t>* p) {
     assert(is_unit() && "Quaternion must be unit length!");
 
-    const real_t dotp = 2 * (x_ * p.x_ + y_ * p.y_ + z_ * p.z_);
+    const real_t dotp = 2 * (x_ * p->x_ + y_ * p->y_ + z_ * p->z_);
     const real_t cross_mul = 2 * w_;
     const real_t vmul = cross_mul * w_ - real_t(1);
+    const real_t x_val = p->x_;
+    const real_t y_val = p->y_;
+    const real_t z_val = p->z_;
 
-    return vector3<real_t>(
-        vmul * p.x_ + dotp * x_ + cross_mul * (y_ * p.z_ - z_ * p.y_),
-        vmul * p.y_ + dotp * y_ + cross_mul * (z_ * p.x_ - x_ * p.z_),
-        vmul * p.z_ + dotp * z_ + cross_mul * (x_ * p.y_ - y_ * p.x_)
-        );
+    p->x_ = vmul * x_val + dotp * x_ + cross_mul * (y_ * z_val - z_ * y_val);
+    p->y_ = vmul * y_val + dotp * y_ + cross_mul * (z_ * x_val - x_ * z_val);
+    p->z_ = vmul * z_val + dotp * z_ + cross_mul * (x_ * y_val - y_ * x_val);
 }
 
 template<typename real_t>

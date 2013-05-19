@@ -216,9 +216,7 @@ public :
         vector v, is qvq^(-1).
      \param vec The vector to be rotated.
      */
-    math::vector3<real_t> rotate_vector(
-        const math::vector3<real_t>& vec
-        );
+    void rotate_vector(math::vector3<real_t>* vec);
 
     /**
      \brief Returns ||q|| ^ 2.

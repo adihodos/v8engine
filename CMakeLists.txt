@@ -38,6 +38,8 @@ if (MSVC)
     # Compile for Windows 7 and later
     add_definitions(/D_WIN32_WINNT=0x0601)
     add_definitions(/DWINVER=0x0601)
+    add_definitions(/DDXGI_1_2_FORMATS)
+    add_definitions(/D_WIN7_PLATFORM_UPDATE)
 
     if (CMAKE_BUILD_TYPE MATCHES Debug)
         add_definitions(/DV8_IS_DEBUG_BUILD)

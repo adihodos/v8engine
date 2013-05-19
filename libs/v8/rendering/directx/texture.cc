@@ -1,5 +1,6 @@
-#include <third_party/directx_tex/DirectXTex.h>
+
 #include <third_party/stlsoft/platformstl/filesystem/path.hpp>
+#include <third_party/stlsoft/platformstl/filesystem/memory_mapped_file.hpp>
 
 #include "v8/base/crt_handle_policies.hpp"
 #include "v8/base/scoped_handle.hpp"
@@ -7,6 +8,7 @@
 #include "v8/io/filesystem.hpp"
 #include "v8/rendering/directx/renderer.hpp"
 #include "v8/rendering/directx/constants.hpp"
+#include "v8/rendering/directx/internal/dds_texture_loader.hpp"
 #include "v8/rendering/directx/internal/debug_helpers.hpp"
 #include "v8/utility/win_util.hpp"
 
@@ -100,126 +102,31 @@ v8_bool_t v8::directx::texture::initialize(
         utility::win32::multibyte_string_to_wide_string(textureFilePath.c_str()));
 
     using namespace v8::base;
-    DirectX::TexMetadata    tex_metadata;
-    DirectX::ScratchImage   scratch_image;
-    HRESULT                 ret_code;
-    v8_bool_t               gen_mips = false;
 
-    if (!strcmp(textureFilePath.get_ext(), "dds")) {
-        ret_code = DirectX::LoadFromDDSFile(
-            scoped_pointer_get(filePathWideStr), DirectX::DDS_FLAGS_NONE, 
-            &tex_metadata, scratch_image
-            );
-    } else {
-        ret_code = DirectX::LoadFromWICFile(
-            scoped_pointer_get(filePathWideStr), DirectX::WIC_FLAGS_NONE, 
-            &tex_metadata, scratch_image
-            );
-        gen_mips = true;
+    if (strcmp(textureFilePath.get_ext(), "dds")) {
+        OUTPUT_DBG_MSGA("Error, only DDS textures are supported for now");
+        return false;
     }
 
+    platformstl::memory_mapped_file mmfile_texture(tex_info.tex_filename.c_str());
+    internal::TextureResourceInfo_t texture_data;
+    HRESULT                         ret_code;
+
+    CHECK_D3D(
+        &ret_code, 
+        internal::CreateDDSTextureFromMemory(
+            rsys->internal_np_get_device(),
+            static_cast<const byte*>(mmfile_texture.memory()),
+            mmfile_texture.size(),
+            &texture_data,
+            reinterpret_cast<ID3D11Resource**>(scoped_pointer_get_impl(resource_)),
+            tex_info.tex_bindflags & BindingFlag::ShaderResource ? 
+                scoped_pointer_get_impl(tex_srv_.view)
+                : nullptr
+                ));
     if (FAILED(ret_code)) {
         return false;
     }
-
-    width_      = static_cast<v8_uint32_t>(tex_metadata.width);
-    height_     = static_cast<v8_uint32_t>(tex_metadata.height);
-    depth_      = static_cast<v8_uint32_t>(tex_metadata.depth);
-    format_     = tex_metadata.format;
-    array_size_ = static_cast<v8_uint32_t>(tex_metadata.arraySize);
-    flags_      = tex_info.tex_bindflags;
-
-    const D3D11_USAGE res_usage_flags   = D3D11_USAGE_DEFAULT;
-    const UINT res_bind_flags           = map_bindflags_to_directx_bindflags(flags_);
-    const UINT cpu_access               = 0u;
-    ID3D11Device* graphics_device       = rsys->internal_np_get_device();
-    v8_int_t texture_type;
-
-    if (tex_metadata.height == 1) {
-        //
-        // TODO : add code for 1D texture creation
-        texture_type = TextureType::Tex_1D;
-        return false;
-    } else if (tex_metadata.depth == 1) {
-        texture_type = TextureType::Tex_2D;
-        //
-        // Create 2D texture
-        D3D11_TEXTURE2D_DESC tex_desc = {
-            width_,
-            height_,
-            //gen_mips ? 0 : static_cast<UINT>(tex_metadata.mipLevels),
-            1,
-            array_size_,
-            format_,
-            { 1, 0 },
-            res_usage_flags,
-            res_bind_flags,
-            cpu_access,
-            0
-        };
-
-        if (gen_mips) {
-            tex_desc.BindFlags |= D3D11_BIND_RENDER_TARGET;
-            tex_desc.MiscFlags |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
-        }
-
-        D3D11_SUBRESOURCE_DATA tex_init_data = {
-            scratch_image.GetPixels(), 
-            static_cast<UINT>(scratch_image.GetImages()->rowPitch),
-            static_cast<UINT>(scratch_image.GetImages()->slicePitch)
-        };
-
-        ID3D11Texture2D* tex2d_res = nullptr;
-        CHECK_D3D(
-            &ret_code,
-            graphics_device->CreateTexture2D(&tex_desc, &tex_init_data,
-                                             &tex2d_res));
-        resource_ = tex2d_res;
-    } else {
-        //
-        // TODO : add code for 3D textures and texture cubes
-        texture_type = TextureType::Tex_3D;
-        return false;
-    }
-
-    if (!resource_) {
-        return false;
-    }
-
-    if (res_bind_flags & D3D11_BIND_SHADER_RESOURCE) {
-        tex_srv_.view_desc.Format = format_;
-        tex_srv_.view_desc.ViewDimension = srv_dimension_mapping[texture_type];
-        tex_srv_.view_desc.Texture2D.MipLevels = static_cast<UINT>(tex_metadata.mipLevels);
-        tex_srv_.view_desc.Texture2D.MostDetailedMip = 0;
-
-        CHECK_D3D(
-            &ret_code,
-            graphics_device->CreateShaderResourceView(
-                scoped_pointer_get(resource_), &tex_srv_.view_desc,
-                scoped_pointer_get_impl(tex_srv_.view)
-            ));
-        if (FAILED(ret_code)) {
-            return false;
-        }
-    }
-
-    if (res_bind_flags & D3D11_BIND_UNORDERED_ACCESS) {
-        tex_uav_.view_desc.Format = format_;
-        tex_uav_.view_desc.ViewDimension = uav_dimension_mapping[texture_type];
-        tex_uav_.view_desc.Texture2D.MipSlice = 0;
-
-        CHECK_D3D(
-            &ret_code,
-            graphics_device->CreateUnorderedAccessView(
-                scoped_pointer_get(resource_), &tex_uav_.view_desc,
-                scoped_pointer_get_impl(tex_uav_.view)
-                ));
-        if (FAILED(ret_code)) {
-            return false;
-        }
-    }
-
-    //
-    // TODO add code for RTVs.
+    
     return true;
 }

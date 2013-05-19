@@ -27,37 +27,34 @@
 #pragma once
 
 #include <v8/v8.hpp>
+#include <v8/base/array_proxy.hpp>
+#include <v8/math/matrix4X4.hpp>
+#include <v8/rendering/fwd_renderer.hpp>
 
-namespace v8 { namespace rendering {
+namespace v8 { 
 
-struct vertex_pn;
-struct vertex_pnt;
+class filesys; 
 
-}
-}
-
-namespace v8 { namespace utility {
-
-///
-/// \brief  Imports geometry data from a file.
-/// \param  file_name   File with geometric data.
-/// \param  flip_around_yaxis   Some models are oriented towards the user (-Z axis). 
-///         Passing this flag will reorient the model along the positive Z axis.
-/// \param  vertices Receives the address of the vertex data for the model. 
-///         Caller must free the data when no longer needed, using delete[].
-/// \param  indices Receives the address of the index data for the model.
-///         Caller must free the data when no longer needed, using delete[].
-/// \param  num_vertices Receives the count of vertices.
-/// \param  num_indices Receives the count of indices.
-/// \returns True if import succeeded, false otherwise.
-v8_bool_t import_geometry(
-    const char* file_name,
-    const v8_bool_t flip_around_yaxis,
-    v8::rendering::vertex_pnt** vertices,
-    v8_uint32_t** indices,
-    v8_uint32_t* num_vertices,
-    v8_uint32_t* num_indices
-    );
+namespace math { class light; }
 
 }
-}
+
+struct DrawingContext {
+    DrawingContext(const v8::math::light* lights, const v8_size_t num_lights)
+        : ActiveLights(lights, num_lights)
+    {}
+
+    v8::rendering::renderer*                        Renderer;
+    v8::math::matrix_4X4F                           ProjectionViewXForm;
+    v8::base::array_proxy<const v8::math::light>    ActiveLights;
+    v8::math::vector3F                              EyePosition;
+};
+
+struct InitContext {
+    v8::rendering::renderer*    Renderer;
+    v8::filesys*                FileSystem;
+
+    InitContext() {
+        memset(this, 0, sizeof(*this));
+    }
+};

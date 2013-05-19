@@ -45,6 +45,8 @@ public :
 
     virtual void update(const float delta_ms) = 0;
 
+    virtual std::string cam_data_as_string() const { return ""; }
+
 /// @}
 
 /// \name Event handlers.
@@ -53,9 +55,8 @@ public :
 public :
 
     ///
-    /// \brief Called when the viewport is resized. The default implementation
-    /// adjusts the camera's frustrum based on the new settings.
-    virtual void on_viewport_resized(const resize_event& ev_resize);
+    /// \brief Called when the viewport is resized.
+    virtual void on_viewport_resized(const resize_event& ev_resize) = 0;
 
     ///
     /// \brief Called when an input event was triggered.

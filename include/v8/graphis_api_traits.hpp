@@ -28,36 +28,51 @@
 
 #include <v8/v8.hpp>
 
-namespace v8 { namespace rendering {
+namespace v8 {
 
-struct vertex_pn;
-struct vertex_pnt;
+struct api_directx {};
 
-}
-}
+struct api_opengl {};
 
-namespace v8 { namespace utility {
+template<typename real_type, typename api_type>
+struct graphics_api_traits;
 
-///
-/// \brief  Imports geometry data from a file.
-/// \param  file_name   File with geometric data.
-/// \param  flip_around_yaxis   Some models are oriented towards the user (-Z axis). 
-///         Passing this flag will reorient the model along the positive Z axis.
-/// \param  vertices Receives the address of the vertex data for the model. 
-///         Caller must free the data when no longer needed, using delete[].
-/// \param  indices Receives the address of the index data for the model.
-///         Caller must free the data when no longer needed, using delete[].
-/// \param  num_vertices Receives the count of vertices.
-/// \param  num_indices Receives the count of indices.
-/// \returns True if import succeeded, false otherwise.
-v8_bool_t import_geometry(
-    const char* file_name,
-    const v8_bool_t flip_around_yaxis,
-    v8::rendering::vertex_pnt** vertices,
-    v8_uint32_t** indices,
-    v8_uint32_t* num_vertices,
-    v8_uint32_t* num_indices
-    );
+template<typename real_type>
+struct graphics_api_traits<real_type, api_directx> {
+    static real_type zmin() {
+        return real_type(0);
+    }
 
-}
-}
+    static real_type zmax() {
+        return real_type(1);
+    }
+};
+
+template<typename real_type>
+struct graphics_api_traits<real_type, api_opengl> {
+    static real_type zmin() {
+        return real_type(-1);
+    }
+
+    static real_type zmax() {
+        return real_type(1);
+    }
+};
+
+#if defined(V8FRAMEWORK_GRAPHICS_API_IS_DIRECTX)
+
+typedef graphics_api_traits<float, api_directx>         graphics_traitsF;
+typedef graphics_api_traits<double, api_directx>        graphics_traitsD;
+
+#elif defined(V8FRAMEWORK_GRAPHICS_API_IS_DIRECTX)
+
+typedef graphics_api_traits<float, api_opengl>          graphics_traitsF;
+typedef graphics_api_traits<double, api_opengl>         graphics_traitsD;
+
+#else
+
+#error Unsupported graphics api!!
+
+#endif
+
+} // namespace v8

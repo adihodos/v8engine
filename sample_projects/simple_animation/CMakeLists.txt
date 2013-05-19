@@ -1,5 +1,6 @@
-set(PROJECT_SOURCES
-    animated_aircraft.cc 
+set(
+    PROJECT_SOURCES
+    animated_aircraft.cc
     main.cc
     main_window.cc
 )

@@ -39,20 +39,27 @@
 
 namespace v8 { namespace math {
 
-/** \defgroup   Algebra
+/** \defgroup   __grp_v8_math_algebra  Classes and functions for algebric operations.
  */
 
-/** \addtogroup Algebra
+/** \addtogroup __grp_v8_math_algebra
  *  @{
  */
 
 /**
- * \class   matrix4X4
- * \brief   A 4x4 matrix, stored using in row major format. The matrix
- *          follows the convention that it multiplies the vector on its right
- * 			side. Given a matrix M and a vector V, to transform the vector V by the
- * 			matrix M, one would write V1 = M * V; Note that access to individual
- *          elements using the function call operator uses 1 based indices.
+ * \brief   A 4x4 matrix, stored using in row major format.
+ * \remarks When concatenating matrices that represent 
+ *          a sequence of transformations, care must be taken so
+ *          that the final matrix is built properly. Let M0, M1, ... Mn-1, Mn
+ *          be a matrices representing a sequence of transormations to be applied
+ *          in this order. Then the proper order of concatenating them into a
+ *          single matrix is T = Mn * Mn - 1 * ... * M2 * M1 * M0 (right to left).
+ *          The matrix follows the convention that it multiplies column vectors 
+ *          (the vector is on the right side). Given a matrix \a M 
+ *          and a vector \a V, to transform the vector \a V by the matrix \a M, 
+ *          one would write \a V1 = \a M * \a V. 
+ *          Note that access to individual elements using the function call 
+ *          operator uses 1 based indices.
  */
 template<typename real_t>
 class matrix_4X4 {
@@ -67,14 +74,16 @@ public :
         is_floating_point = base::is_floating_point_type<real_t>::Yes
     };
 
-    /**
-     * \typedef real_t element_type
-     *
-     * \brief   Defines an alias representing type of the element.
-     */
+    /** The type of elements stored by the matrix. */
     typedef real_t              element_type;
+
+    /** Type of reference to an element. */
     typedef real_t&             reference;
+
+    /** Type of reference to a const element. */
     typedef const real_t&       const_reference;
+
+    /** Fully qualified type of this class. */
     typedef matrix_4X4<real_t>   matrix4X4_t;
 
     union {
@@ -84,19 +93,15 @@ public :
             real_t a31_, a32_, a33_, a34_;
             real_t a41_, a42_, a43_, a44_;
         };
-        real_t elements_[16];	///< Access to elements using an array */
+        real_t elements_[16];	/*!< Access to elements using an array */
     };
 
-    static const matrix_4X4<real_t>	null;   ///< The null matrix */
+    static const matrix_4X4<real_t>	null;   /*!< The null matrix */
 
-    static const matrix_4X4<real_t>	identity;   ///< The identity matrix */
+    static const matrix_4X4<real_t>	identity;   /*!< The identity matrix */
 
-    /**
-     * \brief Default constructor. Leaves elements uninitialized.
-     */
+    /** \brief Default constructor. Leaves elements uninitialized. */
     matrix_4X4() {}
-
-    inline matrix_4X4(const matrix_4X4<real_t>& rhs);
 
     matrix_4X4(
         real_t a11, real_t a12, real_t a13, real_t a14,
@@ -106,7 +111,7 @@ public :
         );
 
     /**
-     * \brief Constructor from an array of real_t values.
+     * \brief Constructs from an array of real_t values.
      * \param input   Pointer to an array of real_t values.
      * \param count   Number of entries in the array.
      * \remarks If the array has less than 16 elements, the remaining matrix
@@ -131,9 +136,7 @@ public :
     template<typename convertible_type>
     matrix_4X4(const matrix_3X3<convertible_type>& linear_tf);
 
-    /**
-     * \brief   Constructs a diagonal matrix.
-     */
+    /** \brief   Constructs a diagonal matrix. */
     matrix_4X4(real_t a11, real_t a22, real_t a33, real_t a44 = real_t(1));
 
     /**
@@ -148,17 +151,6 @@ public :
         const math::vector4<real_t>& v4,
         bool column = true
         );
-
-    matrix4X4_t& operator=(const matrix4X4_t& other) {
-        base::copy_pod_range(other.elements_, 16, elements_);
-        return *this;
-    }
-
-    template<typename convertible_type>
-    matrix4X4_t& operator=(const matrix_4X4<convertible_type>& rhs) {
-        base::copy_pod_range(rhs.elements_, 16, elements_);
-        return *this;
-    }
 
     /**
      * \brief Component read-write access, using the [row][column] syntax.
@@ -178,17 +170,13 @@ public :
         return elements_[index_at(row, col)];
     }
 
-    /**
-     * \brief Addition assignment operator.
-     */
+    /** \brief Addition assignment operator. */
     matrix_4X4<real_t>& operator+=(const matrix_4X4<real_t>& rhs);
 
-    /**
-     * \brief Subtraction assignment operator.
-     */
+    /** \brief Subtraction assignment operator. */
     matrix_4X4<real_t>& operator-=(const matrix_4X4<real_t>& rhs);
 
-    /**
+    /** 
      * \brief Multiplication assignment operator.
      * \param k   Scalar to multiply with.
      */
@@ -207,19 +195,23 @@ public :
 
     /**
      * \brief Query if this matrix4X4 is invertible (that is det(A) is not 0).
-     * \return    true if invertible, false if not.
+     * \return    true if matris is invertible, false if not.
      */
     bool is_invertible() const {
         return !math::operands_eq(real_t(0), determinant());
     }
 
     /**
-     * \brief Inverts the matrix.
+     * \brief   Inverts the matrix.
      * \remarks Only call this function if is_invertible() returns true.		
-     * \return    Reference to the matrix object.
+     * \return  Reference to the matrix object.
      */
     matrix_4X4<real_t>& invert();
 
+    /**
+     * \brief   Stores the inverse of this matrix into the the input matrix.
+     * \sa      \link #invert
+     */
     inline void get_inverse(math::matrix_4X4<real_t>* mx) const;
 
     /**
@@ -233,9 +225,7 @@ public :
      */
     void get_transpose(math::matrix_4X4<real_t>* mx) const;
 
-    /**
-     * \brief Copies the adjoint of the matrix into the specified matrix.
-     */
+    /** \brief Copies the adjoint of the matrix into the specified matrix. */
     void get_adjoint(math::matrix_4X4<real_t>* mx) const;
 
    /**
@@ -391,115 +381,6 @@ public :
     const matrix_4X4<real_t>& transform_homogeneous_point(
         vector4<real_t>* point
         ) const;
-
-    /**
-     * \brief   Makes a symmetric perspective projection matrix,
-     *          assuming a left handed coordinate system. The projection window
-     *          is centered around the Z axis and the direction of projection
-     *          through the center of the projection window is orthogonal to
-     *          it.
-     * \param   aspect_ratio    The aspect ratio of the window.
-     * \param   vertical_fov    The vertical field of view angle, in radians.
-     * \param   near_plane      The near plane.
-     * \param   far_plane       The far plane.
-     * \param   ndc_min         Minimum depth value in NDC coordinates.
-     * \param   ndc_max         Maximum depth value in NDC coordinates.
-     */
-    matrix_4X4<real_t>& make_symmetric_perspective_projection_lh(
-        real_t aspect_ratio,
-        real_t vertical_fov,
-        real_t d_min,
-        real_t d_max,
-        real_t ndc_min,
-        real_t ndc_max
-        );
-
-    /**
-     * \brief Makes a matrix for symmetric perspective projection to infinity.
-     *        (far plane = +inf).
-     * \param aspect_ratio Aspect ratio for the projection window.
-     * \param vertical_fov Vertical field of view angle, in radians.
-     * \param d_min Near plane position.
-     * \param ndc_min         Minimum depth value in NDC coordinates.
-     * \param ndc_max         Maximum depth value in NDC coordinates.
-     */
-    matrix_4X4<real_t>& make_symmetric_perspective_infinity_lh(
-        real_t aspect_ratio,
-        real_t vertical_fov,
-        real_t d_min,
-        real_t ndc_min,
-        real_t ndc_max
-        );
-
-    /**
-     * \brief Makes a generic perspective projection matrix, assuming a left handed
-     *        coordinate system. It is not necessary that the projection window
-     *        be centered around the Z axis, nor that the direction of projection
-     *        to the window's center is orthogonal to it. Thus, it can be used
-     *        to generate oblique perspective projections.
-     * \param r_min Projection window minimum value right direction (X axis)
-     * \param r_max Projection window maximum value right direction (X axis)
-     * \param u_min Projection window minumum value up direction (Y axis)
-     * \param u_max Projection window maximum value up direction (Y axis)
-     * \param d_min Near plane distance
-     * \param d_max Far plane distance
-     * \param ndc_min   Minimum depth value in NDC coordinates.
-     * \param ndc_max   Maximum depth value in NDC coordinates.
-     */
-    matrix_4X4<real_t>& make_perspective_projection_lh(
-        real_t r_min,
-        real_t r_max,
-        real_t u_min,
-        real_t u_max,
-        real_t d_min,
-        real_t d_max,
-        real_t ndc_min,
-        real_t ndc_max
-        );
-
-    /**
-     * \brief Makes a generic perspective projection to infinity matrix,
-     *        assuming a left handed coordinate system (far plane = +inf).
-     * \param r_min Projection window minimum value right direction (X axis)
-     * \param r_max Projection window maximum value right direction (X axis)
-     * \param u_min Projection window minumum value up direction (Y axis)
-     * \param u_max Projection window maximum value up direction (Y axis)
-     * \param d_min Near plane distance
-     * \param ndc_min   Minimum depth value in NDC coordinates.
-     * \param ndc_max   Maximum depth value in NDC coordinates.
-     */
-    matrix_4X4<real_t>& make_perspective_infinity_lh(
-        real_t r_min,
-        real_t r_max,
-        real_t u_min,
-        real_t u_max,
-        real_t d_min,
-        real_t ndc_min,
-        real_t ndc_max
-        );
-
-    /**
-     * \brief Makes a matrix for a parallel orthographic projection, assuming a
-     *        left handed coordinate system.
-     * \param r_min Projection window minimum value right direction (X axis)
-     * \param r_max Projection window maximum value right direction (X axis)
-     * \param u_min Projection window minumum value up direction (Y axis)
-     * \param u_max Projection window maximum value up direction (Y axis)
-     * \param d_min Near plane distance
-     * \param d_max Far plane distance
-     * \param ndc_min   Minimum depth value in NDC coordinates.
-     * \param ndc_max   Maximum depth value in NDC coordinates.
-     */
-    matrix_4X4<real_t>& make_parallel_orthographic_projection_lh(
-        real_t r_min,
-        real_t r_max,
-        real_t u_min,
-        real_t u_max,
-        real_t d_min,
-        real_t d_max,
-        real_t ndc_min,
-        real_t ndc_max
-        );
 
     /**
      * \brief   Makes a symmetric perspective projection matrix,

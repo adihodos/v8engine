@@ -26,43 +26,18 @@
 
 #pragma once
 
-namespace v8 { namespace math {
+#include <v8/v8.hpp>
 
-enum Depth_Mapping {
-    Depth_Map_DirectX,
-    Depth_Map_OpenGL
+struct DrawingContext;
+struct InitContext;
+
+class IGeometryShape {
+public :
+    virtual ~IGeometryShape() {}
+
+    virtual v8_bool_t Initialize(const InitContext* init_context) = 0;
+
+    virtual void Update(const float delta) = 0;
+
+    virtual void Draw(const DrawingContext* draw_context) = 0;
 };
-
-template<typename real_t, int mapping>
-struct z_ndc;
-
-template<typename real_t>
-struct z_ndc<real_t, Depth_Map_DirectX> {
-    static real_t min() {
-        return real_t(0);
-    }
-
-    static real_t max() {
-        return real_t(1);
-    }
-};
-
-typedef z_ndc<float, Depth_Map_DirectX>     z_ndc_D3DF;
-typedef z_ndc<double, Depth_Map_DirectX>    z_ndc_D3DD;
-
-template<typename real_t>
-struct z_ndc<real_t, Depth_Map_OpenGL> {
-    static real_t min() {
-        return real_t(-1);
-    }
-
-    static real_t max() {
-        return real_t(1);
-    }
-};
-
-typedef z_ndc<float, Depth_Map_OpenGL>      z_ndc_GLF;
-typedef z_ndc<double, Depth_Map_OpenGL>     z_ndc_GLD;
-
-} // namespace math
-} // namespace v8

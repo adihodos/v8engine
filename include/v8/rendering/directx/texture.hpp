@@ -150,7 +150,7 @@ private :
     v8_uint32_t                                     height_;
     v8_uint32_t                                     depth_;
     v8_uint32_t                                     array_size_;
-    DXGI_FORMAT                                     format_;
+    v8_uint32_t                                     format_;
     v8_uint32_t                                     flags_;
 
 /// @}
