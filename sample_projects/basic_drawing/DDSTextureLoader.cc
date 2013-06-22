@@ -1040,7 +1040,7 @@ HRESULT CreateTextureFromDDS(
     }
 
     // Create the texture
-    std::unique_ptr<D3D11_SUBRESOURCE_DATA> initData(new D3D11_SUBRESOURCE_DATA[mipCount * arraySize]);
+    std::unique_ptr<D3D11_SUBRESOURCE_DATA[]> initData(new D3D11_SUBRESOURCE_DATA[mipCount * arraySize]);
 
     size_t skipMip = 0;
     size_t twidth = 0;

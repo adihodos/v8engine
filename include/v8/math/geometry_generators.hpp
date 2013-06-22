@@ -43,9 +43,9 @@ struct vertex_pntt {
     vertex_pntt() {}
 
     vertex_pntt(const vector3F& position, 
-               const vector3F& normal, 
-               const vector3F& tangent,
-               const vector2F& texcoord)
+                const vector3F& normal, 
+                const vector3F& tangent,
+                const vector2F& texcoord)
         : vt_position(position), vt_normal(normal), vt_tangent(tangent),
           vt_texcoord(texcoord) {}
 
@@ -91,7 +91,8 @@ void create_cylinder(
     mesh_data_t* mesh_data
     );
 
-void create_grid(const float grid_width,
+void create_grid(
+    const float grid_width,
     const float grid_depth,
     const v8_int_t row_count,
     const v8_int_t column_count,

@@ -24,6 +24,7 @@ namespace v8 { namespace rendering {
     using directx::Blend_Op;
     using directx::Color_Write_Flag;
     using directx::FillMode;
+    using directx::CullMode;
     using directx::Shader_Model;
     using directx::FX_Model;
     using directx::ResourceMapFlags;

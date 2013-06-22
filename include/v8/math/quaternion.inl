@@ -31,7 +31,7 @@ inline v8::math::quaternion<real_t>::quaternion() {}
 
 template<typename real_t>
 inline v8::math::quaternion<real_t>::quaternion(
-    real_t w, real_t x, real_t y, real_t z
+    const real_t w, const real_t x, const real_t y, const real_t z
     ) : w_(w), x_(x), y_(y), z_(z) {}
 
 template<typename real_t>
@@ -43,7 +43,7 @@ inline v8::math::quaternion<real_t>::quaternion(
 
 template<typename real_t>
 inline v8::math::quaternion<real_t>::quaternion(
-    float angle,
+    const float angle,
     const v8::math::vector3<real_t>& axis
     ) {
     make_from_axis_angle(angle, axis);
@@ -83,7 +83,7 @@ template<typename real_t>
 inline v8::math::quaternion<real_t>& 
 v8::math::quaternion<real_t>::make_from_vector_and_scalar(
     const v8::math::vector3<real_t>& vec,
-    real_t scalar
+    const real_t scalar
     ) {
     w_ = scalar; x_ = vec.x_; y_ = vec.y_; z_ = vec.z_;
     return *this;
@@ -92,7 +92,7 @@ v8::math::quaternion<real_t>::make_from_vector_and_scalar(
 template<typename real_t>
 v8::math::quaternion<real_t>&
 v8::math::quaternion<real_t>::make_from_axis_angle(
-    float angle, 
+    const float angle, 
     const v8::math::vector3<real_t>& axis
     ) {
     real_t length_squared = axis.sum_components_squared();
@@ -210,7 +210,7 @@ v8::math::quaternion<real_t>::operator -=(
 
 template<typename real_t>
 v8::math::quaternion<real_t>&
-v8::math::quaternion<real_t>::operator *=(real_t scalar) {
+v8::math::quaternion<real_t>::operator *=(const real_t scalar) {
     w_ *= scalar;
     x_ *= scalar;
     y_ *= scalar;
@@ -220,7 +220,7 @@ v8::math::quaternion<real_t>::operator *=(real_t scalar) {
 
 template<typename real_t>
 v8::math::quaternion<real_t>&
-v8::math::quaternion<real_t>::operator /=(real_t scalar) {
+v8::math::quaternion<real_t>::operator /=(const real_t scalar) {
     static_assert(is_floating_point, "Type must be a floating point value!");
     return *this *= (real_t(1) / scalar);    
 }
@@ -489,7 +489,7 @@ template<typename real_t>
 v8::math::quaternion<real_t>
 v8::math::operator*(
     const v8::math::quaternion<real_t>& lhs, 
-    real_t scalar
+    const real_t scalar
     ) {
     quaternion<real_t> result(lhs);
     return lhs *= scalar;
@@ -499,7 +499,7 @@ template<typename real_t>
 inline
 v8::math::quaternion<real_t>
 v8::math::operator*(
-    real_t scalar,
+    const real_t scalar,
     const v8::math::quaternion<real_t>& rhs
     ) {
     return rhs * scalar;
@@ -509,7 +509,7 @@ template<typename real_t>
 v8::math::quaternion<real_t>
 v8::math::operator/(
     const v8::math::quaternion<real_t>& lhs,
-    real_t scalar    
+    const real_t scalar    
     ) {
     quaternion<real_t> result(lhs);
     return result /= scalar;

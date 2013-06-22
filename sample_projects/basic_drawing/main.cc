@@ -25,7 +25,10 @@
 #include <third_party/fast_delegate/fast_delegate.hpp>
 #include <third_party/stlsoft/stlsoft/string/static_string.hpp>
 
+#include <v8/rendering/vertex_p.hpp>
+
 #include "app_context.hpp"
+#include "floor_plane.hpp"
 #include "igeometry_shape.hpp"
 #include "aircraft_f4.hpp"
 
@@ -377,6 +380,12 @@ void basic_drawing_app::initialize_objects() {
         v8::base::scoped_pointer_get(f4), &F4Phantom::InputEvent
         );
     geometric_objects_.push_back(v8::base::scoped_pointer_release(f4));
+
+    v8::base::scoped_ptr<FloorPlane> floor_plane(new FloorPlane());
+    if (floor_plane->Initialize(&obj_init_context)) {
+        geometric_objects_.push_back(v8::base::scoped_pointer_release(
+            floor_plane));
+    }
 
     //
     // add some lights

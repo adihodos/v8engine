@@ -106,7 +106,7 @@ v8::math::matrix_3X3<real_t>&
 v8::math::matrix_3X3<real_t>::operator+=(const v8::math::matrix_3X3<real_t>& rhs) {
     a11_ += rhs.a11_; a12_ += rhs.a12_; a13_ += rhs.a13_;
     a21_ += rhs.a21_; a22_ += rhs.a22_; a23_ += rhs.a23_;
-    a31_ += rhs.a13_; a32_ += rhs.a32_; a33_ += rhs.a33_;
+    a31_ += rhs.a31_; a32_ += rhs.a32_; a33_ += rhs.a33_;
     return *this;
 }
 
@@ -115,7 +115,7 @@ v8::math::matrix_3X3<real_t>&
 v8::math::matrix_3X3<real_t>::operator-=(const v8::math::matrix_3X3<real_t>& rhs) {
     a11_ -= rhs.a11_; a12_ -= rhs.a12_; a13_ -= rhs.a13_;
     a21_ -= rhs.a21_; a22_ -= rhs.a22_; a23_ -= rhs.a23_;
-    a31_ -= rhs.a13_; a32_ -= rhs.a32_; a33_ -= rhs.a33_;
+    a31_ -= rhs.a31_; a32_ -= rhs.a32_; a33_ -= rhs.a33_;
     return *this;
 }
 

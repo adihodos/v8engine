@@ -260,7 +260,7 @@ public :
   }
 
   float get_max_range() const {
-    assert(type_ == light::type::spot || type_ == light::type::spot);
+    assert(type_ == light::type::spot || type_ == light::type::point);
     return max_range_;
   }
 

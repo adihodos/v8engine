@@ -24,11 +24,11 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#pragma once
-
 /**
- * \file camera.hpp Camera class.
+ * \file camera.hpp Class for virtual camera representation.
  */
+
+#pragma once
 
 #include <cstdint>
 #include <memory.h>

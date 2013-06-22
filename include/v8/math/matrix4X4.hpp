@@ -39,9 +39,6 @@
 
 namespace v8 { namespace math {
 
-/** \defgroup   __grp_v8_math_algebra  Classes and functions for algebric operations.
- */
-
 /** \addtogroup __grp_v8_math_algebra
  *  @{
  */
@@ -59,7 +56,7 @@ namespace v8 { namespace math {
  *          and a vector \a V, to transform the vector \a V by the matrix \a M, 
  *          one would write \a V1 = \a M * \a V. 
  *          Note that access to individual elements using the function call 
- *          operator uses 1 based indices.
+ *          operator syntax uses 1 based indices.
  */
 template<typename real_t>
 class matrix_4X4 {

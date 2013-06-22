@@ -13,6 +13,7 @@
 #include <v8/math/color.hpp>
 #include <v8/rendering/directx/constants.hpp>
 #include <v8/rendering/directx/depth_stencil_state.hpp>
+#include <v8/rendering/directx/rasterizer_state.hpp>
 
 namespace v8 {
     struct resize_event;
@@ -25,27 +26,38 @@ namespace v8 { namespace directx {
 struct render_init_params {
     ///< Destination output window.
     void*       target_window;
+
     ///< Window width.
     v8_int_t    width;
+
     ///< Window height.
     v8_int_t    height;
+
     ///< True if rendering full screen.
     v8_bool_t   full_screen;
+
     ///< True if pressing of ALT-ENTER is automatically handled. Set to false
     ///< to handle it in application.
     v8_bool_t   handle_full_screen;
+
     ///< Enable support for antialiasing (not yet implemented).
     v8_bool_t   antialiasing;
+
     ///< Element type for the back buffer (see ElementType).
     v8_int_t    buffer_element_type;
+
     ///< Number of components of a single backbuffer entry.
     v8_int_t    buffer_element_count;
+
     ///< Number of render targets (only 1 atm).
     v8_int_t    render_targets_count;
+
     ///< Number of bits for depth testing.
     v8_int_t    depth_bits;
+
     ///< Number of bits for stenciling.
     v8_int_t    stencil_bits;
+
     ///< Backbuffer clear color.
     math::color_rgb clear_color;
 
@@ -141,6 +153,15 @@ public :
     inline void ia_stage_set_input_layout(ID3D11InputLayout* input_layout);
 
 // ! @}
+
+//! \name Rasterizer state
+//! @{
+
+    inline void set_rasterizer_state(const rasterizer_state& rsstate);
+
+    inline void reset_rasterizer_state();
+
+//! @}
 
 //! \name Shader stage operations.
 //! @{
@@ -419,6 +440,16 @@ inline void renderer::draw_indexed(
     ) const {
     assert(check_if_object_state_valid());
     m_device_context->DrawIndexed(index_count, first_index_location, index_offset);
+}
+
+inline void renderer::set_rasterizer_state(const rasterizer_state& rsstate) {
+    assert(check_if_object_state_valid());
+    m_device_context->RSSetState(rsstate.internal_np_get_handle());
+}
+
+inline void renderer::reset_rasterizer_state() {
+    assert(check_if_object_state_valid());
+    m_device_context->RSSetState(nullptr);
 }
 
 inline void renderer::set_depth_stencil_state(

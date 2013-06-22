@@ -27,9 +27,6 @@
 #pragma once
 
 #include <v8/v8.hpp>
-#include <v8/base/com_exclusive_pointer.hpp>
-#include <v8/base/scoped_pointer.hpp>
-#include <v8/math/vector3.hpp>
 #include <v8/rendering/fragment_shader.hpp>
 #include <v8/rendering/index_buffer.hpp>
 #include <v8/rendering/sampler_state.hpp>
@@ -39,6 +36,8 @@
 
 #include "igeometry_shape.hpp"
 
+///
+/// \brief Abstract representation of an aircraft.
 class F4Phantom : public IGeometryShape {
 
 /// \name Initialization
@@ -149,6 +148,8 @@ private :
         ///< Position in the world.
         v8::math::vector3F  origin;
 
+        /// \brief	Set default frame : origin at [0, 0, 0],
+        ///			X axis [1, 0, 0], Y axis [0, 1, 0], Z axis [0, 0, 1].
         void SetDefaultValues() {
             axis_x = v8::math::vector3F::unit_x;
             axis_y = v8::math::vector3F::unit_y;

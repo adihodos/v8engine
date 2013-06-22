@@ -10,17 +10,10 @@
 #include "v8/base/fixed_pod_vector.hpp"
 #include "v8/base/fixed_pod_stack.hpp"
 #include "v8/utility/hash_spooky.hpp"
-
 #include "v8/rendering/directx/internal/utilities.hpp"
-
-//#include "framework/app_dirs.hpp"
-//#include "framework/global_state.hpp"
-
 #include "v8/rendering/directx/shader_info.hpp"
-//#include "framework/directx/internal/directx_compile_flags_translator.hpp"
 #include "v8/rendering/directx/internal/debug_helpers.hpp"
 #include "v8/rendering/directx/internal/include_handler.hpp"
-//#include "framework/directx/internal/directx_utilities.hpp"
 
 namespace {
 
@@ -303,7 +296,7 @@ v8::base::duo<v8_bool_t, ID3D10Blob*> v8::directx::compile_shader(
         CHECK_D3D(
             &ret_code,
             D3DCompile(shdr_info.name_or_source.c_str(), 
-                       (UINT) shdr_info.name_or_source.length(),
+                       static_cast<UINT>(shdr_info.name_or_source.length()),
                        nullptr, &macro_list[0], &include_handler, 
                        shdr_info.entrypoint, shdr_info.shader_model,
                        k_compile_flags, 0,
@@ -312,7 +305,8 @@ v8::base::duo<v8_bool_t, ID3D10Blob*> v8::directx::compile_shader(
     }
 
     if (FAILED(ret_code)) {
-        OUTPUT_DBG_MSGA("Failed to compile shader [%s]", shdr_info.name_or_source);
+        OUTPUT_DBG_MSGA("Failed to compile shader [%s]", 
+                        shdr_info.name_or_source.c_str());
         OUTPUT_DBG_MSGA("Compiler error [%s]", err_msg->GetBufferPointer() ?
             static_cast<const char*>(err_msg->GetBufferPointer()) : "not available"
             );
