@@ -285,10 +285,16 @@ private:
     //  * is a not-very-regular mix of 1's and 0's
     //  * does not need any other special mathematical properties
     //
+#if defined(_MSVC)    
 __pragma(warning(push))
 __pragma(warning(disable : 4245))
-    static const uint64 sc_const = 0xdeadbeefdeadbeefLL;
+#endif
+
+   static const uint64 sc_const = 0xdeadbeefdeadbeefLL;
+   
+#if defined(_MSVC)   
 __pragma(warning(pop))
+#endif
 
     uint64 m_data[2*sc_numVars];   // unhashed data, for partial messages
     uint64 m_state[sc_numVars];  // internal state of the hash

@@ -15,7 +15,7 @@ set(CMAKE_MODULE_PATH
 
 message("Module path = ${CMAKE_MODULE_PATH}")
 
-find_package(Assimp REQUIRED)
+#find_package(Assimp REQUIRED)
 
 if( CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR AND NOT MSVC_IDE )
   message(FATAL_ERROR "In-source builds are not allowed.")
@@ -58,8 +58,25 @@ if (MSVC)
     message("FLAGS VAR = ${flags_var}")
 endif()
 
+if (MINGW)
+	add_definitions(-DNOMINMAX)
+    add_definitions(-D_WIN32_WINNT=0x0601)
+    add_definitions(-DWINVER=0x0601)
+
+    if (CMAKE_BUILD_TYPE MATCHES Debug)
+        add_definitions(-DV8_IS_DEBUG_BUILD)
+        set(cxx_aditional_flags "-O0 -ggdb3")
+    endif()
+
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra")
+endif(MINGW)
 
 include_directories("${CMAKE_SOURCE_DIR}/include")
 include_directories("${CMAKE_SOURCE_DIR}/include/third_party/stlsoft")
 add_subdirectory(libs)
-add_subdirectory(sample_projects)
+
+if (MSVC)
+	add_subdirectory(sample_projects)
+endif(MSVC)
+
+install(DIRECTORY include/v8 DESTINATION include)

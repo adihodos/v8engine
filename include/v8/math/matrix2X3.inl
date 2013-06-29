@@ -27,9 +27,19 @@
 #pragma once
 
 template<typename real_t>
+const v8::math::matrix_2X3<real_t>
+v8::math::matrix_2X3<real_t>::zero(real_t(0), real_t(0), real_t(0),
+                                   real_t(0), real_t(0), real_t(0));
+
+template<typename real_t>
+const v8::math::matrix_2X3<real_t>
+v8::math::matrix_2X3<real_t>::identity(real_t(1), real_t(0), real_t(0),
+                                       real_t(0), real_t(1), real_t(0));
+
+template<typename real_t>
 inline v8::math::matrix_2X3<real_t>::matrix_2X3(
-    real_t a11, real_t a12, real_t a13,
-    real_t a21, real_t a22, real_t a23
+    const real_t a11, const real_t a12, const real_t a13,
+    const real_t a21, const real_t a22, const real_t a23
     ) {
     a11_ = a11; a12_ = a12; a13_ = a13;
     a21_ = a21; a22_ = a22; a23_ = a23;
@@ -46,9 +56,7 @@ inline v8::math::matrix_2X3<real_t>::matrix_2X3(
 
 template<typename real_t>
 inline v8::math::matrix_2X3<real_t>::matrix_2X3(
-    const real_t* data,
-    uint32_t count
-    ) {
+    const real_t* data, const v8_size_t count) {
     memcpy(elements_, data, min(count_of_array(elements_), count));
 }
 
@@ -99,7 +107,7 @@ template<typename real_t>
 inline v8::math::matrix_2X3<real_t>&
 v8::math::matrix_2X3<real_t>::make_zero() {
     memcpy(elements_, matrix_2X3<real_t>::zero.elements_, 
-           count_of_array(elements_));
+           sizeof(elements_));
     return *this;
 }
 
@@ -107,69 +115,117 @@ template<typename real_t>
 inline v8::math::matrix_2X3<real_t>&
 v8::math::matrix_2X3<real_t>::make_identity() {
     memcpy(elements_, matrix_2X3<real_t>::identity.elements_,
-           count_of_array(elements_));
+           sizeof(elements_));
     return *this;
 }
 
 template<typename real_t>
 inline v8::math::matrix_2X3<real_t>&
-v8::math::matrix_2X3<real_t>::make_scale(real_t sx, real_t sy) {
-    a11_ = sx; a12_ = a13_ = a21_ = a23_ = real_t(0);
+v8::math::matrix_2X3<real_t>::make_scaling(const real_t sx, const real_t sy) {
+    a11_ = sx;
     a22_ = sy;
+    a12_ = a13_ = a21_ = a23_ = real_t(0);
     return *this;
 }
 
 template<typename real_t>
 inline v8::math::matrix_2X3<real_t>&
-v8::math::matrix_2X3<real_t>::make_translate(real_t tx, real_t ty) {
-    a11_ = a12_ = a21_ = a22_ = real_t(0);
+v8::math::matrix_2X3<real_t>::make_translation(real_t tx, real_t ty) {
+    a11_ = a22_ = real_t(1); 
+    a12_ = a21_ = real_t(0);
     a13_ = tx; a23_ = ty;
+
     return *this;
 }
 
 template<typename real_t>
-inline v8::math::matrix_2X3<real_t>&
-v8::math::matrix_2X3<real_t>::make_rotate(float theta) {
-    const real_t sin_theta = sin(theta);
-    const real_t cos_theta = cos(theta);
+inline typename v8::math::matrix_2X3<real_t>::class_type&
+v8::math::matrix_2X3<real_t>::make_rotation(const real_t radians) {
+    const real_t cos_theta = cos(radians);
+    const real_t sin_theta = sin(radians);
 
     a11_ = cos_theta; a12_ = -sin_theta; a13_ = real_t(0);
-    a21_ = sin_theta; a22_ = cos_theta; a23_ = real_t(0);
+    a21_ = sin_theta; a22_ = +cos_theta; a23_ = real_t(0);
+
     return *this;
 }
 
 template<typename real_t>
-inline v8::math::matrix_2X3<real_t>&
-v8::math::matrix_2X3<real_t>::make_reflect(
-    const v8::math::vector2<real_t>& dir
-    ) {
-    const vector2<real_t> N(vector2<real_t>(-dir.y_, dir.x_).normalize());
+inline typename v8::math::matrix_2X3<real_t>::class_type&
+v8::math::matrix_2X3<real_t>::make_rotation_off_center(const real_t radians,
+                                                       const real_t xpos,
+                                                       const real_t ypos) {
+    const real_t sin_theta = sin(radians);
+    const real_t cos_theta = cos(radians);
 
-    a11_ = real_t(1) - 2 * N.x_ * N.x_;
-    a12_ = a21_ = -2 * N.x_ * N.y_;
-    a22_ = real_t(1) - 2 * N.y_ * N.y_;
-    a13_ = a23_ = real_t(0);
+    a11_ = cos_theta; a12_ = -sin_theta; a13_ = xpos * (cos_theta - 1) - ypos * sin_theta;
+    a21_ = sin_theta; a22_ = +sin_theta; a23_ = ypos * (cos_theta - 1) + xpos * sin_theta;
+
     return *this;
 }
 
 template<typename real_t>
-inline v8::math::matrix_2X3<real_t>&
-v8::math::matrix_2X3<real_t>::make_reflect(
-    real_t theta
-    ) {
+inline typename v8::math::matrix_2X3<real_t>::class_type&
+v8::math::matrix_2X3<real_t>::make_reflection(const real_t vdir_x,
+                                              const real_t vdir_y) {
+    const vector2<real_t> ref_normal(vector2<real_t>(vdir_x, vdir_y).normalize());
+    return make_reflection_from_angle_with_x(ref_normal.x_);
+}
+
+template<typename real_t>
+inline typename v8::math::matrix_2X3<real_t>::class_type&
+v8::math::matrix_2X3<real_t>::make_reflection_point(const real_t pt_x,
+                                                    const real_t pt_y) 
+{
+    a11_ = real_t(-1); a12_ = real_t(0); a13_ = real_t(2) * pt_x;
+    a21_ = real_t(0);  a22_ = real_t(-1); a23_ = real_t(2) * pt_y;
+    return *this;
+}
+
+template<typename real_t>
+inline typename v8::math::matrix_2X3<real_t>::class_type&
+v8::math::matrix_2X3<real_t>::make_reflection_line(const real_t org_x, 
+                                                   const real_t org_y,
+                                                   const real_t dir_x, 
+                                                   const real_t dir_y) 
+{
+    //a11_ = real_t(2) * dir_x * dir_x - real_t(1);
+    //a12_ = real_t(2) * dir_x * dir_y;
+    //a13_ = real_t(2) * (org_x * (real_t(1) - dir_x * dir_x) 
+    //                    - dir_x * dir_y * org_y);
+
+    //a21_ = a12_;
+    //a22_ = real_t(2) * dir_y * dir_y - real_t(1);
+    //a23_ = real_t(2) * (org_y * (real_t(1) - dir_y * dir_y) 
+    //                    - dir_x * dir_y * org_x);
+
+    const real_t theta = acos(dir_x);
     const real_t sin2theta = sin(2 * theta);
     const real_t cos2theta = cos(2 * theta);
 
-    a11_ = cos2theta; a12_ = sin2theta; a13_ = real_t(0);
+    a11_ = cos2theta; a12_ = sin2theta; a13_ = org_x * (1 - cos2theta) 
+                                               - org_y * sin2theta;
+
+    a21_ = sin2theta; a22_ = -cos2theta; a23_ = org_y * (1 + cos2theta)
+                                                - org_x * sin2theta;
+
+    return *this;
+}
+
+template<typename real_t>
+inline typename v8::math::matrix_2X3<real_t>::class_type&
+v8::math::matrix_2X3<real_t>::make_reflection_from_angle_with_x(const real_t theta) {
+    const real_t sin2theta = sin(2 * theta);
+    const real_t cos2theta = cos(2 * theta);
+
+    a11_ = cos2theta; a12_ = +sin2theta; a13_ = real_t(0);
     a21_ = sin2theta; a22_ = -cos2theta; a23_ = real_t(0);
     return *this;
 }
 
 template<typename real_t>
-inline v8::math::matrix_2X3<real_t>&
-v8::math::matrix_2X3<real_t>::make_reflect_slope(
-    real_t slope
-    ) {
+inline typename v8::math::matrix_2X3<real_t>::class_type&
+v8::math::matrix_2X3<real_t>::make_reflection_slope(const real_t slope) {
     const real_t ssq = slope * slope;
     const real_t mul_factor = real_t(1) / (ssq + 1);
 
@@ -180,6 +236,24 @@ v8::math::matrix_2X3<real_t>::make_reflect_slope(
     a21_ = a12_;
     a22_ = (ssq - real_t(1)) * mul_factor;
     a32_ = real_t(0);
+
+    return *this;
+}
+
+template<typename real_t>
+inline typename v8::math::matrix_2X3<real_t>::class_type&
+v8::math::matrix_2X3<real_t>::make_reflection_x() {
+    a11_ = real_t(1); a12_ = real_t(0); a13_ = real_t(0);
+    a21_ = real_t(0); a22_ = real_t(-1); a23_ = real_t(0);
+
+    return *this;
+}
+
+template<typename real_t>
+inline typename v8::math::matrix_2X3<real_t>::class_type&
+v8::math::matrix_2X3<real_t>::make_reflection_y() {
+    a11_ = real_t(-1); a12_ = real_t(0); a13_ = real_t(0);
+    a21_ = real_t(0); a22_ = real_t(+1); a23_ = real_t(0);
 
     return *this;
 }
