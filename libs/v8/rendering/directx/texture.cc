@@ -1,10 +1,7 @@
-
 #include <third_party/stlsoft/platformstl/filesystem/path.hpp>
 #include <third_party/stlsoft/platformstl/filesystem/memory_mapped_file.hpp>
 
-#include "v8/base/crt_handle_policies.hpp"
-#include "v8/base/scoped_handle.hpp"
-#include "v8/global_state.hpp"
+#include "v8/base/shims/scoped_ptr.hpp"
 #include "v8/io/filesystem.hpp"
 #include "v8/rendering/directx/renderer.hpp"
 #include "v8/rendering/directx/constants.hpp"
@@ -68,10 +65,8 @@ v8::directx::texture::texture()
         ,   flags_(0)
 {}
 
-v8::directx::texture::texture(
-    const texture_info_t& tex_info,
-    v8::directx::renderer* rsys
-    )
+v8::directx::texture::texture(const texture_info_t&         tex_info,
+                              v8::directx::renderer*        rsys)
     :       width_(0)
         ,   height_(0)
         ,   depth_(0)
@@ -84,9 +79,9 @@ v8::directx::texture::texture(
 
 v8::directx::texture::~texture() {}
 
-v8_bool_t v8::directx::texture::initialize( 
-    const texture_info_t& tex_info, v8::directx::renderer* rsys
-    ) {
+v8_bool_t 
+v8::directx::texture::initialize(const texture_info_t&      tex_info, 
+                                 v8::directx::renderer*     rsys) {
     if (resource_) {
         return true;
     }
@@ -119,14 +114,12 @@ v8_bool_t v8::directx::texture::initialize(
             static_cast<const byte*>(mmfile_texture.memory()),
             mmfile_texture.size(),
             &texture_data,
-            reinterpret_cast<ID3D11Resource**>(scoped_pointer_get_impl(resource_)),
+            reinterpret_cast<ID3D11Resource**>(raw_ptr_ptr(resource_)),
             tex_info.tex_bindflags & BindingFlag::ShaderResource ? 
-                scoped_pointer_get_impl(tex_srv_.view)
-                : nullptr
-                ));
+                raw_ptr_ptr(tex_srv_.view) : nullptr));
+                
     if (FAILED(ret_code)) {
         return false;
     }
-    
     return true;
 }

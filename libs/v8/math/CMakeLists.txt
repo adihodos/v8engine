@@ -1,4 +1,3 @@
-set(V8_LIB_TARGETS "${V8_LIB_TARGETS} v8_math")
 add_library(
     v8_math STATIC
     camera.cc
@@ -8,3 +7,5 @@ add_library(
     light.cc
     pch_hdr.cc
     )
+
+install(TARGETS v8_math ARCHIVE DESTINATION libs)

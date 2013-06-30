@@ -1,5 +1,6 @@
 add_library(
-    v8_io 
+    v8_io STATIC
     config_file_reader.cc
-    filesystem.cc
-)
+    filesystem.cc)
+
+install(TARGETS v8_io ARCHIVE DESTINATION libs)

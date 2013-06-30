@@ -44,8 +44,8 @@ v8::math::vector3<real_t>::unit_z(real_t(0), real_t(0), real_t(1));
 
 template<typename real_t>
 v8::math::vector3<real_t>::vector3(const real_t* input, size_t count) {
-    std::memcpy(elements_, input, std::min(_countof(elements_), 
-                count * sizeof(real_t)));
+    std::memcpy(elements_, input, min(_countof(elements_), 
+                                      count * sizeof(real_t)));
 }
 
 template<typename real_t>

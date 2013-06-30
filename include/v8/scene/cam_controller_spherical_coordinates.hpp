@@ -103,15 +103,15 @@ public :
     {
     }
 
-    void set_zoom_speed(float spd) {
+    void set_zoom_speed(const float spd) {
         zoom_speed_ = spd;
     }
 
-    void set_rotate_speed(float spd) {
+    void set_rotate_speed(const float spd) {
         rotate_speed_ = spd;
     }
 
-    void rotate_y(bool counter_clockwise) {
+    void rotate_y(const bool counter_clockwise) {
         const float modifier[2] = { 1.0f, -1.0f };
         const float new_val = 
             angle_phi_ + rotate_speed_ * modifier[counter_clockwise];
@@ -122,13 +122,13 @@ public :
         }
     }
 
-    void rotate_z(bool counter_clockwise) {
+    void rotate_z(const bool counter_clockwise) {
         const float modifier[2] = { -1.0f, 1.0f };
         angle_theta_ += rotate_speed_ * modifier[counter_clockwise];
         updated_ = false;
     }
 
-    void zoom(bool inwards) {
+    void zoom(const bool inwards) {
         const float modifier[2] = { +1.0f, -1.0f };
         
         const float new_val = radius_ + zoom_speed_ * modifier[inwards];
@@ -142,12 +142,12 @@ public :
         cam_ptr_ = cam;
     }
 
-    void set_angle_phi(float phi) {
+    void set_angle_phi(const float phi) {
         angle_phi_ = phi;
         updated_ = false;
     }
 
-    void set_angle_theta(float theta) {
+    void set_angle_theta(const float theta) {
         angle_theta_ = theta;
         updated_ = false;
     }
@@ -157,7 +157,8 @@ public :
             update_cam_data();
     }
 
-    v8_bool_t initialize();
+    v8_bool_t 
+    initialize(const void* config_file_path);
 
 /// \name Event handling.
 /// @{

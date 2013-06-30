@@ -1,7 +1,5 @@
 #include <v8/base/debug_helpers.hpp>
-#include <third_party/stlsoft/platformstl/filesystem/path.hpp>
 
-#include "v8/global_state.hpp"
 #include "v8/io/config_file_reader.hpp"
 #include "v8/io/filesystem.hpp"
 #include "v8/rendering/constants.hpp"
@@ -36,12 +34,7 @@
 
 
 v8_bool_t v8::rendering::material::initialize(const hash_string& mat_file) {
-    platformstl::path mtl_conf_path(state->file_sys()->get_dir_path(
-        filesys::Dir::Config));
-    mtl_conf_path.push(mat_file.c_str());
-    mtl_conf_path.push_ext("json");
-
-    const io::V8ConfigFile mtl_conf_file(mtl_conf_path.c_str());
+    const io::V8ConfigFile mtl_conf_file(mat_file.c_str());
     io::V8ConfigFile_ReadOnlySection conf_main(mtl_conf_file.GetSection());
 
     conf_main.GetValue("type", type);
@@ -56,18 +49,16 @@ v8_bool_t v8::rendering::material::initialize(const hash_string& mat_file) {
 
         texture_info_t tex_info(tex_filename, BindingFlag::ShaderResource);
 
-        tex.emissive = state->asset_cache()->get_texture(tex_info);
         if (!tex.emissive) {
             return false;
         }
 
         conf_main.GetValue("ambient", tex_filename);
         tex_info.tex_filename = tex_filename;
-        tex.ambient = state->asset_cache()->get_texture(tex_info);
 
         conf_main.GetValue("diffuse", tex_filename);
         tex_info.tex_filename = tex_filename;
-        tex.diffuse = state->asset_cache()->get_texture(tex_info);
+
         if (!tex.diffuse) {
             return false;
         }
@@ -77,7 +68,7 @@ v8_bool_t v8::rendering::material::initialize(const hash_string& mat_file) {
 
         conf_main.GetValue("specular", tex_filename);
         tex_info.tex_filename = tex_filename;
-        tex.specular = state->asset_cache()->get_texture(tex_info);
+
         if (!tex.specular) {
             return false;
         }

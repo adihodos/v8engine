@@ -301,7 +301,7 @@ public :
 private :
 
     T* const    begin_; //! Pointer to the first element.
-    T* const    end_; //! Pointer to the one past end element.
+    T* const    end_; //! Pointer to one past the end element.
 
 private :
     NO_CC_ASSIGN(array_proxy);

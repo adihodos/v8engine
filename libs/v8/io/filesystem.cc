@@ -1,9 +1,8 @@
+#include <utility>
 #include <cstdlib>
 
 #include <v8/v8.hpp>
 #include <v8/base/count_of.hpp>
-#include <v8/base/crt_handle_policies.hpp>
-#include <v8/base/scoped_handle.hpp>
 #include <third_party/stlsoft/platformstl/filesystem/path.hpp>
 
 #include "v8/io/config_file_reader.hpp"

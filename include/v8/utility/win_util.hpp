@@ -49,6 +49,6 @@ typedef v8::base::scoped_ptr
 
 scoped_wide_string_t multibyte_string_to_wide_string(const char* mb_string);
 
-}
-}
-}
+} // namespace win32
+} // namespace utility
+} // namespace v8

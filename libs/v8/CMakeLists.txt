@@ -1,14 +1,14 @@
-add_subdirectory(base)
-#add_subdirectory(gui)
-#add_subdirectory(input)
-#add_subdirectory(io)
-add_subdirectory(math)
+set(SUBDIRS base math utility)
 
-if (MSVC)
-	add_subdirectory(rendering)
-	add_subdirectory(scene)
-endif(MSVC)
+if (WIN32)
+    list(APPEND SUBDIRS input io)
 
-add_subdirectory(utility)
+    if (MSVC)
+        list(APPEND SUBDIRS gui rendering scene)
+    endif(MSVC)
 
-#add_library(v8_app_state global_state.cc)
+endif(WIN32)
+
+foreach(sub_directory ${SUBDIRS})
+    add_subdirectory(${sub_directory})
+endforeach()

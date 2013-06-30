@@ -1,13 +1,7 @@
-#include <third_party/stlsoft/platformstl/filesystem/path.hpp>
-
 #include "v8/v8.hpp"
 #include "v8/base/count_of.hpp"
-#include "v8/base/crt_handle_policies.hpp"
 #include "v8/base/debug_helpers.hpp"
-#include "v8/base/scoped_handle.hpp"
-
 #include "v8/event/input_event.hpp"
-#include "v8/global_state.hpp"
 #include "v8/io/config_file_reader.hpp"
 #include "v8/io/filesystem.hpp"
 #include "v8/input/key_syms.hpp"
@@ -64,20 +58,19 @@ handle_key_press(const v8_int_t key_code) {
         break;
     }
 }
-//
+
 void v8::scene::camera_controller_spherical_coords::
-handle_mouse_wheel(
-    const v8_int_t k_num_rotations,
-    const v8_int_t /*k_xpos*/,
-    const v8_int_t /*k_ypos*/
-    ) {
+handle_mouse_wheel(const v8_int_t       k_num_rotations,
+                   const v8_int_t       /*k_xpos*/,
+                   const v8_int_t       /*k_ypos*/) {
     zoom(k_num_rotations > 0);
 }
 
-void v8::scene::camera_controller_spherical_coords::handle_mouse_moved(
-    const v8_int_t xpos,
-    const v8_int_t ypos
-    ) {
+void 
+v8::scene::camera_controller_spherical_coords::
+handle_mouse_moved(const v8_int_t       xpos,
+                   const v8_int_t       ypos) 
+{
     v8_int_t delta_x_axis = xpos - last_mouse_pos_.x_;
     v8_int_t delta_y_axis = ypos - last_mouse_pos_.y_;
 
@@ -93,15 +86,10 @@ void v8::scene::camera_controller_spherical_coords::handle_mouse_moved(
 }
 
 v8_bool_t 
-v8::scene::camera_controller_spherical_coords::initialize() {
-    platformstl::path config_file_path(state->file_sys()->get_dir_path(
-        filesys::Dir::Config));
-    const char* const kCFGFileName = "cam_spherical_config.json";
-    config_file_path.push(kCFGFileName);
-
+v8::scene::camera_controller_spherical_coords::initialize(const void* path) {
     defaults();
 
-    v8::io::V8ConfigFile conf_file(config_file_path.c_str());
+    v8::io::V8ConfigFile conf_file(static_cast<const char*>(path));
     if (!conf_file.CheckIfValid()) {
         return true;
     }
@@ -118,9 +106,10 @@ v8::scene::camera_controller_spherical_coords::initialize() {
     return true;
 }
 
-void v8::scene::camera_controller_spherical_coords::on_input_event(
-    const input_event& ev_input
-    ) {
+void 
+v8::scene::camera_controller_spherical_coords::
+on_input_event(const input_event& ev_input) 
+{
     if (ev_input.type == InputEventType::Mouse_Wheel) {
         handle_mouse_wheel(ev_input.mouse_wheel_ev.delta, 
                            ev_input.mouse_wheel_ev.x_pos, 

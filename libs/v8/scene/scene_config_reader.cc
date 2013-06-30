@@ -1,7 +1,6 @@
-#include <third_party/stlsoft/platformstl/filesystem/path.hpp>
+//#include <third_party/stlsoft/platformstl/filesystem/path.hpp>
 
 #include "v8/base/debug_helpers.hpp"
-#include "v8/global_state.hpp"
 #include "v8/io/filesystem.hpp"
 #include "v8/io/config_file_reader.hpp"
 #include "v8/scene/scene_loading_info.hpp"

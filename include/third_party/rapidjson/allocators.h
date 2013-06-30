@@ -184,7 +184,7 @@ public:
 	}
 
 	//! Frees a memory block (concept Allocator)
-	static void Free(void *ptr) {} // Do nothing
+	static void Free(void *) {} // Do nothing
 
 private:
 	//! Creates a new chunk.

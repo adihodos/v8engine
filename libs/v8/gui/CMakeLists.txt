@@ -1,1 +1,5 @@
-add_library(v8_gui basic_window.cc)
+add_library(
+    v8_gui STATIC 
+    basic_window.cc)
+
+install(TARGETS v8_gui ARCHIVE DESTINATION libs)

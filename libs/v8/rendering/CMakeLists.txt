@@ -1,6 +1,5 @@
 add_library(
-    v8_renderer_directx
-
+    v8_renderer_directx STATIC
     directx/internal/dds_texture_loader.cc
     directx/internal/dxerr.cc
     directx/internal/gpu_buffer_core.cc
@@ -46,3 +45,5 @@ target_link_libraries(
     ${DirectX_D3D11_LIBRARIES}
     #${Assimp_LIBRARIES}
 )
+
+install(TARGETS v8_renderer_directx ARCHIVE DESTINATION libs)

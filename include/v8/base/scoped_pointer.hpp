@@ -77,6 +77,8 @@ public :
      */
     typedef T*                                                  pointer;
 
+    typedef T**                                                 pointer_pointer;
+
     /** Type of wrapped pointer to const.
      */
     typedef const T*                                            const_pointer;

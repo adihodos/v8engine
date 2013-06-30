@@ -1,15 +1,6 @@
-#include <third_party/stlsoft/platformstl/filesystem/path.hpp>
-#include <third_party/stlsoft/rangelib/sequence_range.hpp>
-
 #include "v8/base/debug_helpers.hpp"
-#include "v8/global_state.hpp"
-#include "v8/io/filesystem.hpp"
-#include "v8/io/config_file_reader.hpp"
-#include "v8/rendering/material.hpp"
-#include "v8/rendering/render_assets_cache.hpp"
 #include "v8/scene/camera_controller.hpp"
 #include "v8/scene/scene_entity.hpp"
-#include "v8/scene/scene_loading_info.hpp"
 
 #include "v8/scene/scene_system.hpp"
 
@@ -21,9 +12,8 @@ v8::scene::scene_system::scene_system()
 
 v8::scene::scene_system::~scene_system() {}
 
-void v8::scene::scene_system::update(
-    float delta_ms
-    ) {
+void 
+v8::scene::scene_system::update(float delta_ms) {
     assert(check_valid());
 
     m_cam_controller->update(delta_ms);
@@ -34,9 +24,8 @@ void v8::scene::scene_system::update(
     });
 }
 
-void v8::scene::scene_system::pre_draw(
-    v8::rendering::renderer*
-    ) {
+void 
+v8::scene::scene_system::pre_draw(v8::rendering::renderer*) {
     m_active_light_count = 0;
     for (v8_int_t light_idx = 0; light_idx < m_light_count; ++light_idx) {
         if (is_light_on(light_idx)) {
@@ -45,14 +34,11 @@ void v8::scene::scene_system::pre_draw(
     }
 }
 
-void v8::scene::scene_system::post_draw(
-    v8::rendering::renderer*
-    ) {
-}
+void 
+v8::scene::scene_system::post_draw(v8::rendering::renderer*) {}
 
-void v8::scene::scene_system::draw(
-    v8::rendering::renderer* render_sys
-    ) {
+void 
+v8::scene::scene_system::draw(v8::rendering::renderer* render_sys) {
     assert(check_valid());
 
     pre_draw(render_sys);
@@ -71,6 +57,7 @@ void v8::scene::scene_system::draw(
     post_draw(render_sys);
 }
 
-void v8::scene::scene_system::depth_sort_all() {
+void 
+v8::scene::scene_system::depth_sort_all() {
     assert(check_valid());
 }

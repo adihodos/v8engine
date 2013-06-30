@@ -37,10 +37,12 @@ v8::math::matrix_2X3<real_t>::identity(real_t(1), real_t(0), real_t(0),
                                        real_t(0), real_t(1), real_t(0));
 
 template<typename real_t>
-inline v8::math::matrix_2X3<real_t>::matrix_2X3(
-    const real_t a11, const real_t a12, const real_t a13,
-    const real_t a21, const real_t a22, const real_t a23
-    ) {
+inline v8::math::matrix_2X3<real_t>::matrix_2X3(const real_t    a11, 
+                                                const real_t    a12, 
+                                                const real_t    a13,
+                                                const real_t    a21, 
+                                                const real_t    a22, 
+                                                const real_t    a23) {
     a11_ = a11; a12_ = a12; a13_ = a13;
     a21_ = a21; a22_ = a22; a23_ = a23;
 }
@@ -55,16 +57,15 @@ inline v8::math::matrix_2X3<real_t>::matrix_2X3(
 }
 
 template<typename real_t>
-inline v8::math::matrix_2X3<real_t>::matrix_2X3(
-    const real_t* data, const v8_size_t count) {
+inline v8::math::matrix_2X3<real_t>::matrix_2X3(const real_t*       data, 
+                                                const v8_size_t     count) {
     memcpy(elements_, data, min(count_of_array(elements_), count));
 }
 
 template<typename real_t>
 template<typename real_u>
 inline v8::math::matrix_2X3<real_t>& 
-v8::math::matrix_2X3<real_t>::operator=(
-    const v8::math::matrix_2X3<real_u>& other) {
+v8::math::matrix_2X3<real_t>::operator=(const v8::math::matrix_2X3<real_u>& other) {
     a11_ = other.a11_; a12_ = other.a12_; a13_ = other.a13_;
     a21_ = other.a21_; a22_ = other.a22_; a23_ = other.a23_;
     return *this;
@@ -73,9 +74,7 @@ v8::math::matrix_2X3<real_t>::operator=(
 template<typename real_t>
 template<typename real_u>
 inline v8::math::matrix_2X3<real_t>& 
-v8::math::matrix_2X3<real_t>::operator+=(
-    const v8::math::matrix_2X3<real_u>& other
-    ) {
+v8::math::matrix_2X3<real_t>::operator+=(const v8::math::matrix_2X3<real_u>& other) {
     for (uint32_t i = 0; i < count_of_array(elements_); ++i)
         elements_[i] += other.elements_[i];
     return *this;
@@ -84,9 +83,7 @@ v8::math::matrix_2X3<real_t>::operator+=(
 template<typename real_t>
 template<typename real_u>
 inline v8::math::matrix_2X3<real_t>& 
-v8::math::matrix_2X3<real_t>::operator-=(
-    const v8::math::matrix_2X3<real_u>& other
-    ) {
+v8::math::matrix_2X3<real_t>::operator-=(const v8::math::matrix_2X3<real_u>& other) {
     for (uint32_t i = 0; i < count_of_array(elements_); ++i)
         elements_[i] -= other.elements_[i];
     return *this;
@@ -95,9 +92,7 @@ v8::math::matrix_2X3<real_t>::operator-=(
 template<typename real_t>
 template<typename real_u>
 inline v8::math::matrix_2X3<real_t>& 
-v8::math::matrix_2X3<real_t>::operator*=(
-    real_u conv_scalar
-    ) {
+v8::math::matrix_2X3<real_t>::operator*=(real_u conv_scalar) {
     for (uint32_t i = 0; i < count_of_array(elements_); ++i)
         elements_[i] *= conv_scalar;
     return *this;
@@ -121,7 +116,8 @@ v8::math::matrix_2X3<real_t>::make_identity() {
 
 template<typename real_t>
 inline v8::math::matrix_2X3<real_t>&
-v8::math::matrix_2X3<real_t>::make_scaling(const real_t sx, const real_t sy) {
+v8::math::matrix_2X3<real_t>::make_scaling(const real_t     sx, 
+                                           const real_t     sy) {
     a11_ = sx;
     a22_ = sy;
     a12_ = a13_ = a21_ = a23_ = real_t(0);
@@ -130,7 +126,8 @@ v8::math::matrix_2X3<real_t>::make_scaling(const real_t sx, const real_t sy) {
 
 template<typename real_t>
 inline v8::math::matrix_2X3<real_t>&
-v8::math::matrix_2X3<real_t>::make_translation(real_t tx, real_t ty) {
+v8::math::matrix_2X3<real_t>::make_translation(const real_t     tx, 
+                                               const real_t     ty) {
     a11_ = a22_ = real_t(1); 
     a12_ = a21_ = real_t(0);
     a13_ = tx; a23_ = ty;
@@ -158,8 +155,13 @@ v8::math::matrix_2X3<real_t>::make_rotation_off_center(const real_t radians,
     const real_t sin_theta = sin(radians);
     const real_t cos_theta = cos(radians);
 
-    a11_ = cos_theta; a12_ = -sin_theta; a13_ = xpos * (cos_theta - 1) - ypos * sin_theta;
-    a21_ = sin_theta; a22_ = +sin_theta; a23_ = ypos * (cos_theta - 1) + xpos * sin_theta;
+    a11_ = cos_theta; 
+    a12_ = -sin_theta; 
+    a13_ = xpos * (cos_theta - 1) - ypos * sin_theta;
+
+    a21_ = sin_theta; 
+    a22_ = +sin_theta; 
+    a23_ = ypos * (cos_theta - 1) + xpos * sin_theta;
 
     return *this;
 }
@@ -175,8 +177,7 @@ v8::math::matrix_2X3<real_t>::make_reflection(const real_t vdir_x,
 template<typename real_t>
 inline typename v8::math::matrix_2X3<real_t>::class_type&
 v8::math::matrix_2X3<real_t>::make_reflection_point(const real_t pt_x,
-                                                    const real_t pt_y) 
-{
+                                                    const real_t pt_y) {
     a11_ = real_t(-1); a12_ = real_t(0); a13_ = real_t(2) * pt_x;
     a21_ = real_t(0);  a22_ = real_t(-1); a23_ = real_t(2) * pt_y;
     return *this;
@@ -187,8 +188,7 @@ inline typename v8::math::matrix_2X3<real_t>::class_type&
 v8::math::matrix_2X3<real_t>::make_reflection_line(const real_t org_x, 
                                                    const real_t org_y,
                                                    const real_t dir_x, 
-                                                   const real_t dir_y) 
-{
+                                                   const real_t dir_y) {
     //a11_ = real_t(2) * dir_x * dir_x - real_t(1);
     //a12_ = real_t(2) * dir_x * dir_y;
     //a13_ = real_t(2) * (org_x * (real_t(1) - dir_x * dir_x) 
@@ -261,9 +261,7 @@ v8::math::matrix_2X3<real_t>::make_reflection_y() {
 template<typename real_t>
 template<typename real_u>
 inline v8::math::matrix_2X3<real_t>&
-v8::math::matrix_2X3<real_t>::transform_vector(
-    v8::math::vector2<real_u>* vec
-    ) {
+v8::math::matrix_2X3<real_t>::transform_vector(v8::math::vector2<real_u>* vec) {
     vec->x_ = a11_ * vec->x_ + a12_ * vec->y_;
     vec->y_ = a21_ * vec->x_ + a22_ * vec->y_;
     return *this;
@@ -272,40 +270,31 @@ v8::math::matrix_2X3<real_t>::transform_vector(
 template<typename real_t>
 template<typename real_u>
 inline v8::math::matrix_2X3<real_t>&
-v8::math::matrix_2X3<real_t>::transform_point(
-    v8::math::vector2<real_u>* pt
-    ) {
+v8::math::matrix_2X3<real_t>::transform_point(v8::math::vector2<real_u>* pt) {
     pt->x_ = a11_ * pt->x_ + a12_ * pt->y_ + a13_;
     pt->y_ = a21_ * pt->x_ + a22_ * pt->y_ + a23_;
     return *this;
 }
 
 template<typename real_t>
-inline bool v8::math::operator==(
-    const v8::math::matrix_2X3<real_t>& lhs,
-    const v8::math::matrix_2X3<real_t>& rhs
-    ) {
+inline bool v8::math::operator==(const v8::math::matrix_2X3<real_t>&    lhs,
+                                 const v8::math::matrix_2X3<real_t>&    rhs) {
     for (uint32_t i = 0; i < count_of_array(lhs.elements_); ++i)
         if (!operands_eq(lhs.elements_[i], rhs.elements_[i]))
             return false;
-
     return true;
 }
 
 template<typename real_t>
-inline bool v8::math::operator!=(
-    const v8::math::matrix_2X3<real_t>& lhs,
-    const v8::math::matrix_2X3<real_t>& rhs
-    ) {
+inline bool v8::math::operator!=(const v8::math::matrix_2X3<real_t>&    lhs,
+                                 const v8::math::matrix_2X3<real_t>&    rhs) {
     return !(lhs == rhs);
 }
 
 template<typename real_t>
 inline v8::math::matrix_2X3<real_t> 
-v8::math::operator+(
-    const v8::math::matrix_2X3<real_t>& lhs,
-    const v8::math::matrix_2X3<real_t>& rhs
-    ) {
+v8::math::operator+(const v8::math::matrix_2X3<real_t>&         lhs,
+                    const v8::math::matrix_2X3<real_t>&         rhs) {
     matrix_2X3<real_t> result(lhs);
     result += rhs;
     return result;
@@ -313,10 +302,8 @@ v8::math::operator+(
 
 template<typename real_t>
 inline v8::math::matrix_2X3<real_t> 
-v8::math::operator-(
-    const v8::math::matrix_2X3<real_t>& lhs,
-    const v8::math::matrix_2X3<real_t>& rhs
-    ) {
+v8::math::operator-(const v8::math::matrix_2X3<real_t>&     lhs,
+                    const v8::math::matrix_2X3<real_t>&     rhs) {
     matrix_2X3<real_t> result(lhs);
     result -= rhs;
     return result;
@@ -324,10 +311,8 @@ v8::math::operator-(
 
 template<typename real_t>
 v8::math::matrix_2X3<real_t> 
-v8::math::operator*(
-    const v8::math::matrix_2X3<real_t>& lhs,
-    const v8::math::matrix_2X3<real_t>& rhs
-    ) {
+v8::math::operator*(const v8::math::matrix_2X3<real_t>&     lhs,
+                    const v8::math::matrix_2X3<real_t>&     rhs) {
     matrix_2X3<real_t> rs;
     rs.a11_ = lhs.a11_ * rhs.a11_ + lhs.a12_ * rhs.a21_;
     rs.a12_ = lhs.a11_ * rhs.a12_ + lhs.a12_ * rhs.a22_;
@@ -342,10 +327,8 @@ v8::math::operator*(
 
 template<typename real_t, typename real_u>
 inline v8::math::matrix_2X3<real_t> 
-v8::math::operator*(
-    real_u scalar,
-    const v8::math::matrix_2X3<real_t>& mtx
-    ) {
+v8::math::operator*(real_u                                  scalar,
+                    const v8::math::matrix_2X3<real_t>&     mtx) {
     matrix_2X3<real_t> result(mtx);
     result *= scalar;
     return result;
@@ -353,10 +336,7 @@ v8::math::operator*(
 
 template<typename real_t, typename real_u>
 inline v8::math::matrix_2X3<real_t> 
-v8::math::operator*(
-    const v8::math::matrix_2X3<real_t>& mtx,
-    real_u scalar
-    ) {
+v8::math::operator*(const v8::math::matrix_2X3<real_t>&     mtx,
+                    real_u                                  scalar) {
     return scalar * mtx;
 }
-

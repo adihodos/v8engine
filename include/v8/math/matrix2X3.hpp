@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2011, 2012, Adrian Hodos
+// Copyright (c) 2011, 2012, 2013 Adrian Hodos
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -37,11 +37,15 @@
 
 namespace v8 { namespace math {
 
+/*! \addtogroup __grp_v8_math_algebra
+ *  @{
+ */    
+
 /*!
  * \brief A two by three matrix for applying linear/affine
  *      transformations to R^2 vectors/points. The matrix is
  *      stored in row major format. The third row is implied
- *      as (0, 0, 1). The matrix follows the convention
+ *      to be (0, 0, 1). The matrix follows the convention
  *      that it multiplies column vectors, on the right side.
  *      When concatenating matrices representings a sequence
  *      of transformations, the matrices must be multiplied from
@@ -51,6 +55,7 @@ namespace v8 { namespace math {
  */
 template<typename real_t>
 class matrix_2X3 {
+
 /*! \name Data members.
  *  @{
  */
@@ -103,10 +108,12 @@ public :
     /*!
      * \brief Construct with six explicit values.
      */
-    inline matrix_2X3(
-        const real_t a11, const real_t a12, const real_t a13,
-        const real_t a21, const real_t a22, const real_t a23
-        );
+    inline matrix_2X3(const real_t      a11, 
+                      const real_t      a12, 
+                      const real_t      a13,
+                      const real_t      a21, 
+                      const real_t      a22, 
+                      const real_t      a23);
 
     /*!
      * \brief Construct from a matrix with convertible element type.
@@ -136,7 +143,8 @@ public :
      * \param[in] col Column of the accessed element,
      *              using <b>1 based indexing</b>.
      */
-    real_t& operator()(const v8_size_t row, const v8_size_t col) {
+    real_t& 
+    operator()(const v8_size_t row, const v8_size_t col) {
         return elements_[(row - 1) * 3 + (col - 1)];
     }
 
@@ -147,7 +155,8 @@ public :
      * \param[in] col Column of the accessed element,
      *              using <b>1 based indexing</b>.
      */
-    const real_t& operator()(const v8_size_t row, const v8_size_t col) const {
+    const real_t& 
+    operator()(const v8_size_t row, const v8_size_t col) const {
         return elements_[(row - 1) * 3 + (col - 1)];
     }
 
@@ -187,18 +196,21 @@ public :
     /*!
      * \brief Set this matrix to the null matrix.
      */
-    inline matrix_2X3<real_t>& make_zero();
+    inline matrix_2X3<real_t>& 
+    make_zero();
 
     /*!
      * \brief Set this matrix to the identity matrix.
      */
-    inline matrix_2X3<real_t>& make_identity();
+    inline matrix_2X3<real_t>& 
+    make_identity();
 
     /*!
      * \brief Builds a rotation matrix around the origin.
      * \param[in] theta Angle of rotation, <b>in radians</b>.
      */
-    inline class_type& make_rotation(const real_t radians);
+    inline class_type& 
+    make_rotation(const real_t radians);
 
     /*!
      * \brief Builds a rotation matrix around an arbitrary point.
@@ -206,23 +218,26 @@ public :
      * \param xpos X coordinate of the point.
      * \param ypos Y coordinate of the point.
      */
-    inline class_type& make_rotation_off_center(const real_t radians,
-                                                const real_t xpos,
-                                                const real_t ypos);
+    inline class_type& 
+    make_rotation_off_center(const real_t radians,
+                             const real_t xpos,
+                             const real_t ypos);
 
     /*!
      * \brief Builds a scaling matrix.
      * \param[in] sx Scale factor along the X axis.
      * \param[in] sy Scale factor along the Y axis.
      */
-    inline matrix_2X3<real_t>& make_scaling(const real_t sx, const real_t sy);
+    inline matrix_2X3<real_t>& 
+    make_scaling(const real_t sx, const real_t sy);
 
     /**
      * \brief Builds a scaling matrix from a vector2 object.
      * \param[in] sv Two component vector, containing scale
      *              factors along the X and Y axes.
      */
-    matrix_2X3<real_t>& make_scaling(const vector2<real_t>& sv) {
+    matrix_2X3<real_t>& 
+    make_scaling(const vector2<real_t>& sv) {
         return make_scale(sv.x_, sv.y_);
     }
 
@@ -231,44 +246,45 @@ public :
      * \param[in] tx Translation component along the <b>X axis</b>.
      * \param[in] ty Translation component along the <b>Y axis</b>.
      */
-    inline matrix_2X3<real_t>& make_translation(const real_t tx, const real_t ty);
+    inline matrix_2X3<real_t>& 
+    make_translation(const real_t tx, 
+                     const real_t ty);
 
     /*!
      * \brief Builds a translation matrix from a vector2 object.
      * \param[in] sv Two component vector, containing translation
      *          factors along the X and Y axes.
      */
-    matrix_2X3<real_t>& make_translation(const vector2<real_t>& sv) {
+    matrix_2X3<real_t>& 
+    make_translation(const vector2<real_t>& sv) {
         return make_translation(sv.x_, sv.y_);
     }
 
-    /*!
-     * \brief Builds a reflection matrix to reflect across a given line.
-     * \param[in] vdir_x X component of the reflection vector.
-     * \param[in] vdir_y Y component of the reflection vector.
-     * \remarks The formula for the reflection is derived in the following way:
-     *          Let N be the unit vector of the reflection vector. Then R =
-     *          [ 1 - 2 * N.x * N.x     -2 * N.x * N.y     0 ]
-     *          [ -2 * N.x * N.y        1 - 2 * N.y * N.y  0 ]
-     */
-    inline class_type& make_reflection(const real_t vdir_x,
-                                       const real_t vdir_y);
+    inline class_type& 
+    make_reflection(const real_t vdir_x,
+                    const real_t vdir_y);
 
-    inline class_type& make_reflection_line(const real_t org_x, const real_t org_y,
-                                            const real_t dir_x, const real_t dir_y);
+    inline class_type& 
+    make_reflection_line(const real_t org_x, 
+                         const real_t org_y,
+                         const real_t dir_x, 
+                         const real_t dir_y);
 
-    inline class_type& make_reflection_point(const real_t pt_x,
-                                             const real_t pt_y);
+    inline class_type& 
+    make_reflection_point(const real_t pt_x,
+                          const real_t pt_y);
 
     /*!
      * \brief Builds a reflection matrix around the <b>X axis</b>.
      */
-    inline class_type& make_reflection_x();
+    inline class_type& 
+    make_reflection_x();
 
     /*!
      * \brief Builds a reflection matrix around the <b>Y axis</b>.
      */
-    inline class_type& make_reflection_y();
+    inline class_type& 
+    make_reflection_y();
 
     /*!
      * \brief Builds a reflection matrix across a line that makes an angle
@@ -279,7 +295,8 @@ public :
      *          [ cos(2 * theta)    sin(2 * theta)  ]
      *          [ sin(2 * theta)    -cos(2 * theta) ]
      */          
-    inline class_type& make_reflection_from_angle_with_x(const real_t theta);
+    inline class_type& 
+    make_reflection_from_angle_with_x(const real_t theta);
 
     /*!
      * \brief Builds a reflection matrix across a line with the
@@ -289,7 +306,8 @@ public :
      *          [ (1 - slope^2) / (1 + slope^2)     2 * slope / (1 + slope^2) ]
      *          [ 2 * slope / ( 1 + slope^2)    (slope^2 - 1) / (1 + slope^2) ]
      */          
-    inline class_type& make_reflection_slope(const real_t slope);
+    inline class_type& 
+    make_reflection_slope(const real_t slope);
 
 /*! @} */
 
@@ -304,65 +322,61 @@ public :
      * \param[in] vec Pointer to a 2D vector object.
      */
     template<typename real_u>
-    inline matrix_2X3<real_t>& transform_vector(vector2<real_u>* vec);
+    inline matrix_2X3<real_t>& 
+    transform_vector(vector2<real_u>* vec);
 
     /*!
      * \brief Transform a 2D point (applies translation).
      * \param[in] pt Pointer to a vector2 object, representing a point.
      */
     template<typename real_u>
-    inline matrix_2X3<real_t>& transform_point(vector2<real_u>* pt);
+    inline matrix_2X3<real_t>& 
+    transform_point(vector2<real_u>* pt);
 
 /*! @} */
 }; 
 
 template<typename real_t>
-inline bool operator==(
-    const matrix_2X3<real_t>& lhs,
-    const matrix_2X3<real_t>& rhs
-    );
+inline bool 
+operator==(const matrix_2X3<real_t>& lhs,
+           const matrix_2X3<real_t>& rhs);
 
 template<typename real_t>
-inline bool operator!=(
-    const matrix_2X3<real_t>& lhs,
-    const matrix_2X3<real_t>& rhs
-    );
+inline bool 
+operator!=(const matrix_2X3<real_t>& lhs,
+           const matrix_2X3<real_t>& rhs);
 
 template<typename real_t>
-inline matrix_2X3<real_t> operator+(
-    const matrix_2X3<real_t>& lhs,
-    const matrix_2X3<real_t>& rhs
-    );
+inline matrix_2X3<real_t> 
+operator+(const matrix_2X3<real_t>& lhs,
+          const matrix_2X3<real_t>& rhs);
 
 template<typename real_t>
-inline matrix_2X3<real_t> operator-(
-    const matrix_2X3<real_t>& lhs,
-    const matrix_2X3<real_t>& rhs
-    );
+inline matrix_2X3<real_t> 
+operator-(const matrix_2X3<real_t>& lhs,
+          const matrix_2X3<real_t>& rhs);
 
 template<typename real_t, typename real_u>
-inline matrix_2X3<real_t> operator*(
-    real_u scalar,
-    const matrix_2X3<real_t>& mtx
-    );
+inline matrix_2X3<real_t> 
+operator*(real_u                            scalar,
+          const matrix_2X3<real_t>&         mtx);
 
 template<typename real_t, typename real_u>
-inline matrix_2X3<real_t> operator*(
-    const matrix_2X3<real_t>& mtx,
-    real_u scalar
-    );
+inline matrix_2X3<real_t> 
+operator*(const matrix_2X3<real_t>&     mtx,
+          real_u                        scalar);
 
 template<typename real_t>
-matrix_2X3<real_t> operator*(
-    const matrix_2X3<real_t>& lhs,
-    const matrix_2X3<real_t>& rhs
-    );
+matrix_2X3<real_t> 
+operator*(const matrix_2X3<real_t>& lhs,
+          const matrix_2X3<real_t>& rhs);
 
 template<typename real_t, typename real_u>
-inline matrix_2X3<real_t> operator/(
-    const matrix_2X3<real_t>& mtx,
-    real_u scalar
-    );
+inline matrix_2X3<real_t> 
+operator/(const matrix_2X3<real_t>&     mtx,
+          real_u                        scalar);
+
+/*! @} */
 
 } // namespace math
 } // namespace v8

@@ -15,7 +15,9 @@ set(CMAKE_MODULE_PATH
 
 message("Module path = ${CMAKE_MODULE_PATH}")
 
-#find_package(Assimp REQUIRED)
+if (MSVC)
+	find_package(Assimp REQUIRED)
+endif(MSVC)
 
 if( CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR AND NOT MSVC_IDE )
   message(FATAL_ERROR "In-source builds are not allowed.")
@@ -68,7 +70,8 @@ if (MINGW)
         set(cxx_aditional_flags "-O0 -ggdb3")
     endif()
 
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra")
+    set(CMAKE_CXX_DISABLED_WARNINGS "${CMAKE_CXX_FLAGS} -Wno-unused-local-typedefs")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra ${CMAKE_CXX_DISABLED_WARNINGS}")
 endif(MINGW)
 
 include_directories("${CMAKE_SOURCE_DIR}/include")

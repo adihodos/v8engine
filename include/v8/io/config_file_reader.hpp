@@ -6,10 +6,9 @@
 #include <v8/v8.hpp>
 #include <v8/math/vector3.hpp>
 
-#pragma warning(push)
-#pragma warning(disable : 4100 4127 4201 4701 4702 4611 4512)
+SUPPRESS_WARNING_START(4100 4127 4201 4701 4702 4611 4512)
 #include <third_party/rapidjson/document.h>
-#pragma warning(pop)
+SUPPRESS_WARNING_END()
 
 #include <third_party/stlsoft/platformstl/filesystem/memory_mapped_file.hpp>
 

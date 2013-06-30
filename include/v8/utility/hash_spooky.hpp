@@ -27,6 +27,7 @@
 
 #pragma once
 
+#include <v8/v8.hpp>
 #include <stddef.h>
 
 #ifdef _MSC_VER
@@ -285,16 +286,10 @@ private:
     //  * is a not-very-regular mix of 1's and 0's
     //  * does not need any other special mathematical properties
     //
-#if defined(_MSVC)    
-__pragma(warning(push))
-__pragma(warning(disable : 4245))
-#endif
 
-   static const uint64 sc_const = 0xdeadbeefdeadbeefLL;
-   
-#if defined(_MSVC)   
-__pragma(warning(pop))
-#endif
+SUPPRESS_WARNING_START(4245)
+   static const uint64 sc_const = 0xdeadbeefdeadbeefULL;   
+SUPPRESS_WARNING_END()
 
     uint64 m_data[2*sc_numVars];   // unhashed data, for partial messages
     uint64 m_state[sc_numVars];  // internal state of the hash

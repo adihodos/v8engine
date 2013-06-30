@@ -4,27 +4,28 @@
 
 #include <third_party/stlsoft/platformstl/filesystem/path.hpp>
 
-#include "v8/base/crt_handle_policies.hpp"
+#include "v8/base/handle_traits/crt_file.hpp"
 #include "v8/base/debug_helpers.hpp"
 #include "v8/base/scoped_handle.hpp"
+#include "v8/base/shims/scoped_handle.hpp"
+#include "v8/base/shims/scoped_ptr.hpp"
 #include "v8/utility/string_ext.hpp"
 
 #include "v8/rendering/directx/internal/include_handler.hpp"
 
-v8::directx::internal::compiler_include_handler::compiler_include_handler(
-    const char* root_dir
-    )
+v8::directx::internal::compiler_include_handler::
+compiler_include_handler(const char* root_dir)
     :       ID3D10Include()
         ,   root_directory_(root_dir)
 {}
 
-HRESULT v8::directx::internal::compiler_include_handler::Open(
-    D3D10_INCLUDE_TYPE IncludeType, 
-    LPCSTR pFileName, 
-    LPCVOID pParentData, 
-    LPCVOID *ppData, 
-    UINT *pBytes
-    ) {
+HRESULT v8::directx::internal::compiler_include_handler::
+Open(D3D10_INCLUDE_TYPE         IncludeType, 
+     LPCSTR                     pFileName, 
+     LPCVOID                    pParentData, 
+     LPCVOID                    *ppData, 
+     UINT                       *pBytes) 
+{
     if (!root_directory_) {
         return E_INVALIDARG;
     }
@@ -44,13 +45,13 @@ HRESULT v8::directx::internal::compiler_include_handler::Open(
 
     struct _stat file_data;
 
-    if (::_stat(include_file_path.c_str(), &file_data)) {
+    if (_stat(include_file_path.c_str(), &file_data)) {
         OUTPUT_DBG_MSGA("Failed to obtain file stats for %s, compiler will fail",
                         include_file_path.c_str());
         return E_INVALIDARG;
     }
 
-    scoped_handle<crt_file_handle> fp(fopen(include_file_path.c_str(), "r"));
+    scoped_handle<crt_file> fp(fopen(include_file_path.c_str(), "r"));
     if (!fp) {
         return E_FAIL;
     }
@@ -58,9 +59,9 @@ HRESULT v8::directx::internal::compiler_include_handler::Open(
     file_contents_ = new char[file_data.st_size + 1];
     char tmp_buff[1024];
     v8_uint32_t offset = 0;
-    while (fgets(tmp_buff, _countof(tmp_buff), scoped_handle_get(fp))) {
+    while (fgets(tmp_buff, _countof(tmp_buff), raw_handle(fp))) {
         v8_uint32_t byte_count = static_cast<v8_uint32_t>(strlen(tmp_buff));
-        memcpy(scoped_pointer_get(file_contents_) + offset, tmp_buff, byte_count);
+        memcpy(raw_ptr(file_contents_) + offset, tmp_buff, byte_count);
         offset += byte_count;
 
     }
@@ -70,7 +71,8 @@ HRESULT v8::directx::internal::compiler_include_handler::Open(
     return S_OK;
 }
 
-HRESULT v8::directx::internal::compiler_include_handler::Close(LPCVOID) {
+HRESULT 
+v8::directx::internal::compiler_include_handler::Close(LPCVOID) {
     file_contents_ = nullptr;
     return S_OK;
 }

@@ -1,15 +1,13 @@
-#include <memory>
 #include <Windows.h>
+#include <v8/base/handle_traits/win32_file.hpp>
 #include <v8/base/scoped_handle.hpp>
-#include <v8/base/win32_handle_policies.hpp>
+#include <v8/base/shims/scoped_handle.hpp>
 
 #include "v8/utility/ifs_loader.hpp"
 
 v8_bool_t
-v8::utility::ifs_loader::readStringData(
-    HANDLE fptr, 
-    std::vector<v8_uint8_t>* str
-    ) {
+v8::utility::ifs_loader::readStringData(HANDLE                      fptr, 
+                                        std::vector<v8_uint8_t>*    str) {
     unsigned int strLen;
     DWORD bytesOut;
     if (!::ReadFile(fptr, &strLen, sizeof(strLen), &bytesOut, 0)) {
@@ -21,29 +19,23 @@ v8::utility::ifs_loader::readStringData(
 }
 
 v8_bool_t
-v8::utility::ifs_loader::readFloat(
-    HANDLE fptr, 
-    float* outVal
-    ) {
+v8::utility::ifs_loader::readFloat(HANDLE           fptr, 
+                                   float*           outVal) {
     DWORD bytesRead;
     return ::ReadFile(fptr, outVal, sizeof(float), &bytesRead, 0) == TRUE;
 }
 
 v8_bool_t
-v8::utility::ifs_loader::readUint(
-    HANDLE fptr, 
-    v8_uint_t* outVal
-    ) {
+v8::utility::ifs_loader::readUint(HANDLE        fptr, 
+                                  v8_uint_t*    outVal) {
     DWORD bytesRead;
     return ::ReadFile(fptr, outVal, sizeof(*outVal), &bytesRead, 0);
 }
 
 v8_bool_t
-v8::utility::ifs_loader::readElementCount(
-    HANDLE fptr, 
-    v8_uint_t* vertexCnt, 
-    const char* hdrString
-    ) {
+v8::utility::ifs_loader::readElementCount(HANDLE            fptr, 
+                                          v8_uint_t*        vertexCnt, 
+                                          const char*       hdrString) {
     std::vector<v8_uint8_t> headerStr;
     if (!readStringData(fptr, &headerStr))
         return false;
@@ -56,10 +48,8 @@ v8::utility::ifs_loader::readElementCount(
 }
 
 v8_bool_t
-v8::utility::ifs_loader::readVertices(
-    HANDLE fptr, 
-    v8_uint_t howMany
-    ) {
+v8::utility::ifs_loader::readVertices(HANDLE            fptr, 
+                                      v8_uint_t         howMany) {
     vertexData_.reserve(howMany);
     v8_bool_t failed = true;
     for (unsigned int i = 0; (i < howMany) && failed; ++i) {
@@ -78,10 +68,8 @@ v8::utility::ifs_loader::readVertices(
 }
 
 v8_bool_t
-v8::utility::ifs_loader::readFaces(
-    HANDLE fptr, 
-    v8_uint_t howMany
-    ) {
+v8::utility::ifs_loader::readFaces(HANDLE       fptr, 
+                                   v8_uint_t    howMany) {
     indexData_.reserve(howMany);
     v8_bool_t succeeded = true;
     v8_uint_t currentIndex;
@@ -98,9 +86,7 @@ v8::utility::ifs_loader::readFaces(
 }
 
 v8_bool_t
-v8::utility::ifs_loader::readIFSHeader(
-    HANDLE fptr
-    ) {
+v8::utility::ifs_loader::readIFSHeader(HANDLE   fptr) {
     std::vector<v8_uint8_t> strBuff;
     if (!readStringData(fptr, &strBuff))
         return false;
@@ -142,50 +128,38 @@ void v8::utility::ifs_loader::compute_mesh_normals() {
     }
 }
 
-namespace {
-    struct win32_file_deleter_t {
-        void operator()(HANDLE fp) const {
-            if (fp != INVALID_HANDLE_VALUE)
-                ::CloseHandle(fp);
-        }
-    };
-}
-
 v8_bool_t
-v8::utility::ifs_loader::loadModel(
-    const char* modelFile,
-    v8_bool_t invert_z
-    ) {
+v8::utility::ifs_loader::loadModel(const char*      modelFile,
+                                   v8_bool_t        invert_z) {
     isValid_    = false;
     invert_z_   = invert_z;
 
-    std::unique_ptr<void, win32_file_deleter_t> fileFD(
-        ::CreateFileA(modelFile, GENERIC_READ, 0, 0, OPEN_EXISTING, 
-                      FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, 0));
+    base::scoped_handle<base::win32_file> fileFD(
+        CreateFileA(modelFile, GENERIC_READ, 0, 0, OPEN_EXISTING, 
+                    FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, 0));
 
-    if (fileFD.get() == INVALID_HANDLE_VALUE)
+    if (!fileFD)
         return false;
 
-    if (!readIFSHeader(fileFD.get()))
+    if (!readIFSHeader(raw_handle(fileFD)))
         return false;
 
     //
     // read vertex count
     v8_uint_t elements;
-    if (!readElementCount(fileFD.get(), &elements, "VERTICES"))
+    if (!readElementCount(raw_handle(fileFD), &elements, "VERTICES"))
         return false;
 
-    if (!readVertices(fileFD.get(), elements))
+    if (!readVertices(raw_handle(fileFD), elements))
         return false;
 
     //
     // read face count
-    if (!readElementCount(fileFD.get(), &numFaces_, "TRIANGLES"))
+    if (!readElementCount(raw_handle(fileFD), &numFaces_, "TRIANGLES"))
         return false;
 
-    if (!readFaces(fileFD.get(), numFaces_))
+    if (!readFaces(raw_handle(fileFD), numFaces_))
         return false;
-
 
     compute_mesh_normals();
     isValid_ = true;

@@ -70,7 +70,7 @@
 
 #define     V8_COMPILER_IS_MSVC
 #define     V8_COMPILER_STRING          "Microsoft Visual C++ Compiler"
- #define    V8FRAMEWORK_GRAPHICS_API_IS_DIRECTX
+#define     V8FRAMEWORK_GRAPHICS_API_IS_DIRECTX
 
 #elif defined(__GNUC__) && !defined(__clang__)
 
@@ -93,7 +93,6 @@
 //#error  Unsupported compiler.
 #define V8_COMPILER_IS_MSVC
 #define V8_COMPILER_STRING          "Microsoft Visual C++ Compiler"
-
 
 #endif
 
@@ -250,20 +249,20 @@ typedef ptrdiff_t                                           v8_ptrdiff_t;
 #if defined(V8_COMPILER_IS_MSVC)
 
 #ifndef SUPPRESS_WARNING_START
-#define SUPPRESS_WARNING_START(warn_id)         \
+#define SUPPRESS_WARNING_START(...)             \
     __pragma(warning(push))                     \
-    __pragma(warning(disable : warn_id))
+    __pragma(warning(disable : ##__VA_ARGS__))
 #endif /* !SUPPRESS_WARNING */    
 
 #ifndef SUPPRESS_WARNING_END
 #define SUPPRESS_WARNING_END()                  \
     __pragma(warning(pop))
-#endif /* !SUPPRESS_WARNING_END */
+#endif /* !SUPPRESS_WARNING_END */    
 
 #else /* V8_COMPILER_IS_MSVC */
 
 #ifndef SUPPRESS_WARNING_START
-#define SUPPRESS_WARNING_START(warn_id)
+#define SUPPRESS_WARNING_START(...)
 #endif /* !SUPPRESS_WARNING */    
 
 #ifndef SUPPRESS_WARNING_END
