@@ -30,7 +30,8 @@
  * \file scoped_handle.hpp
  * \brief Automated resource management classes and utilities.
  */
-
+ 
+#include <utility>
 #include <v8/v8.hpp>
 #include <v8/base/handle_traits.hpp>
 #include <v8/base/operator_bool.hpp>
