@@ -15,32 +15,30 @@ set(CMAKE_MODULE_PATH
 
 message("Module path = ${CMAKE_MODULE_PATH}")
 
-if (MSVC)
-	find_package(Assimp REQUIRED)
-endif(MSVC)
-
 if( CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR AND NOT MSVC_IDE )
   message(FATAL_ERROR "In-source builds are not allowed.")
 endif()
 
 if (MSVC)
-    set(DirectX_D3D11_LIBRARIES "d3d11.lib;d3dcompiler.lib;dxgi.lib;dxguid.lib")
+    find_package(Assimp REQUIRED)
+    find_package(Windows8SDK REQUIRED)
 
     set(cxx_disabled_warnings "/wd4201 /wd4127 /wd4005")
 
-    # define NOMINMAX so that code that uses STL can compile
+    # define NOMINMAX so that code that uses STL and windows.h compiles
     add_definitions(/DNOMINMAX)
 
     # Disabled retarded warnings about some functions being deprecated
     add_definitions(/D_CRT_SECURE_NO_WARNINGS)
     add_definitions(/D_CRT_NONSTDC_NO_WARNINGS)
     add_definitions(/D_CRT_SECURE_NO_DEPRECATE)
+    add_definitions(/DUSE_XNAMATH)
 
     #
     # Compile for Windows 7 and later
     add_definitions(/D_WIN32_WINNT=0x0601)
     add_definitions(/DWINVER=0x0601)
-    add_definitions(/DDXGI_1_2_FORMATS)
+    #add_definitions(/DDXGI_1_2_FORMATS)
     add_definitions(/D_WIN7_PLATFORM_UPDATE)
 
     if (CMAKE_BUILD_TYPE MATCHES Debug)
@@ -56,12 +54,12 @@ if (MSVC)
     endforeach()
 
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${cxx_aditional_flags} ${cxx_disabled_warnings}")
-    message("${CMAKE_CXX_FLAGS}")
-    message("FLAGS VAR = ${flags_var}")
+    #message("${CMAKE_CXX_FLAGS}")
+    #message("FLAGS VAR = ${flags_var}")
 endif()
 
 if (MINGW)
-	add_definitions(-DNOMINMAX)
+    add_definitions(-DNOMINMAX)
     add_definitions(-D_WIN32_WINNT=0x0601)
     add_definitions(-DWINVER=0x0601)
 
@@ -71,15 +69,22 @@ if (MINGW)
     endif()
 
     set(CMAKE_CXX_DISABLED_WARNINGS "${CMAKE_CXX_FLAGS} -Wno-unused-local-typedefs")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra ${CMAKE_CXX_DISABLED_WARNINGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra ${CMAKE_CXX_DISABLED_WARNINGS}")
 endif(MINGW)
 
 include_directories("${CMAKE_SOURCE_DIR}/include")
 include_directories("${CMAKE_SOURCE_DIR}/include/third_party/stlsoft")
+
+if (MSVC)
+    include_directories("${WIN8SDK_INCLUDE_DIR}")
+    include_directories("${WIN8SDK_INCLUDE_DIR_SHARED}")
+    link_directories("${WIN8SDK_LIBDIR_FULL}")
+endif(MSVC)
+
 add_subdirectory(libs)
 
 if (MSVC)
-	add_subdirectory(sample_projects)
+    add_subdirectory(sample_projects)
 endif(MSVC)
 
 install(DIRECTORY include/v8 DESTINATION include)
