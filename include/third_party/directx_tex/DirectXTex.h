@@ -23,11 +23,14 @@
 #pragma warning(pop)
 
 #include <algorithm>
+#include <functional>
 
 #include <dxgiformat.h>
 #include <d3d11.h>
 
-#define DIRECTX_TEX_VERSION 101
+#include <ocidl.h>
+
+#define DIRECTX_TEX_VERSION 110
 
 #if defined(_MSC_VER) && (_MSC_VER<1610) && !defined(_In_reads_)
 #define _Analysis_assume_(exp)
@@ -40,6 +43,7 @@
 #define _Out_writes_bytes_to_opt_(a,b)
 #define _Inout_updates_bytes_(exp)
 #define _Inout_updates_all_(exp)
+#define _Inout_updates_all_opt_(exp)
 #define _Outptr_
 #define _When_(a,b)
 #endif
@@ -58,11 +62,13 @@ namespace DirectX
     bool IsPacked( _In_ DXGI_FORMAT fmt );
     bool IsVideo( _In_ DXGI_FORMAT fmt );
     bool IsSRGB( _In_ DXGI_FORMAT fmt );
-    bool IsTypeless( _In_ DXGI_FORMAT fmt );
+    bool IsTypeless( _In_ DXGI_FORMAT fmt, _In_ bool partialTypeless = true );
 
     bool HasAlpha( _In_ DXGI_FORMAT fmt );
 
     size_t BitsPerPixel( _In_ DXGI_FORMAT fmt );
+
+    size_t BitsPerColor( _In_ DXGI_FORMAT fmt );
 
     enum CP_FLAGS
     {
@@ -99,6 +105,21 @@ namespace DirectX
         TEX_MISC_TEXTURECUBE = 0x4L,
     };
 
+    enum TEX_MISC_FLAG2
+    {
+        TEX_MISC2_ALPHA_MODE_MASK = 0x7L,
+    };
+
+    enum TEX_ALPHA_MODE
+        // Matches DDS_ALPHA_MODE, encoded in MISC_FLAGS2
+    {
+        TEX_ALPHA_MODE_UNKNOWN       = 0,
+        TEX_ALPHA_MODE_STRAIGHT      = 1,
+        TEX_ALPHA_MODE_PREMULTIPLIED = 2,
+        TEX_ALPHA_MODE_OPAQUE        = 3,
+        TEX_ALPHA_MODE_CUSTOM        = 4,
+    };
+
     struct TexMetadata
     {
         size_t          width;
@@ -107,11 +128,19 @@ namespace DirectX
         size_t          arraySize;  // For cubemap, this is a multiple of 6
         size_t          mipLevels;
         uint32_t        miscFlags;
+        uint32_t        miscFlags2;
         DXGI_FORMAT     format;
         TEX_DIMENSION   dimension;
 
         size_t ComputeIndex( _In_ size_t mip, _In_ size_t item, _In_ size_t slice ) const;
             // Returns size_t(-1) to indicate an out-of-range error
+
+        bool IsCubemap() const { return (miscFlags & TEX_MISC_TEXTURECUBE) != 0; }
+            // Helpers for miscFlags
+
+        bool IsPMAlpha() const { return ((miscFlags2 & TEX_MISC2_ALPHA_MODE_MASK) == TEX_ALPHA_MODE_PREMULTIPLIED) != 0; }
+        void SetAlphaMode( TEX_ALPHA_MODE mode ) { miscFlags2 = (miscFlags2 & ~TEX_MISC2_ALPHA_MODE_MASK) | static_cast<uint32_t>(mode); }
+            // Helpers for miscFlags2
     };
 
     enum DDS_FLAGS
@@ -133,8 +162,14 @@ namespace DirectX
         DDS_FLAGS_NO_16BPP              = 0x10,
             // Conversions avoid use of 565, 5551, and 4444 formats and instead expand to 8888 to avoid use of optional WDDM 1.2 formats
 
+        DDS_FLAGS_EXPAND_LUMINANCE      = 0x20,
+            // When loading legacy luminance formats expand replicating the color channels rather than leaving them packed (L8, L16, A8L8)
+
         DDS_FLAGS_FORCE_DX10_EXT        = 0x10000,
             // Always use the 'DX10' header extension for DDS writer (i.e. don't try to write DX9 compatible DDS files)
+
+        DDS_FLAGS_FORCE_DX10_EXT_MISC2  = 0x20000,
+            // DDS_FLAGS_FORCE_DX10_EXT including miscFlags2 information (result may not be compatible with D3DX10 or D3DX11)
     };
 
     enum WIC_FLAGS
@@ -151,7 +186,7 @@ namespace DirectX
             // Loads 565, 5551, and 4444 formats as 8888 to avoid use of optional WDDM 1.2 formats
 
         WIC_FLAGS_ALLOW_MONO            = 0x8,
-            // Loads 1-bit monochrome (black & white) as R1_UNORM rather than 8-bit greyscale
+            // Loads 1-bit monochrome (black & white) as R1_UNORM rather than 8-bit grayscale
 
         WIC_FLAGS_ALL_FRAMES            = 0x10,
             // Loads all images in a multi-frame file, converting/resizing to match the first frame as needed, defaults to 0th frame otherwise
@@ -227,6 +262,8 @@ namespace DirectX
         uint8_t* GetPixels() const { return _memory; }
         size_t GetPixelsSize() const { return _size; }
 
+        bool IsAlphaAllOpaque() const;
+
     private:
         size_t      _nimages;
         size_t      _size;
@@ -296,14 +333,14 @@ namespace DirectX
                              _Out_opt_ TexMetadata* metadata, _Out_ ScratchImage& image );
 
     HRESULT SaveToWICMemory( _In_ const Image& image, _In_ DWORD flags, _In_ REFGUID guidContainerFormat,
-                             _Out_ Blob& blob, _In_opt_ const GUID* targetFormat = nullptr );
+                             _Out_ Blob& blob, _In_opt_ const GUID* targetFormat = nullptr, _In_opt_ std::function<void(IPropertyBag2*)> setCustomProps = nullptr );
     HRESULT SaveToWICMemory( _In_count_(nimages) const Image* images, _In_ size_t nimages, _In_ DWORD flags, _In_ REFGUID guidContainerFormat,
-                             _Out_ Blob& blob, _In_opt_ const GUID* targetFormat = nullptr );
+                             _Out_ Blob& blob, _In_opt_ const GUID* targetFormat = nullptr, _In_opt_ std::function<void(IPropertyBag2*)> setCustomProps = nullptr );
 
     HRESULT SaveToWICFile( _In_ const Image& image, _In_ DWORD flags, _In_ REFGUID guidContainerFormat,
-                           _In_z_ LPCWSTR szFile, _In_opt_ const GUID* targetFormat = nullptr );
+                           _In_z_ LPCWSTR szFile, _In_opt_ const GUID* targetFormat = nullptr, _In_opt_ std::function<void(IPropertyBag2*)> setCustomProps = nullptr );
     HRESULT SaveToWICFile( _In_count_(nimages) const Image* images, _In_ size_t nimages, _In_ DWORD flags, _In_ REFGUID guidContainerFormat,
-                           _In_z_ LPCWSTR szFile, _In_opt_ const GUID* targetFormat = nullptr );
+                           _In_z_ LPCWSTR szFile, _In_opt_ const GUID* targetFormat = nullptr, _In_opt_ std::function<void(IPropertyBag2*)> setCustomProps = nullptr );
 
     enum WICCodecs
     {
@@ -340,10 +377,24 @@ namespace DirectX
     {
         TEX_FILTER_DEFAULT          = 0,
 
-        // Clamp filtering only
+        TEX_FILTER_WRAP_U           = 0x1,
+        TEX_FILTER_WRAP_V           = 0x2,
+        TEX_FILTER_WRAP_W           = 0x4,
+        TEX_FILTER_WRAP             = ( TEX_FILTER_WRAP_U | TEX_FILTER_WRAP_V | TEX_FILTER_WRAP_W ),
+        TEX_FILTER_MIRROR_U         = 0x10,
+        TEX_FILTER_MIRROR_V         = 0x20,
+        TEX_FILTER_MIRROR_W         = 0x40,
+        TEX_FILTER_MIRROR          = ( TEX_FILTER_MIRROR_U | TEX_FILTER_MIRROR_V | TEX_FILTER_MIRROR_W ),
+            // Wrap vs. Mirror vs. Clamp filtering options
 
         TEX_FILTER_SEPARATE_ALPHA   = 0x100,
             // Resize color and alpha channel independently
+
+        TEX_FILTER_RGB_COPY_RED     = 0x1000,
+        TEX_FILTER_RGB_COPY_GREEN   = 0x2000,
+        TEX_FILTER_RGB_COPY_BLUE    = 0x4000,
+            // When converting RGB to R, defaults to using grayscale. These flags indicate copying a specific channel instead
+            // When converting RGB to RG, defaults to copying RED | GREEN. These flags control which channels are selected instead.
 
         TEX_FILTER_DITHER           = 0x10000,
             // Use ordered 4x4 dithering for any required conversions
@@ -353,15 +404,23 @@ namespace DirectX
         TEX_FILTER_POINT            = 0x100000,
         TEX_FILTER_LINEAR           = 0x200000,
         TEX_FILTER_CUBIC            = 0x300000,
+        TEX_FILTER_BOX              = 0x400000,
         TEX_FILTER_FANT             = 0x400000, // Equiv to Box filtering for mipmap generation
+        TEX_FILTER_TRIANGLE         = 0x500000,
             // Filtering mode to use for any required image resizing
 
         TEX_FILTER_SRGB_IN          = 0x1000000,
         TEX_FILTER_SRGB_OUT         = 0x2000000,
-        TEX_FILTER_SRGB             = 0x3000000,
+        TEX_FILTER_SRGB             = ( TEX_FILTER_SRGB_IN | TEX_FILTER_SRGB_OUT ),
             // sRGB <-> RGB for use in conversion operations
             // if the input format type is IsSRGB(), then SRGB_IN is on by default
             // if the output format type is IsSRGB(), then SRGB_OUT is on by default
+
+        TEX_FILTER_FORCE_NON_WIC    = 0x10000000,
+            // Forces use of the non-WIC path when both are an option
+
+        TEX_FILTER_FORCE_WIC        = 0x20000000,
+            // Forces use of the WIC path even when logic would have picked a non-WIC path when both are an option
     };
 
     HRESULT Resize( _In_ const Image& srcImage, _In_ size_t width, _In_ size_t height, _In_ DWORD filter,
@@ -473,7 +532,22 @@ namespace DirectX
     HRESULT CopyRectangle( _In_ const Image& srcImage, _In_ const Rect& srcRect, _In_ const Image& dstImage,
                            _In_ DWORD filter, _In_ size_t xOffset, _In_ size_t yOffset );
 
-    HRESULT ComputeMSE( _In_ const Image& image1, _In_ const Image& image2, _Out_ float& mse, _Out_writes_opt_(4) float* mseV );
+    enum CMSE_FLAGS
+    {
+        CMSE_DEFAULT                = 0,
+
+        CMSE_IMAGE1_SRGB            = 0x1,
+        CMSE_IMAGE2_SRGB            = 0x2,
+            // Indicates that image needs gamma correction before comparision
+
+        CMSE_IGNORE_RED             = 0x10,
+        CMSE_IGNORE_GREEN           = 0x20,
+        CMSE_IGNORE_BLUE            = 0x40,
+        CMSE_IGNORE_ALPHA           = 0x80,
+            // Ignore the channel when computing MSE
+    };
+
+    HRESULT ComputeMSE( _In_ const Image& image1, _In_ const Image& image2, _Out_ float& mse, _Out_writes_opt_(4) float* mseV, _In_ DWORD flags = 0 );
 
     //---------------------------------------------------------------------------------
     // Direct3D 11 functions

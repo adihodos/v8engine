@@ -67,8 +67,8 @@ public :
     double get_cpu_usage() const {
         double cpu_usage = 0.0;
         if (valid_) {
-            PDH_FMT_COUNTERVALUE cnt_val = { 0 };
             if (::PdhCollectQueryData(queryhandle_) == ERROR_SUCCESS) {
+                PDH_FMT_COUNTERVALUE cnt_val;
                 if (::PdhGetFormattedCounterValue(counter_, PDH_FMT_DOUBLE, 
                                                   nullptr, &cnt_val) == ERROR_SUCCESS) {
                     cpu_usage = cnt_val.doubleValue;

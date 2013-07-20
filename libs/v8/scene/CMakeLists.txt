@@ -18,4 +18,4 @@ target_link_libraries(
     v8_io
 )
 
-install(TARGETS v8_scene ARCHIVE DESTINATION libs)
+install(TARGETS v8_scene DESTINATION libs)

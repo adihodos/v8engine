@@ -223,7 +223,46 @@ static HRESULT _DecodeMetadata( _In_ DWORD flags,
     if ( metadata.format == DXGI_FORMAT_UNKNOWN )
         return HRESULT_FROM_WIN32( ERROR_NOT_SUPPORTED );
 
-    return S_OK;
+    GUID containerFormat;
+    hr = decoder->GetContainerFormat( &containerFormat );
+    if ( FAILED(hr) )
+        return hr;
+
+    ScopedObject<IWICMetadataQueryReader> metareader;
+    hr = frame->GetMetadataQueryReader( &metareader );
+    if ( SUCCEEDED(hr) )
+    {
+        // Check for sRGB colorspace metadata
+        bool sRGB = false;
+
+        PROPVARIANT value;
+        PropVariantInit( &value );
+
+        if ( memcmp( &containerFormat, &GUID_ContainerFormatPng, sizeof(GUID) ) == 0 )
+        {
+            // Check for sRGB chunk
+            if ( SUCCEEDED( metareader->GetMetadataByName( L"/sRGB/RenderingIntent", &value ) ) && value.vt == VT_UI1 )
+            {
+                sRGB = true;
+            }
+        }
+        else if ( SUCCEEDED( metareader->GetMetadataByName( L"System.Image.ColorSpace", &value ) ) && value.vt == VT_UI2 && value.uiVal == 1 )
+        {
+            sRGB = true;
+        }
+
+        PropVariantClear( &value );
+
+        if ( sRGB )
+            metadata.format = MakeSRGB( metadata.format );
+    }
+    else if ( hr == WINCODEC_ERR_UNSUPPORTEDOPERATION )
+    {
+        // Some formats just don't support metadata (BMP, ICO, etc.), so ignore this failure
+        hr = S_OK;
+    }
+
+    return hr;
 }
 
 
@@ -385,9 +424,67 @@ static HRESULT _DecodeMultiframe( _In_ DWORD flags, _In_ const TexMetadata& meta
 
 
 //-------------------------------------------------------------------------------------
+// Encodes image metadata
+//-------------------------------------------------------------------------------------
+static HRESULT _EncodeMetadata( _In_ IWICBitmapFrameEncode* frame, _In_ const GUID& containerFormat, _In_ DXGI_FORMAT format )
+{
+    if ( !frame )
+        return E_POINTER;
+
+    ScopedObject<IWICMetadataQueryWriter> metawriter;
+    HRESULT hr = frame->GetMetadataQueryWriter( &metawriter );
+    if ( SUCCEEDED( hr ) )
+    {
+        PROPVARIANT value;
+        PropVariantInit( &value );
+
+        bool sRGB = IsSRGB( format );
+
+        value.vt = VT_LPSTR;
+        value.pszVal = "DirectXTex";
+
+        if ( memcmp( &containerFormat, &GUID_ContainerFormatPng, sizeof(GUID) ) == 0 )
+        {
+            // Set Software name
+            (void)metawriter->SetMetadataByName( L"/tEXt/{str=Software}", &value );
+
+            // Set sRGB chunk
+            if ( sRGB )
+            {
+                value.vt = VT_UI1;
+                value.bVal = 0;
+                (void)metawriter->SetMetadataByName( L"/sRGB/RenderingIntent", &value );
+            }
+        }
+        else
+        {
+            // Set Software name
+            (void)metawriter->SetMetadataByName( L"System.ApplicationName", &value );
+
+            if ( sRGB )
+            {
+                // Set JPEG EXIF Colorspace of sRGB
+                value.vt = VT_UI2;
+                value.uiVal = 1;
+                (void)metawriter->SetMetadataByName( L"System.Image.ColorSpace", &value );
+            }
+        }
+    }
+    else if ( hr == WINCODEC_ERR_UNSUPPORTEDOPERATION )
+    {
+        // Some formats just don't support metadata (BMP, ICO, etc.), so ignore this failure
+        hr = S_OK;
+    }
+
+    return hr;
+}
+
+
+//-------------------------------------------------------------------------------------
 // Encodes a single frame
 //-------------------------------------------------------------------------------------
-static HRESULT _EncodeImage( _In_ const Image& image, _In_ DWORD flags, _In_ IWICBitmapFrameEncode* frame, _In_opt_ IPropertyBag2* props, _In_opt_ const GUID* targetFormat )
+static HRESULT _EncodeImage( _In_ const Image& image, _In_ DWORD flags, _In_ REFGUID containerFormat,
+                             _In_ IWICBitmapFrameEncode* frame, _In_opt_ IPropertyBag2* props, _In_opt_ const GUID* targetFormat )
 {
     if ( !frame )
         return E_INVALIDARG;
@@ -403,7 +500,7 @@ static HRESULT _EncodeImage( _In_ const Image& image, _In_ DWORD flags, _In_ IWI
     if ( FAILED(hr) )
         return hr;
 
-#ifdef _AMD64_
+#ifdef _M_X64
     if ( (image.width > 0xFFFFFFFF) || (image.height > 0xFFFFFFFF) )
         return E_INVALIDARG;
 #endif
@@ -418,6 +515,16 @@ static HRESULT _EncodeImage( _In_ const Image& image, _In_ DWORD flags, _In_ IWI
 
     WICPixelFormatGUID targetGuid = (targetFormat) ? (*targetFormat) : pfGuid;
     hr = frame->SetPixelFormat( &targetGuid );
+    if ( FAILED(hr) )
+        return hr;
+
+    if ( targetFormat && memcmp( targetFormat, &targetGuid, sizeof(WICPixelFormatGUID) ) != 0 )
+    {
+        // Requested output pixel format is not supported by the WIC codec
+        return E_FAIL;
+    }
+
+    hr = _EncodeMetadata( frame, containerFormat, image.format );
     if ( FAILED(hr) )
         return hr;
 
@@ -466,7 +573,8 @@ static HRESULT _EncodeImage( _In_ const Image& image, _In_ DWORD flags, _In_ IWI
 }
 
 static HRESULT _EncodeSingleFrame( _In_ const Image& image, _In_ DWORD flags,
-                                   _In_ REFGUID guidContainerFormat, _Inout_ IStream* stream, _In_opt_ const GUID* targetFormat )
+                                   _In_ REFGUID containerFormat, _Inout_ IStream* stream,
+                                   _In_opt_ const GUID* targetFormat, _In_opt_ std::function<void(IPropertyBag2*)> setCustomProps )
 {
     if ( !stream )
         return E_INVALIDARG;
@@ -477,7 +585,7 @@ static HRESULT _EncodeSingleFrame( _In_ const Image& image, _In_ DWORD flags,
         return E_NOINTERFACE;
 
     ScopedObject<IWICBitmapEncoder> encoder;
-    HRESULT hr = pWIC->CreateEncoder( guidContainerFormat, 0, &encoder );
+    HRESULT hr = pWIC->CreateEncoder( containerFormat, 0, &encoder );
     if ( FAILED(hr) )
         return hr;
 
@@ -491,24 +599,24 @@ static HRESULT _EncodeSingleFrame( _In_ const Image& image, _In_ DWORD flags,
     if ( FAILED(hr) )
         return hr;
 
-    if ( memcmp( &guidContainerFormat, &GUID_ContainerFormatBmp, sizeof(WICPixelFormatGUID) ) == 0  )
+    if ( memcmp( &containerFormat, &GUID_ContainerFormatBmp, sizeof(WICPixelFormatGUID) ) == 0 && _IsWIC2() )
     {
-        // Opt-in to the Windows 8 support for writing 32-bit Windows BMP files with an alpha channel if supported
+        // Opt-in to the WIC2 support for writing 32-bit Windows BMP files with an alpha channel
         PROPBAG2 option = { 0 };
         option.pstrName = L"EnableV5Header32bppBGRA";
 
         VARIANT varValue;    
         varValue.vt = VT_BOOL;
         varValue.boolVal = VARIANT_TRUE;      
-        hr = props->Write( 1, &option, &varValue ); 
-        if ( FAILED(hr) )
-        {
-            // Fails on older versions of WIC, so we default to the null property bag
-            props.Reset();
-        }
+        (void)props->Write( 1, &option, &varValue ); 
     }
 
-    hr = _EncodeImage( image, flags, frame.Get(), props.Get(), targetFormat );
+    if ( setCustomProps )
+    {
+        setCustomProps( props.Get() );
+    }
+
+    hr = _EncodeImage( image, flags, containerFormat, frame.Get(), props.Get(), targetFormat );
     if ( FAILED(hr) )
         return hr;
 
@@ -524,7 +632,8 @@ static HRESULT _EncodeSingleFrame( _In_ const Image& image, _In_ DWORD flags,
 // Encodes an image array
 //-------------------------------------------------------------------------------------
 static HRESULT _EncodeMultiframe( _In_reads_(nimages) const Image* images, _In_ size_t nimages, _In_ DWORD flags,
-                                  _In_ REFGUID guidContainerFormat, _Inout_ IStream* stream, _In_opt_ const GUID* targetFormat )
+                                  _In_ REFGUID containerFormat, _Inout_ IStream* stream,
+                                  _In_opt_ const GUID* targetFormat, _In_opt_ std::function<void(IPropertyBag2*)> setCustomProps )
 {
     if ( !stream || nimages < 2 )
         return E_INVALIDARG;
@@ -538,7 +647,7 @@ static HRESULT _EncodeMultiframe( _In_reads_(nimages) const Image* images, _In_ 
         return E_NOINTERFACE;
 
     ScopedObject<IWICBitmapEncoder> encoder;
-    HRESULT hr = pWIC->CreateEncoder( guidContainerFormat, 0, &encoder );
+    HRESULT hr = pWIC->CreateEncoder( containerFormat, 0, &encoder );
     if ( FAILED(hr) )
         return hr;
 
@@ -562,11 +671,17 @@ static HRESULT _EncodeMultiframe( _In_reads_(nimages) const Image* images, _In_ 
     for( size_t index=0; index < nimages; ++index )
     {
         ScopedObject<IWICBitmapFrameEncode> frame;
-        hr = encoder->CreateNewFrame( &frame, nullptr );
+        ScopedObject<IPropertyBag2> props;
+        hr = encoder->CreateNewFrame( &frame, &props );
         if ( FAILED(hr) )
             return hr;
 
-        hr = _EncodeImage( images[index], flags, frame.Get(), nullptr, targetFormat );
+        if ( setCustomProps )
+        {
+            setCustomProps( props.Get() );
+        }
+
+        hr = _EncodeImage( images[index], flags, containerFormat, frame.Get(), props.Get(), targetFormat );
         if ( FAILED(hr) )
             return hr;
     }
@@ -592,7 +707,7 @@ HRESULT GetMetadataFromWICMemory( LPCVOID pSource, size_t size, DWORD flags, Tex
     if ( !pSource || size == 0 )
         return E_INVALIDARG;
 
-#ifdef _AMD64_
+#ifdef _M_X64
     if ( size > 0xFFFFFFFF )
         return HRESULT_FROM_WIN32( ERROR_FILE_TOO_LARGE );
 #endif
@@ -674,7 +789,7 @@ HRESULT LoadFromWICMemory( LPCVOID pSource, size_t size, DWORD flags, TexMetadat
     if ( !pSource || size == 0 )
         return E_INVALIDARG;
 
-#ifdef _AMD64_
+#ifdef _M_X64
     if ( size > 0xFFFFFFFF )
         return HRESULT_FROM_WIN32( ERROR_FILE_TOO_LARGE );
 #endif
@@ -794,7 +909,8 @@ HRESULT LoadFromWICFile( LPCWSTR szFile, DWORD flags, TexMetadata* metadata, Scr
 // Save a WIC-supported file to memory
 //-------------------------------------------------------------------------------------
 _Use_decl_annotations_
-HRESULT SaveToWICMemory( const Image& image, DWORD flags, REFGUID guidContainerFormat, Blob& blob, const GUID* targetFormat )
+HRESULT SaveToWICMemory( const Image& image, DWORD flags, REFGUID containerFormat, Blob& blob,
+                         const GUID* targetFormat, std::function<void(IPropertyBag2*)> setCustomProps )
 {
     if ( !image.pixels )
         return E_POINTER;
@@ -806,7 +922,7 @@ HRESULT SaveToWICMemory( const Image& image, DWORD flags, REFGUID guidContainerF
     if ( FAILED(hr) )
         return hr;
 
-    hr = _EncodeSingleFrame( image, flags, guidContainerFormat, stream.Get(), targetFormat );
+    hr = _EncodeSingleFrame( image, flags, containerFormat, stream.Get(), targetFormat, setCustomProps );
     if ( FAILED(hr) )
         return hr;
 
@@ -840,7 +956,8 @@ HRESULT SaveToWICMemory( const Image& image, DWORD flags, REFGUID guidContainerF
 }
 
 _Use_decl_annotations_
-HRESULT SaveToWICMemory( const Image* images, size_t nimages, DWORD flags, REFGUID guidContainerFormat, Blob& blob, const GUID* targetFormat )
+HRESULT SaveToWICMemory( const Image* images, size_t nimages, DWORD flags, REFGUID containerFormat, Blob& blob,
+                         const GUID* targetFormat, std::function<void(IPropertyBag2*)> setCustomProps )
 {
     if ( !images || nimages == 0 )
         return E_INVALIDARG;
@@ -853,9 +970,9 @@ HRESULT SaveToWICMemory( const Image* images, size_t nimages, DWORD flags, REFGU
         return hr;
 
     if ( nimages > 1 )
-        hr = _EncodeMultiframe( images, nimages, flags, guidContainerFormat, stream.Get(), targetFormat );
+        hr = _EncodeMultiframe( images, nimages, flags, containerFormat, stream.Get(), targetFormat, setCustomProps );
     else
-        hr = _EncodeSingleFrame( images[0], flags, guidContainerFormat, stream.Get(), targetFormat );
+        hr = _EncodeSingleFrame( images[0], flags, containerFormat, stream.Get(), targetFormat, setCustomProps );
 
     if ( FAILED(hr) )
         return hr;
@@ -894,7 +1011,8 @@ HRESULT SaveToWICMemory( const Image* images, size_t nimages, DWORD flags, REFGU
 // Save a WIC-supported file to disk
 //-------------------------------------------------------------------------------------
 _Use_decl_annotations_
-HRESULT SaveToWICFile( const Image& image, DWORD flags, REFGUID guidContainerFormat, LPCWSTR szFile, const GUID* targetFormat )
+HRESULT SaveToWICFile( const Image& image, DWORD flags, REFGUID containerFormat, LPCWSTR szFile,
+                       const GUID* targetFormat, std::function<void(IPropertyBag2*)> setCustomProps )
 {
     if ( !szFile )
         return E_INVALIDARG;
@@ -915,7 +1033,7 @@ HRESULT SaveToWICFile( const Image& image, DWORD flags, REFGUID guidContainerFor
     if ( FAILED(hr) )
         return hr;
 
-    hr = _EncodeSingleFrame( image, flags, guidContainerFormat, stream.Get(), targetFormat );
+    hr = _EncodeSingleFrame( image, flags, containerFormat, stream.Get(), targetFormat, setCustomProps );
     if ( FAILED(hr) )
         return hr;
 
@@ -923,7 +1041,8 @@ HRESULT SaveToWICFile( const Image& image, DWORD flags, REFGUID guidContainerFor
 }
 
 _Use_decl_annotations_
-HRESULT SaveToWICFile( const Image* images, size_t nimages, DWORD flags, REFGUID guidContainerFormat, LPCWSTR szFile, const GUID* targetFormat )
+HRESULT SaveToWICFile( const Image* images, size_t nimages, DWORD flags, REFGUID containerFormat, LPCWSTR szFile, const GUID* targetFormat,
+                       std::function<void(IPropertyBag2*)> setCustomProps )
 {
     if ( !szFile || !images || nimages == 0 )
         return E_INVALIDARG;
@@ -942,9 +1061,9 @@ HRESULT SaveToWICFile( const Image* images, size_t nimages, DWORD flags, REFGUID
         return hr;
 
     if ( nimages > 1 )
-        hr = _EncodeMultiframe( images, nimages, flags, guidContainerFormat, stream.Get(), targetFormat );
+        hr = _EncodeMultiframe( images, nimages, flags, containerFormat, stream.Get(), targetFormat, setCustomProps );
     else
-        hr = _EncodeSingleFrame( images[0], flags, guidContainerFormat, stream.Get(), targetFormat );
+        hr = _EncodeSingleFrame( images[0], flags, containerFormat, stream.Get(), targetFormat, setCustomProps );
 
     if ( FAILED(hr) )
         return hr;

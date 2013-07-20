@@ -51,6 +51,10 @@ public :
         return devctx_;
     }
 
+    HWND get_owning_window() const {
+        return owning_wnd_;
+    }
+
     bool operator!() const {
         return devctx_ == nullptr;
     }
@@ -59,6 +63,20 @@ public :
         HDC old_ctx = devctx_;
         devctx_ = nullptr;
         return old_ctx;
+    }
+
+    void reset(HWND window) {
+        if (owning_wnd_ != window) {
+            if (owning_wnd_) {
+                if (devctx_) {
+                    ReleaseDC(owning_wnd_, devctx_);
+                }
+                owning_wnd_ = nullptr;
+                devctx_ = nullptr;
+            }
+            owning_wnd_ = window;
+            devctx_ = GetDC(owning_wnd_);
+        }
     }
 };
 

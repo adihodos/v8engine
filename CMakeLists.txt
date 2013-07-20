@@ -23,6 +23,10 @@ if (MSVC)
     find_package(Assimp REQUIRED)
     find_package(Windows8SDK REQUIRED)
 
+    message("Windows SDK include dirs : ${WIN8SDK_INCLUDE_DIR} , ${WIN8SDK_INCLUDE_DIR_SHARED}")
+    message("Windows SDK library dirs : ${WIN8SDK_LIBDIR_FULL}")
+    message("DirectX11 Libraries : ${DirectX_D3D11_LIBRARIES}")
+
     set(cxx_disabled_warnings "/wd4201 /wd4127 /wd4005")
 
     # define NOMINMAX so that code that uses STL and windows.h compiles
@@ -32,13 +36,12 @@ if (MSVC)
     add_definitions(/D_CRT_SECURE_NO_WARNINGS)
     add_definitions(/D_CRT_NONSTDC_NO_WARNINGS)
     add_definitions(/D_CRT_SECURE_NO_DEPRECATE)
-    add_definitions(/DUSE_XNAMATH)
 
     #
     # Compile for Windows 7 and later
     add_definitions(/D_WIN32_WINNT=0x0601)
     add_definitions(/DWINVER=0x0601)
-    #add_definitions(/DDXGI_1_2_FORMATS)
+    add_definitions(/DDXGI_1_2_FORMATS)
     add_definitions(/D_WIN7_PLATFORM_UPDATE)
 
     if (CMAKE_BUILD_TYPE MATCHES Debug)
@@ -62,6 +65,7 @@ if (MINGW)
     add_definitions(-DNOMINMAX)
     add_definitions(-D_WIN32_WINNT=0x0601)
     add_definitions(-DWINVER=0x0601)
+    add_definitions(-DV8FRAMEWORK_GRAPHICS_API_IS_OPENGL)
 
     if (CMAKE_BUILD_TYPE MATCHES Debug)
         add_definitions(-DV8_IS_DEBUG_BUILD)
@@ -74,6 +78,7 @@ endif(MINGW)
 
 include_directories("${CMAKE_SOURCE_DIR}/include")
 include_directories("${CMAKE_SOURCE_DIR}/include/third_party/stlsoft")
+include_directories()
 
 if (MSVC)
     include_directories("${WIN8SDK_INCLUDE_DIR}")
@@ -82,9 +87,7 @@ if (MSVC)
 endif(MSVC)
 
 add_subdirectory(libs)
-
-if (MSVC)
-    add_subdirectory(sample_projects)
-endif(MSVC)
+add_subdirectory(sample_projects)
 
 install(DIRECTORY include/v8 DESTINATION include)
+#install(DIRECTORY include/third_party/fast_delegate DESTINATION include/v8)

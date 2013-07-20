@@ -233,7 +233,7 @@ public :
     /**
      * \brief Implements subscripting, if the pointer points to an array.
      */
-    T&  operator[](int index) {
+    T&  operator[](const v8_size_t index) {
         static_assert(spolicy_t::is_array_ptr,
                       "Subscripting only applies to pointer to array!");
         checkpolicy_t::check_ptr(pointee_);
@@ -243,7 +243,7 @@ public :
     /**
      * \brief Implements subscripting, if the pointer points to an array.
      */
-    const T& operator[](int index) const {
+    const T& operator[](const v8_size_t index) const {
         static_assert(spolicy_t::is_array_ptr,
                       "Subscripting only applies to pointer to array!");
         checkpolicy_t::check_ptr(pointee_);

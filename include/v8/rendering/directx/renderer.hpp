@@ -11,6 +11,7 @@
 #include <v8/base/pointer_policies.hpp>
 #include <v8/base/scoped_pointer.hpp>
 #include <v8/math/color.hpp>
+#include <v8/rendering/viewport.hpp>
 #include <v8/rendering/directx/constants.hpp>
 #include <v8/rendering/directx/depth_stencil_state.hpp>
 #include <v8/rendering/directx/rasterizer_state.hpp>
@@ -118,6 +119,11 @@ public :
 
     float get_target_height() const {
         return m_target_height;
+    }
+
+    void set_viewport(const v8::rendering::viewPort_t& viewport) {
+        assert(is_initialized());
+        m_device_context->RSSetViewports(1, (D3D11_VIEWPORT*) &viewport);
     }
 
 //! @}

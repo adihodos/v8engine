@@ -7,7 +7,6 @@
 #include <v8/rendering/fwd_renderer.hpp>
 #include <v8/rendering/fwd_texture.hpp>
 #include <v8/rendering/constants.hpp>
-#include <v8/rendering/texture_info.hpp>
 #include <v8/utility/hash_string.hpp>
 
 namespace v8 { namespace rendering {
@@ -34,7 +33,7 @@ public :
 
 public :
 
-    texture* get_texture(const texture_info_t& tex_info);
+    texture* get_texture(const char* tex_info);
 
 /// @}
 

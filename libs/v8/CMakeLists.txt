@@ -1,10 +1,10 @@
 set(SUBDIRS base math utility)
 
 if (WIN32)
-    list(APPEND SUBDIRS input io)
+    list(APPEND SUBDIRS gui input io)
 
     if (MSVC)
-        list(APPEND SUBDIRS gui rendering scene)
+        list(APPEND SUBDIRS rendering scene)
     endif(MSVC)
 
 endif(WIN32)

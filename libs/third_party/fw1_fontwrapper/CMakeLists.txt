@@ -1,4 +1,4 @@
-add_library(fw1_fontwrapper SHARED
+add_library(fw1_fontwrapper STATIC
     CFW1ColorRGBA.cpp
     CFW1ColorRGBAInterface.cpp
     CFW1DWriteRenderTarget.cpp

@@ -8,4 +8,4 @@ add_library(
     pch_hdr.cc
     )
 
-install(TARGETS v8_math ARCHIVE DESTINATION libs)
+install(TARGETS v8_math DESTINATION libs)

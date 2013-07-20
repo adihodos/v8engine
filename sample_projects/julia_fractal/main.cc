@@ -9,7 +9,7 @@
 #include <v8/rendering/renderer.hpp>
 #include <v8/rendering/render_assets_cache.hpp>
 #include <v8/utility/win_util.hpp>
-#include <third_party/fast_delegate/fast_delegate.hpp>
+#include <v8/fast_delegate/fast_delegate.hpp>
 #include <v8/math/color.hpp>
 #include <v8/math/vector3.hpp>
 #include <v8/math/matrix4X4.hpp>
@@ -27,7 +27,7 @@ public :
 
     void run() {
         assert(is_valid());
-        window_->message_loop(v8::base::scoped_pointer_get(rendersys_));
+        window_->message_loop();
     }
 
 private :
@@ -139,6 +139,10 @@ void fractal_application::update_scene(const float delta_tm) {
 
 void fractal_application::draw_scene() {
     assert(is_valid());
+
+    app_context_.Renderer->clear_backbuffer();
+    app_context_.Renderer->clear_depth_stencil();
+
     julia_->draw(app_context_.Renderer);
 
     const wchar_t* const C_fractal_stats_fmt_str = 
@@ -161,6 +165,8 @@ void fractal_application::draw_scene() {
     app_context_.Renderer->draw_string(
         fractal_stats_str.begin(), 12.0f, 5.0f, 5.0f, v8::math::color_rgb::C_White
         );
+
+    app_context_.Renderer->present_frame(v8::rendering::FramePresent::All);
 }
 
 }

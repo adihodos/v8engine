@@ -3,7 +3,7 @@
 #include <string>
 #include <unordered_map>
 
-#include <third_party/fast_delegate/fast_delegate.hpp>
+#include <v8/fast_delegate/fast_delegate.hpp>
 #include <v8/v8.hpp>
 #include <v8/math/light.hpp>
 #include <v8/io/config_file_reader.hpp>

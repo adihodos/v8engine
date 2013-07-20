@@ -3,4 +3,4 @@ add_library(
     config_file_reader.cc
     filesystem.cc)
 
-install(TARGETS v8_io ARCHIVE DESTINATION libs)
+install(TARGETS v8_io DESTINATION libs)

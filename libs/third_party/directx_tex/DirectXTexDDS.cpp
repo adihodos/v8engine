@@ -40,6 +40,9 @@ enum CONVERSION_FLAGS
     CONV_FLAGS_A8P8     = 0x800,    // Has an 8-bit palette with an alpha channel
     CONV_FLAGS_DX10     = 0x10000,  // Has the 'DX10' extension header
     CONV_FLAGS_PMALPHA  = 0x20000,  // Contains premultiplied alpha data
+    CONV_FLAGS_L8       = 0x40000,  // Source is a 8 luminance format 
+    CONV_FLAGS_L16      = 0x80000,  // Source is a 16 luminance format 
+    CONV_FLAGS_A8L8     = 0x100000, // Source is a 8:8 luminance format 
 };
 
 struct LegacyDDS
@@ -222,8 +225,7 @@ static HRESULT _DecodeDDSHeader( _In_reads_bytes_(size) LPCVOID pSource, size_t 
         return E_FAIL;
     }
 
-    const DDS_HEADER* pHeader = reinterpret_cast<const DDS_HEADER*>( (const uint8_t*)pSource + sizeof( uint32_t ) );
-    assert( pHeader );
+    auto pHeader = reinterpret_cast<const DDS_HEADER*>( (const uint8_t*)pSource + sizeof( uint32_t ) );
 
     // Verify header to validate DDS file
     if ( pHeader->dwSize != sizeof(DDS_HEADER)
@@ -241,12 +243,12 @@ static HRESULT _DecodeDDSHeader( _In_reads_bytes_(size) LPCVOID pSource, size_t 
          && (MAKEFOURCC( 'D', 'X', '1', '0' ) == pHeader->ddspf.dwFourCC) )
     {
         // Buffer must be big enough for both headers and magic value
-        if ( size < (sizeof(DDS_HEADER)+sizeof(uint32_t)+sizeof(DDS_HEADER_DXT10)) )
+        if ( size < ( sizeof(DDS_HEADER) + sizeof(uint32_t) + sizeof(DDS_HEADER_DXT10) ) )
         {
             return E_FAIL;
         }
 
-        const DDS_HEADER_DXT10* d3d10ext = reinterpret_cast<const DDS_HEADER_DXT10*>( (const uint8_t*)pSource + sizeof( uint32_t ) + sizeof(DDS_HEADER) );
+        auto d3d10ext = reinterpret_cast<const DDS_HEADER_DXT10*>( (const uint8_t*)pSource + sizeof( uint32_t ) + sizeof(DDS_HEADER) );
         convFlags |= CONV_FLAGS_DX10;
 
         metadata.arraySize = d3d10ext->arraySize;
@@ -361,6 +363,28 @@ static HRESULT _DecodeDDSHeader( _In_reads_bytes_(size) LPCVOID pSource, size_t 
 
         if ( convFlags & CONV_FLAGS_PMALPHA )
             metadata.miscFlags2 |= TEX_ALPHA_MODE_PREMULTIPLIED;
+
+        // Special flag for handling LUMINANCE legacy formats
+        if ( flags & DDS_FLAGS_EXPAND_LUMINANCE )
+        {
+            switch ( metadata.format )
+            {
+            case DXGI_FORMAT_R8_UNORM:
+                metadata.format = DXGI_FORMAT_R8G8B8A8_UNORM;
+                convFlags |= CONV_FLAGS_L8 | CONV_FLAGS_EXPAND;
+                break;
+
+            case DXGI_FORMAT_R8G8_UNORM:
+                metadata.format = DXGI_FORMAT_R8G8B8A8_UNORM;
+                convFlags |= CONV_FLAGS_A8L8 | CONV_FLAGS_EXPAND;
+                break;
+
+            case DXGI_FORMAT_R16_UNORM:
+                metadata.format = DXGI_FORMAT_R16G16B16A16_UNORM;
+                convFlags |= CONV_FLAGS_L16 | CONV_FLAGS_EXPAND;
+                break;
+            }
+        }
     }
 
     // Special flag for handling BGR DXGI 1.1 formats
@@ -513,7 +537,7 @@ HRESULT _EncodeDDSHeader( const TexMetadata& metadata, DWORD flags,
 
     *reinterpret_cast<uint32_t*>(pDestination) = DDS_MAGIC;
 
-    DDS_HEADER* header = reinterpret_cast<DDS_HEADER*>( reinterpret_cast<uint8_t*>(pDestination) + sizeof(uint32_t) );
+    auto header = reinterpret_cast<DDS_HEADER*>( reinterpret_cast<uint8_t*>(pDestination) + sizeof(uint32_t) );
     assert( header );
 
     memset( header, 0, sizeof(DDS_HEADER ) );
@@ -525,7 +549,7 @@ HRESULT _EncodeDDSHeader( const TexMetadata& metadata, DWORD flags,
     {
         header->dwFlags |= DDS_HEADER_FLAGS_MIPMAP;
 
-#ifdef _AMD64_
+#ifdef _M_X64
         if ( metadata.mipLevels > 0xFFFFFFFF )
             return E_INVALIDARG;
 #endif
@@ -539,7 +563,7 @@ HRESULT _EncodeDDSHeader( const TexMetadata& metadata, DWORD flags,
     switch( metadata.dimension )
     {
     case TEX_DIMENSION_TEXTURE1D:
-#ifdef _AMD64_
+#ifdef _M_X64
         if ( metadata.width > 0xFFFFFFFF )
             return E_INVALIDARG;
 #endif
@@ -549,7 +573,7 @@ HRESULT _EncodeDDSHeader( const TexMetadata& metadata, DWORD flags,
         break;
 
     case TEX_DIMENSION_TEXTURE2D:
-#ifdef _AMD64_
+#ifdef _M_X64
         if ( metadata.height > 0xFFFFFFFF
              || metadata.width > 0xFFFFFFFF)
             return E_INVALIDARG;
@@ -567,7 +591,7 @@ HRESULT _EncodeDDSHeader( const TexMetadata& metadata, DWORD flags,
         break;
 
     case TEX_DIMENSION_TEXTURE3D:
-#ifdef _AMD64_
+#ifdef _M_X64
         if ( metadata.height > 0xFFFFFFFF
              || metadata.width > 0xFFFFFFFF
              || metadata.depth > 0xFFFFFFFF )
@@ -588,7 +612,7 @@ HRESULT _EncodeDDSHeader( const TexMetadata& metadata, DWORD flags,
     size_t rowPitch, slicePitch;
     ComputePitch( metadata.format, metadata.width, metadata.height, rowPitch, slicePitch, CP_FLAGS_NONE );
 
-#ifdef _AMD64_
+#ifdef _M_X64
     if ( slicePitch > 0xFFFFFFFF
          || rowPitch > 0xFFFFFFFF )
         return E_FAIL;
@@ -609,14 +633,14 @@ HRESULT _EncodeDDSHeader( const TexMetadata& metadata, DWORD flags,
     {
         memcpy_s( &header->ddspf, sizeof(header->ddspf), &DDSPF_DX10, sizeof(DDS_PIXELFORMAT) );
 
-        DDS_HEADER_DXT10* ext = reinterpret_cast<DDS_HEADER_DXT10*>( reinterpret_cast<uint8_t*>(header) + sizeof(DDS_HEADER) );
+        auto ext = reinterpret_cast<DDS_HEADER_DXT10*>( reinterpret_cast<uint8_t*>(header) + sizeof(DDS_HEADER) );
         assert( ext );
 
         memset( ext, 0, sizeof(DDS_HEADER_DXT10) );
         ext->dxgiFormat = metadata.format;
         ext->resourceDimension = metadata.dimension;
 
-#ifdef _AMD64_
+#ifdef _M_X64
         if ( metadata.arraySize > 0xFFFFFFFF )
             return E_INVALIDARG;
 #endif
@@ -673,6 +697,9 @@ enum TEXP_LEGACY_FORMAT
     TEXP_LEGACY_A8P8,
     TEXP_LEGACY_A4L4,
     TEXP_LEGACY_B4G4R4A4,
+    TEXP_LEGACY_L8,
+    TEXP_LEGACY_L16,
+    TEXP_LEGACY_A8L8
 };
 
 inline static TEXP_LEGACY_FORMAT _FindLegacyFormat( DWORD flags )
@@ -695,6 +722,12 @@ inline static TEXP_LEGACY_FORMAT _FindLegacyFormat( DWORD flags )
     else if ( flags & CONV_FLAGS_4444 )
         lformat = TEXP_LEGACY_B4G4R4A4;
 #endif
+    else if ( flags & CONV_FLAGS_L8 )
+        lformat = TEXP_LEGACY_L8;
+    else if ( flags & CONV_FLAGS_L16 )
+        lformat = TEXP_LEGACY_L16;
+    else if ( flags & CONV_FLAGS_A8L8 )
+        lformat = TEXP_LEGACY_A8L8;
 
     return lformat;
 }
@@ -715,11 +748,12 @@ static bool _LegacyExpandScanline( _Out_writes_bytes_(outSize) LPVOID pDestinati
             return false;
 
         // D3DFMT_R8G8B8 -> DXGI_FORMAT_R8G8B8A8_UNORM
+        if ( inSize >= 3 && outSize >= 4 )
         {
             const uint8_t * __restrict sPtr = reinterpret_cast<const uint8_t*>(pSource);
             uint32_t * __restrict dPtr = reinterpret_cast<uint32_t*>(pDestination);
 
-            for( size_t ocount = 0, icount = 0; ((icount < inSize) && (ocount < outSize)); icount += 3, ocount += 4 )
+            for( size_t ocount = 0, icount = 0; ( ( icount < ( inSize - 2 ) ) && ( ocount < ( outSize - 3 ) ) ); icount += 3, ocount += 4 )
             {
                 // 24bpp Direct3D 9 files are actually BGR, so need to swizzle as well
                 uint32_t t1 = ( *(sPtr) << 16 );
@@ -729,19 +763,21 @@ static bool _LegacyExpandScanline( _Out_writes_bytes_(outSize) LPVOID pDestinati
                 *(dPtr++) = t1 | t2 | t3 | 0xff000000;
                 sPtr += 3;
             }
+            return true;
         }
-        return true;
+        return false;
 
     case TEXP_LEGACY_R3G3B2:
         switch( outFormat )
         {
         case DXGI_FORMAT_R8G8B8A8_UNORM:
             // D3DFMT_R3G3B2 -> DXGI_FORMAT_R8G8B8A8_UNORM
+            if ( inSize >= 1 && outSize >= 4 )
             {
                 const uint8_t* __restrict sPtr = reinterpret_cast<const uint8_t*>(pSource);
                 uint32_t * __restrict dPtr = reinterpret_cast<uint32_t*>(pDestination);
 
-                for( size_t ocount = 0, icount = 0; ((icount < inSize) && (ocount < outSize)); ++icount, ocount += 4 )
+                for( size_t ocount = 0, icount = 0; ( ( icount < inSize ) && ( ocount < ( outSize - 3 ) ) ); ++icount, ocount += 4 )
                 {
                     uint8_t t = *(sPtr++);
 
@@ -751,16 +787,18 @@ static bool _LegacyExpandScanline( _Out_writes_bytes_(outSize) LPVOID pDestinati
 
                     *(dPtr++) = t1 | t2 | t3 | 0xff000000;
                 }
+                return true;
             }
-            return true;
+            return false;
 
         case DXGI_FORMAT_B5G6R5_UNORM:
             // D3DFMT_R3G3B2 -> DXGI_FORMAT_B5G6R5_UNORM
+            if ( inSize >= 1 && outSize >= 2 )
             {
                 const uint8_t* __restrict sPtr = reinterpret_cast<const uint8_t*>(pSource);
                 uint16_t * __restrict dPtr = reinterpret_cast<uint16_t*>(pDestination);
 
-                for( size_t ocount = 0, icount = 0; ((icount < inSize) && (ocount < outSize)); ++icount, ocount += 2 )
+                for( size_t ocount = 0, icount = 0; ( ( icount < inSize ) && ( ocount < ( outSize - 1 ) ) ); ++icount, ocount += 2 )
                 {
                     uint8_t t = *(sPtr++);
 
@@ -770,8 +808,9 @@ static bool _LegacyExpandScanline( _Out_writes_bytes_(outSize) LPVOID pDestinati
 
                     *(dPtr++) = t1 | t2 | t3;
                 }
+                return true;
             }
-            return true;
+            return false;
         }
         break;
 
@@ -780,11 +819,12 @@ static bool _LegacyExpandScanline( _Out_writes_bytes_(outSize) LPVOID pDestinati
             return false;
 
         // D3DFMT_A8R3G3B2 -> DXGI_FORMAT_R8G8B8A8_UNORM
+        if ( inSize >= 2 && outSize >= 4 )
         {
             const uint16_t* __restrict sPtr = reinterpret_cast<const uint16_t*>(pSource);
             uint32_t * __restrict dPtr = reinterpret_cast<uint32_t*>(pDestination);
 
-            for( size_t ocount = 0, icount = 0; ((icount < inSize) && (ocount < outSize)); icount += 2, ocount += 4 )
+            for( size_t ocount = 0, icount = 0; ( ( icount < ( inSize - 1 ) ) && ( ocount < ( outSize - 3 ) ) ); icount += 2, ocount += 4 )
             {
                 uint16_t t = *(sPtr++);
 
@@ -795,37 +835,41 @@ static bool _LegacyExpandScanline( _Out_writes_bytes_(outSize) LPVOID pDestinati
 
                 *(dPtr++) = t1 | t2 | t3 | ta;
             }
+            return true;
         }
-        return true;
+        return false;
 
     case TEXP_LEGACY_P8:
         if ( (outFormat != DXGI_FORMAT_R8G8B8A8_UNORM) || !pal8 )
             return false;
 
         // D3DFMT_P8 -> DXGI_FORMAT_R8G8B8A8_UNORM
+        if ( inSize >= 1 && outSize >= 4 )
         {
             const uint8_t* __restrict sPtr = reinterpret_cast<const uint8_t*>(pSource);
             uint32_t * __restrict dPtr = reinterpret_cast<uint32_t*>(pDestination);
 
-            for( size_t ocount = 0, icount = 0; ((icount < inSize) && (ocount < outSize)); ++icount, ocount += 4 )
+            for( size_t ocount = 0, icount = 0; ( ( icount < inSize ) && ( ocount < ( outSize - 3 ) ) ); ++icount, ocount += 4 )
             {
                 uint8_t t = *(sPtr++);
 
                 *(dPtr++) = pal8[ t ];
             }
+            return true;
         }
-        return true;
+        return false;
 
     case TEXP_LEGACY_A8P8:
         if ( (outFormat != DXGI_FORMAT_R8G8B8A8_UNORM) || !pal8 )
             return false;
 
         // D3DFMT_A8P8 -> DXGI_FORMAT_R8G8B8A8_UNORM
+        if ( inSize >= 2 && outSize >= 4 )
         {
             const uint16_t* __restrict sPtr = reinterpret_cast<const uint16_t*>(pSource);
             uint32_t * __restrict dPtr = reinterpret_cast<uint32_t*>(pDestination);
 
-            for( size_t ocount = 0, icount = 0; ((icount < inSize) && (ocount < outSize)); icount += 2, ocount += 4 )
+            for( size_t ocount = 0, icount = 0; ( ( icount < ( inSize - 1 ) ) && ( ocount < ( outSize - 3 ) ) ); icount += 2, ocount += 4 )
             {
                 uint16_t t = *(sPtr++);
 
@@ -834,8 +878,9 @@ static bool _LegacyExpandScanline( _Out_writes_bytes_(outSize) LPVOID pDestinati
 
                 *(dPtr++) = t1 | ta;
             }
+            return true;
         }
-        return true;
+        return false;
 
     case TEXP_LEGACY_A4L4:
         switch( outFormat )
@@ -843,11 +888,12 @@ static bool _LegacyExpandScanline( _Out_writes_bytes_(outSize) LPVOID pDestinati
 #ifdef DXGI_1_2_FORMATS
         case DXGI_FORMAT_B4G4R4A4_UNORM :
             // D3DFMT_A4L4 -> DXGI_FORMAT_B4G4R4A4_UNORM 
+            if ( inSize >= 1 && outSize >= 2 )
             {
                 const uint8_t * __restrict sPtr = reinterpret_cast<const uint8_t*>(pSource);
                 uint16_t * __restrict dPtr = reinterpret_cast<uint16_t*>(pDestination);
 
-                for( size_t ocount = 0, icount = 0; ((icount < inSize) && (ocount < outSize)); ++icount, ocount += 2 )
+                for( size_t ocount = 0, icount = 0; ( ( icount < inSize ) && ( ocount < ( outSize - 1 ) ) ); ++icount, ocount += 2 )
                 {
                     uint8_t t = *(sPtr++);
 
@@ -856,17 +902,19 @@ static bool _LegacyExpandScanline( _Out_writes_bytes_(outSize) LPVOID pDestinati
 
                     *(dPtr++) = t1 | (t1 << 4) | (t1 << 8) | ta;
                 }
+                return true;
             }
-            return true;
+            return false;
 #endif // DXGI_1_2_FORMATS
 
         case DXGI_FORMAT_R8G8B8A8_UNORM:
             // D3DFMT_A4L4 -> DXGI_FORMAT_R8G8B8A8_UNORM
+            if ( inSize >= 1 && outSize >= 4 )
             {
                 const uint8_t * __restrict sPtr = reinterpret_cast<const uint8_t*>(pSource);
                 uint32_t * __restrict dPtr = reinterpret_cast<uint32_t*>(pDestination);
 
-                for( size_t ocount = 0, icount = 0; ((icount < inSize) && (ocount < outSize)); ++icount, ocount += 4 )
+                for( size_t ocount = 0, icount = 0; ( ( icount < inSize ) && ( ocount < ( outSize - 3 ) ) ); ++icount, ocount += 4 )
                 {
                     uint8_t t = *(sPtr++);
 
@@ -875,8 +923,9 @@ static bool _LegacyExpandScanline( _Out_writes_bytes_(outSize) LPVOID pDestinati
 
                     *(dPtr++) = t1 | (t1 << 8) | (t1 << 16) | ta;
                 }
+                return true;
             }
-            return true;
+            return false;
         }
         break;
 
@@ -886,11 +935,12 @@ static bool _LegacyExpandScanline( _Out_writes_bytes_(outSize) LPVOID pDestinati
             return false;
 
         // D3DFMT_A4R4G4B4 -> DXGI_FORMAT_R8G8B8A8_UNORM
+        if ( inSize >= 2 && outSize >= 4 )
         {
             const uint16_t * __restrict sPtr = reinterpret_cast<const uint16_t*>(pSource);
             uint32_t * __restrict dPtr = reinterpret_cast<uint32_t*>(pDestination);
 
-            for( size_t ocount = 0, icount = 0; ((icount < inSize) && (ocount < outSize)); icount += 2, ocount += 4 )
+            for( size_t ocount = 0, icount = 0; ( ( icount < ( inSize - 1 ) ) && ( ocount < ( outSize - 3 ) ) ); icount += 2, ocount += 4 )
             {
                 uint16_t t = *(sPtr++);
 
@@ -901,9 +951,81 @@ static bool _LegacyExpandScanline( _Out_writes_bytes_(outSize) LPVOID pDestinati
 
                 *(dPtr++) = t1 | t2 | t3 | ta;
             }
+            return true;
         }
-        return true;
-#endif
+        return false;
+#endif // DXGI_1_2_FORMATS
+
+    case TEXP_LEGACY_L8:
+        if (outFormat != DXGI_FORMAT_R8G8B8A8_UNORM)
+            return false;
+
+        // D3DFMT_L8 -> DXGI_FORMAT_R8G8B8A8_UNORM
+        if ( inSize >= 1 && outSize >= 4 )
+        {
+            const uint8_t * __restrict sPtr = reinterpret_cast<const uint8_t*>(pSource);
+            uint32_t * __restrict dPtr = reinterpret_cast<uint32_t*>(pDestination);
+
+            for( size_t ocount = 0, icount = 0; ( ( icount < inSize ) && ( ocount < ( outSize - 3 ) ) ); ++icount, ocount += 4 )
+            {
+                uint32_t t1 = *(sPtr++);
+                uint32_t t2 = (t1 << 8);
+                uint32_t t3 = (t1 << 16);
+
+                *(dPtr++) = t1 | t2 | t3 | 0xff000000;
+            }
+            return true;
+        }
+        return false;
+
+    case TEXP_LEGACY_L16:
+        if (outFormat != DXGI_FORMAT_R16G16B16A16_UNORM)
+            return false;
+
+        // D3DFMT_L16 -> DXGI_FORMAT_R16G16B16A16_UNORM
+        if ( inSize >= 2 && outSize >= 8 )
+        {
+            const uint16_t* __restrict sPtr = reinterpret_cast<const uint16_t*>(pSource);
+            uint64_t * __restrict dPtr = reinterpret_cast<uint64_t*>(pDestination);
+
+            for( size_t ocount = 0, icount = 0; ( ( icount < ( inSize - 1 ) ) && ( ocount < ( outSize - 7 ) ) ); icount += 2, ocount += 8 )
+            {
+                uint16_t t = *(sPtr++);
+
+                uint64_t t1 = t;
+                uint64_t t2 = (t1 << 16);
+                uint64_t t3 = (t1 << 32);
+
+                *(dPtr++) = t1 | t2 | t3 | 0xffff000000000000;
+            }
+            return true;
+        }
+        return false;
+
+    case TEXP_LEGACY_A8L8:
+        if (outFormat != DXGI_FORMAT_R8G8B8A8_UNORM)
+            return false;
+
+        // D3DFMT_A8L8 -> DXGI_FORMAT_R8G8B8A8_UNORM
+        if ( inSize >= 2 && outSize >= 4 )
+        {
+            const uint16_t* __restrict sPtr = reinterpret_cast<const uint16_t*>(pSource);
+            uint32_t * __restrict dPtr = reinterpret_cast<uint32_t*>(pDestination);
+
+            for( size_t ocount = 0, icount = 0; ( ( icount < ( inSize - 1 ) ) && ( ocount < ( outSize - 3 ) ) ); icount += 2, ocount += 4 )
+            {
+                uint16_t t = *(sPtr++);
+
+                uint32_t t1 = (t & 0xff);
+                uint32_t t2 = (t1 << 8);
+                uint32_t t3 = (t1 << 16);
+                uint32_t ta = ( flags & TEXP_SCANLINE_SETALPHA ) ? 0xff000000 : ((t & 0xff00) << 16);
+
+                *(dPtr++) = t1 | t2 | t3 | ta;
+            }
+            return true;
+        }
+        return false;
     }
 
     return false;
@@ -926,9 +1048,9 @@ static HRESULT _CopyImage( _In_reads_bytes_(size) const void* pPixels, _In_ size
     {
         if ( convFlags & CONV_FLAGS_888 )
             cpFlags |= CP_FLAGS_24BPP;
-        else if ( convFlags & (CONV_FLAGS_565 | CONV_FLAGS_5551 | CONV_FLAGS_4444 | CONV_FLAGS_8332 | CONV_FLAGS_A8P8 ) )
+        else if ( convFlags & (CONV_FLAGS_565 | CONV_FLAGS_5551 | CONV_FLAGS_4444 | CONV_FLAGS_8332 | CONV_FLAGS_A8P8 | CONV_FLAGS_L16 | CONV_FLAGS_A8L8) )
             cpFlags |= CP_FLAGS_16BPP;
-        else if ( convFlags & (CONV_FLAGS_44 | CONV_FLAGS_332 | CONV_FLAGS_PAL8) )
+        else if ( convFlags & (CONV_FLAGS_44 | CONV_FLAGS_332 | CONV_FLAGS_PAL8 | CONV_FLAGS_L8) )
             cpFlags |= CP_FLAGS_8BPP;
     }
 
@@ -1291,7 +1413,7 @@ HRESULT LoadFromDDSMemory( LPCVOID pSource, size_t size, DWORD flags, TexMetadat
     if ( FAILED(hr) )
         return hr;
 
-    LPCVOID pPixels = reinterpret_cast<LPCVOID>( reinterpret_cast<const uint8_t*>(pSource) + offset );
+    auto pPixels = reinterpret_cast<LPCVOID>( reinterpret_cast<const uint8_t*>(pSource) + offset );
     assert( pPixels );
     hr = _CopyImage( pPixels, size - offset, mdata,
                      (flags & DDS_FLAGS_LEGACY_DWORD) ? CP_FLAGS_LEGACY_DWORD : CP_FLAGS_NONE, convFlags, pal8, image );
@@ -1512,7 +1634,7 @@ HRESULT SaveToDDSMemory( const Image* images, size_t nimages, const TexMetadata&
     if ( FAILED(hr) )
         return hr;
 
-    uint8_t* pDestination = reinterpret_cast<uint8_t*>( blob.GetBufferPointer() );
+    auto pDestination = reinterpret_cast<uint8_t*>( blob.GetBufferPointer() );
     assert( pDestination );
 
     hr = _EncodeDDSHeader( metadata, flags, pDestination, blob.GetBufferSize(), required );

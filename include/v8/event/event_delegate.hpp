@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <vector>
 
-#include <third_party/fast_delegate/fast_delegate.hpp>
+#include <v8/fast_delegate/fast_delegate.hpp>
 
 namespace v8 {
 
@@ -38,12 +38,19 @@ protected :
 template<typename ret_val = void>
 class event_handler_list0
     : public detail::ehl_common_boilerplate<fastdelegate::FastDelegate0<ret_val>>  {
-    
+
+private :
+    typedef detail::ehl_common_boilerplate
+    <
+        fastdelegate::FastDelegate0<ret_val>
+    >                                                       base_class;
+
 public :
     typedef fastdelegate::FastDelegate0<ret_val>            delegate_type;
     
     void call_delegates() {
-        std::for_each(std::begin(delegates_list_), std::end(delegates_list_),
+        std::for_each(std::begin(base_class::delegates_list_),
+                      std::end(base_class::delegates_list_),
                       [](delegate_type del) {
             del();
         });
@@ -55,12 +62,19 @@ public :
 template<typename arg0, typename ret_val = void>
 class event_handler_list1
     : public detail::ehl_common_boilerplate<fastdelegate::FastDelegate1<arg0, ret_val>>  {
+
+private :
+    typedef detail::ehl_common_boilerplate
+    <
+        fastdelegate::FastDelegate1<arg0, ret_val>
+    >                                                       base_class;
     
 public :
-    typedef fastdelegate::FastDelegate1<arg0, ret_val>            delegate_type;
+    typedef fastdelegate::FastDelegate1<arg0, ret_val>      delegate_type;
     
     void call_delegates(const arg0& a0) {
-        std::for_each(std::begin(delegates_list_), std::end(delegates_list_),
+        std::for_each(std::begin(base_class::delegates_list_),
+                      std::end(base_class::delegates_list_),
                       [&a0](delegate_type del) {
             del(a0);
         });
@@ -72,12 +86,19 @@ public :
 template<typename arg0, typename arg1, typename ret_val = void>
 class event_handler_list2
     : public detail::ehl_common_boilerplate<fastdelegate::FastDelegate2<arg0, arg1, ret_val>>  {
-    
+
+private :
+    typedef detail::ehl_common_boilerplate
+    <
+        fastdelegate::FastDelegate2<arg0, arg1, ret_val>
+    >                                                           base_class;
+
 public :
-    typedef fastdelegate::FastDelegate2<arg0, arg1, ret_val>            delegate_type;
+    typedef fastdelegate::FastDelegate2<arg0, arg1, ret_val>    delegate_type;
     
     void call_delegates(const arg0& a0, const arg1& a1) {
-        std::for_each(std::begin(delegates_list_), std::end(delegates_list_),
+        std::for_each(std::begin(base_class::delegates_list_),
+                      std::end(base_class::delegates_list_),
                       [&a0, &a1](delegate_type del) {
             del(a0, a1);
         });
@@ -89,12 +110,19 @@ public :
 template<typename arg0, typename arg1, typename arg2, typename ret_val = void>
 class event_handler_list3
     : public detail::ehl_common_boilerplate<fastdelegate::FastDelegate3<arg0, arg1, arg2, ret_val>>  {
+
+private :
+    typedef detail::ehl_common_boilerplate
+    <
+        fastdelegate::FastDelegate3<arg0, arg1, arg2, ret_val>
+    >                                                               base_class;
     
 public :
-    typedef fastdelegate::FastDelegate3<arg0, arg1, arg2, ret_val>      delegate_type;
+    typedef fastdelegate::FastDelegate3<arg0, arg1, arg2, ret_val>  delegate_type;
     
     void call_delegates(const arg0& a0, const arg1& a1, const arg2& a2) {
-        std::for_each(std::begin(delegates_list_), std::end(delegates_list_),
+        std::for_each(std::begin(base_class::delegates_list_),
+                      std::end(base_class::delegates_list_),
                       [&a0, &a1, &a2](delegate_type del) {
             del(a0, a1, a2);
         });

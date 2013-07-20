@@ -12,7 +12,6 @@
 #include <v8/event/input_event.hpp>
 #include <v8/event/window_event.hpp>
 #include <v8/rendering/fps_counter.hpp>
-#include <v8/rendering/fwd_renderer.hpp>
 #include <v8/input/key_syms.hpp>
 
 namespace v8 { namespace gui {
@@ -96,17 +95,17 @@ public :
 
     /// \brief Pumps messages from the system and fires the update and draw
     /// events.
-    virtual void message_loop(v8::rendering::renderer* graphics_sys);
+    virtual void message_loop();
 
 protected :
 
-    virtual void app_main_loop(v8::rendering::renderer* graphics_sys);
+    virtual void app_main_loop();
 
-    virtual void app_do_frame(v8::rendering::renderer* graphics_sys);
+    virtual void app_do_frame();
 
     virtual void app_frame_tick();
 
-    virtual void app_frame_draw(v8::rendering::renderer* graphics_sys);
+    virtual void app_frame_draw();
 
     virtual void on_app_idle() {
         Sleep(1000);

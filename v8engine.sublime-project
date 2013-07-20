@@ -12,8 +12,8 @@
         "sublimeclang_options" : [
             "-std=c++11",
             "-Id:/projects_new/v8engine/**",
-            "-I${env:DXSDK_DIR}/Include",
-            "-I${env:WINDOWSSDK_DIR}/Include",
+            "-I${env:WINDOWSSDK_DIR}/Include/um",
+            "-I${env:WINDOWSSDK_DIR}/Include/shared",
             "-DNOMINMAX",
             "-D_WIN64",
             "-D_AMD64_",

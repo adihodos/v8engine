@@ -16,6 +16,8 @@ void formatted_msg_box(
 
 namespace win32 {
 
+#if defined(_MSC_VER)
+
 class scoped_mem_leak_checker {
 public :
     scoped_mem_leak_checker(
@@ -40,6 +42,8 @@ private :
 private :
     NO_CC_ASSIGN(scoped_mem_leak_checker);
 };
+
+#endif /* _MSC_VER */
 
 typedef v8::base::scoped_ptr
 <

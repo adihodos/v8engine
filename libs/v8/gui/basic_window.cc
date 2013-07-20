@@ -1,13 +1,13 @@
 #include <cassert>
 #include <windowsx.h>
-#include <v8/base/debug_helpers.hpp>
-
-#include "v8/rendering/renderer.hpp"
-#include "v8/rendering/constants.hpp"
-#include "v8/gui/basic_window.hpp"
+#include "v8/base/debug_helpers.hpp"
+#include "v8/base/pod_zero_init.hpp"
 #include "v8/input/key_syms.hpp"
 
-v8_bool_t v8::gui::basic_window::initialize(const window_init_params_t& init_params) {
+#include "v8/gui/basic_window.hpp"
+
+v8_bool_t 
+v8::gui::basic_window::initialize(const window_init_params_t& init_params) {
     if (m_windata.initialized) {
         return true;
     }
@@ -67,14 +67,14 @@ v8_bool_t v8::gui::basic_window::initialize(const window_init_params_t& init_par
     return true;
 }
 
-void v8::gui::basic_window::message_loop(
-    v8::rendering::renderer* graphics_context
-    ) {
-    MSG msg = { 0 };
-    
+void 
+v8::gui::basic_window::message_loop() {
+    v8::base::pod_zero_init<MSG> msg;
+
     while (msg.message != WM_QUIT && !m_windata.quitflag) {
+
         while (!PeekMessage(&msg, nullptr, 0, 0, PM_NOREMOVE)) {
-            app_main_loop(graphics_context);
+            app_main_loop();
         }
 
         do {
@@ -96,9 +96,8 @@ void v8::gui::basic_window::message_loop(
     }
 }
 
-void v8::gui::basic_window::app_main_loop(
-    v8::rendering::renderer* graphics_context
-    ) {
+void 
+v8::gui::basic_window::app_main_loop() {
     if (!m_windata.initialized)
         return;
     
@@ -108,7 +107,7 @@ void v8::gui::basic_window::app_main_loop(
     }
 
     if (m_windata.active) {
-        app_do_frame(graphics_context);
+        app_do_frame();
         Sleep(2);
         return;
     } else {
@@ -121,9 +120,9 @@ void v8::gui::basic_window::app_main_loop(
 }
 
 void 
-v8::gui::basic_window::app_do_frame(v8::rendering::renderer* graphics_context) {
+v8::gui::basic_window::app_do_frame() {
     app_frame_tick();
-    app_frame_draw(graphics_context);
+    app_frame_draw();
 }
 
 void v8::gui::basic_window::app_frame_tick() {
@@ -134,9 +133,11 @@ void v8::gui::basic_window::app_frame_tick() {
 
 LRESULT 
 WINAPI 
-v8::gui::basic_window::window_procedure_stub(
-    HWND window, UINT msg, WPARAM w_param, LPARAM l_param
-    ) {
+v8::gui::basic_window::window_procedure_stub(HWND       window, 
+                                             UINT       msg, 
+                                             WPARAM     w_param, 
+                                             LPARAM     l_param) 
+{
     if (msg == WM_CREATE) {
         basic_window* objPtr = static_cast<basic_window*>(
             reinterpret_cast<CREATESTRUCT*>(l_param)->lpCreateParams);
@@ -152,11 +153,11 @@ v8::gui::basic_window::window_procedure_stub(
         DefWindowProc(window, msg, w_param, l_param);
 }
 
-void v8::gui::basic_window::handle_wm_size(
-    WPARAM sizing_request, 
-    v8_int32_t newWidth, 
-    v8_int32_t newHeight
-    ) {
+void 
+v8::gui::basic_window::handle_wm_size(WPARAM        sizing_request, 
+                                      v8_int32_t    newWidth, 
+                                      v8_int32_t    newHeight) 
+{
     m_windata.width = newWidth;
     m_windata.height = newHeight;
 
@@ -180,11 +181,10 @@ void v8::gui::basic_window::handle_wm_size(
     }
 }
 
-v8_bool_t v8::gui::basic_window::handle_wm_key_down(
-    v8_int_t key_code, 
-    LPARAM /*l_param*/
-    ) {
-
+v8_bool_t 
+v8::gui::basic_window::handle_wm_key_down(v8_int_t      key_code, 
+                                          LPARAM        /*l_param*/) 
+{
     input_event new_event;
     new_event.type = InputEventType::Key;
     new_event.key_ev.down = true;
@@ -193,11 +193,10 @@ v8_bool_t v8::gui::basic_window::handle_wm_key_down(
     return true;
 }
 
-v8_bool_t v8::gui::basic_window::handle_wm_key_up(
-    v8_int_t key_code, 
-    LPARAM /*l_param*/
-    ) {
-    
+v8_bool_t 
+v8::gui::basic_window::handle_wm_key_up(v8_int_t        key_code, 
+                                        LPARAM          /*l_param*/) 
+{    
     input_event new_event;
     new_event.type = InputEventType::Key;
     new_event.key_ev.down = false;
@@ -206,17 +205,17 @@ v8_bool_t v8::gui::basic_window::handle_wm_key_up(
     return true;
 }
 
-v8_bool_t v8::gui::basic_window::handle_wm_syscommand(
-    WPARAM /*w_param*/, 
-    LPARAM /*l_param*/
-    ) {
+v8_bool_t 
+v8::gui::basic_window::handle_wm_syscommand(WPARAM      /*w_param*/, 
+                                            LPARAM      /*l_param*/) 
+{
     return false;
 }
 
-v8_bool_t v8::gui::basic_window::handle_wm_mousewheel(
-    WPARAM w_param, 
-    LPARAM l_param
-    ) {
+v8_bool_t 
+v8::gui::basic_window::handle_wm_mousewheel(WPARAM      w_param, 
+                                            LPARAM      l_param) 
+{
     input_event ie;
     ie.type = InputEventType::Mouse_Wheel;
     ie.mouse_wheel_ev.delta = GET_WHEEL_DELTA_WPARAM(w_param);
@@ -227,10 +226,10 @@ v8_bool_t v8::gui::basic_window::handle_wm_mousewheel(
     return true;
 }
 
-v8_bool_t v8::gui::basic_window::handle_wm_leftbutton_down(
-    WPARAM /*w_param*/, 
-    LPARAM l_param
-    ) {
+v8_bool_t 
+v8::gui::basic_window::handle_wm_leftbutton_down(WPARAM         /*w_param*/, 
+                                                 LPARAM         l_param) 
+{
     SetCapture(m_windata.win);
     m_windata.mousecaptured = true;
 
@@ -245,10 +244,10 @@ v8_bool_t v8::gui::basic_window::handle_wm_leftbutton_down(
     return true;
 }
 
-v8_bool_t v8::gui::basic_window::handle_wm_leftbutton_up(
-    WPARAM /*w_param*/, 
-    LPARAM l_param
-    ) {
+v8_bool_t 
+v8::gui::basic_window::handle_wm_leftbutton_up(WPARAM       /*w_param*/, 
+                                               LPARAM       l_param) 
+{
     ReleaseCapture();
     m_windata.mousecaptured = false;
 
@@ -263,10 +262,10 @@ v8_bool_t v8::gui::basic_window::handle_wm_leftbutton_up(
     return true;
 }
 
-v8_bool_t v8::gui::basic_window::handle_wm_mousemove(
-    WPARAM /*w_param*/, 
-    LPARAM l_param
-    ) {
+v8_bool_t 
+v8::gui::basic_window::handle_wm_mousemove(WPARAM           /*w_param*/, 
+                                           LPARAM           l_param) 
+{
     if (!m_windata.mousecaptured) {
         return false;
     }
@@ -280,20 +279,17 @@ v8_bool_t v8::gui::basic_window::handle_wm_mousemove(
     return true;
 }
 
-void v8::gui::basic_window::handle_wm_activate(
-    WPARAM w_param
-    ) {
+void 
+v8::gui::basic_window::handle_wm_activate(WPARAM w_param) {
     const v8_int_t status = LOWORD(w_param);
     m_windata.active = (status == WA_ACTIVE) || (status == WA_CLICKACTIVE);
 }
 
 LRESULT 
-v8::gui::basic_window::window_procedure(
-    UINT msg, 
-    WPARAM w_param, 
-    LPARAM l_param
-    ) {
-
+v8::gui::basic_window::window_procedure(UINT        msg, 
+                                        WPARAM      w_param, 
+                                        LPARAM      l_param) 
+{
     using namespace std;
     tuple<v8_bool_t, LRESULT> message_status(make_tuple(false, 0L));
     
@@ -380,27 +376,13 @@ v8::gui::basic_window::window_procedure(
 }
 
 void 
-v8::gui::basic_window::app_frame_draw(v8::rendering::renderer* graphics_context) {
-    v8::rendering::FramePresent::Type present_flag = rendering::FramePresent::All;
-
+v8::gui::basic_window::app_frame_draw() {
     //
     // Don't draw anything if occluded
     if (m_windata.occluded) {
         on_app_idle();
-        present_flag = rendering::FramePresent::Test;
     } else {
         //frame_draw_impl(graphics_context);
         Delegates_DrawEvent.call_delegates();
-    }
-
-    auto ret_code = graphics_context->present_frame(present_flag);
-
-    if (ret_code == rendering::FramePresentResult::Ok) {
-        m_windata.occluded = false;
-    } else if (ret_code == rendering::FramePresentResult::WindowOccluded) {
-        m_windata.occluded = true;
-    } else {
-        OUTPUT_DBG_MSGA("Frame present error");
-        m_windata.quitflag = true;
     }
 }

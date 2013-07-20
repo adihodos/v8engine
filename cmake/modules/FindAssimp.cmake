@@ -2,10 +2,10 @@ include(FindPkgMacros)
 
 findpkg_begin(Assimp)
 
-getenv_path(ASSIMP_SDK_DIR)
+getenv_path(ASSIMP_SDKDIR)
 
 set(Assimp_PREFIX_PATH
-    "${ASSIMP_SDK_DIR}" "${ENV_ASSIMP_SDK_DIR}"
+    "${ASSIMP_SDKDIR}" "${ENV_ASSIMP_SDKDIR}"
 )
 
 create_search_paths(Assimp)

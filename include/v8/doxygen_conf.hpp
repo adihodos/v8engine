@@ -25,7 +25,9 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-/**
- * \defgroup   __grp_v8_math_algebra  Classes and functions for algebric operations.
- */
+///
+/// \defgroup   __grp_v8_math_algebra  Classes and functions for algebric operations.
+
+///
+/// \defgroup   __grp_v8_base   Basic utilities.
 

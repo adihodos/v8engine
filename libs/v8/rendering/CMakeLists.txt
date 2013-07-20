@@ -19,6 +19,8 @@ add_library(
     directx/sampler_state.cc
     directx/shader_compiler.cc
     directx/texture.cc
+    directx/texture_shader_binding.cc
+    directx/texture_unordered_access_binding.cc
     material.cc
     render_assets_cache.cc
 #    simple_mesh.cc
@@ -46,4 +48,4 @@ target_link_libraries(
     #${Assimp_LIBRARIES}
 )
 
-install(TARGETS v8_renderer_directx ARCHIVE DESTINATION libs)
+install(TARGETS v8_renderer_directx DESTINATION libs)

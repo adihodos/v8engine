@@ -3,7 +3,6 @@ project(basic_drawing)
 add_executable(
     basic_drawing WIN32
     aircraft_f4.cc
-    DDSTextureLoader.cc
     floor_plane.cc
     main.cc
 )

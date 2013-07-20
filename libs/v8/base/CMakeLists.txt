@@ -20,4 +20,4 @@ add_library(
 
 target_link_libraries(v8_base ${OS_DEPENDENT_LIBS})
 
-install(TARGETS v8_base ARCHIVE DESTINATION libs)
+install(TARGETS v8_base DESTINATION libs)

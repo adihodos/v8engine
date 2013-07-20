@@ -15,7 +15,6 @@ target_link_libraries(
     v8_io
     v8_input
     v8_gui
-    v8_app_state
     v8_utility
     pdh
     )

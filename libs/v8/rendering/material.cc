@@ -5,7 +5,7 @@
 #include "v8/rendering/constants.hpp"
 #include "v8/rendering/effect.hpp"
 #include "v8/rendering/render_assets_cache.hpp"
-#include "v8/rendering/texture_info.hpp"
+#include "v8/rendering/texture_descriptor.hpp"
 #include "v8/rendering/texture.hpp"
 #include "v8/utility/hash_string.hpp"
 
@@ -44,34 +44,35 @@ v8_bool_t v8::rendering::material::initialize(const hash_string& mat_file) {
         conf_main.GetValue("specular", color.specular);
         conf_main.GetValue("diffuse", color.diffuse);
     } else if (type == Type_Texture) {
-        const char* tex_filename = nullptr;
-        conf_main.GetValue("emissive", tex_filename);
+        return false;
+        //const char* tex_filename = nullptr;
+        //conf_main.GetValue("emissive", tex_filename);
 
-        texture_info_t tex_info(tex_filename, BindingFlag::ShaderResource);
+        //texture_info_t tex_info(tex_filename, BindingFlag::ShaderResource);
 
-        if (!tex.emissive) {
-            return false;
-        }
+        //if (!tex.emissive) {
+        //    return false;
+        //}
 
-        conf_main.GetValue("ambient", tex_filename);
-        tex_info.tex_filename = tex_filename;
+        //conf_main.GetValue("ambient", tex_filename);
+        //tex_info.tex_filename = tex_filename;
 
-        conf_main.GetValue("diffuse", tex_filename);
-        tex_info.tex_filename = tex_filename;
+        //conf_main.GetValue("diffuse", tex_filename);
+        //tex_info.tex_filename = tex_filename;
 
-        if (!tex.diffuse) {
-            return false;
-        }
-        if (tex.ambient) {
-            tex.ambient = tex.diffuse;
-        }
+        //if (!tex.diffuse) {
+        //    return false;
+        //}
+        //if (tex.ambient) {
+        //    tex.ambient = tex.diffuse;
+        //}
 
-        conf_main.GetValue("specular", tex_filename);
-        tex_info.tex_filename = tex_filename;
+        //conf_main.GetValue("specular", tex_filename);
+        //tex_info.tex_filename = tex_filename;
 
-        if (!tex.specular) {
-            return false;
-        }
+        //if (!tex.specular) {
+        //    return false;
+        //}
     } else {
         OUTPUT_DBG_MSGA("Unknown material type (%d)", type);
         return false;

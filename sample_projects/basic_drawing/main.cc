@@ -18,14 +18,14 @@
 #include <v8/math/color.hpp>
 #include <v8/graphis_api_traits.hpp>
 #include <v8/math/light.hpp>
-#include <v8/math/math_constants.hpp>
+#include <v8/math/math_constants.hpp>   
 #include <v8/math/projection.hpp>
+#include <v8/rendering/viewport.hpp>
 #include <v8/scene/null_camera_controller.hpp>
 #include <v8/scene/cam_controller_spherical_coordinates.hpp>
-#include <third_party/fast_delegate/fast_delegate.hpp>
-#include <third_party/stlsoft/stlsoft/string/static_string.hpp>
-
+#include <v8/fast_delegate/fast_delegate.hpp>
 #include <v8/rendering/vertex_p.hpp>
+#include <third_party/stlsoft/stlsoft/string/static_string.hpp>
 
 #include "app_context.hpp"
 #include "floor_plane.hpp"
@@ -197,7 +197,7 @@ public :
 
     void run() {
         assert(is_valid());
-        window_->message_loop(v8::base::scoped_pointer_get(rendersys_));
+        window_->message_loop();
     }
 
 private :
@@ -351,6 +351,15 @@ void basic_drawing_app::draw() {
 
     const DrawingContext* kDrawCtx = &draw_context;
 
+    const float screen_center_x = window_->get_width() * 0.5f;
+    const float screen_center_y = window_->get_height() * 0.5f;
+
+    v8::rendering::viewPort_t viewport = { 
+        screen_center_x, screen_center_y, screen_center_x, screen_center_y, 0.0f, 1.0f
+    };
+
+    rendersys_->set_viewport(viewport);
+
     using namespace std;
     for_each(begin(geometric_objects_), end(geometric_objects_),
              [kDrawCtx](IGeometryShape* shape) {
@@ -361,6 +370,8 @@ void basic_drawing_app::draw() {
 
     rendersys_->draw_string(cam_stats.c_str(), 14.0f, 5.0f, 5.0f, 
                             v8::math::color_rgb::C_Black);
+
+    rendersys_->present_frame(v8::rendering::FramePresent::All);
 }
 
 void basic_drawing_app::initialize_objects() {

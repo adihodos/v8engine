@@ -33,7 +33,7 @@ v8_bool_t FloorPlane::Initialize(const InitContext* init_context) {
     transform(begin(grid_data.md_vertices), end(grid_data.md_vertices),
               back_inserter(grid_vertices),
               [](const geometry_gen::vertex_pntt& vtx) -> vertex_p {
-        return vertex_p(vtx.vt_position);
+        return v8::rendering::vertex_p(vtx.vt_position);
     });
 
     const v8_bool_t vb_created = vertexbuffer_.initialize(

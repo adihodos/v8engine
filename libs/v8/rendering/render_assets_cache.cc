@@ -4,7 +4,6 @@
 #include "v8/rendering/effect.hpp"
 #include "v8/rendering/effect_info.hpp"
 #include "v8/rendering/renderer.hpp"
-// #include "v8/rendering/simple_mesh.hpp"
 #include "v8/rendering/texture.hpp"
 #include "v8/utility/hash_spooky.hpp"
 #include "v8/utility/hash_string.hpp"
@@ -23,11 +22,11 @@
 //}
 
 inline v8_bool_t resource_initialize(
-    const v8::rendering::texture_info_t& tex_info,
+    const std::string& tex_path,
     v8::rendering::renderer* render_sys,
     v8::rendering::texture* tex_ptr
     ) {
-    return tex_ptr->initialize(tex_info, render_sys);
+    return tex_ptr->initialize(tex_path.c_str(), *render_sys);
 }
 
 // inline v8_bool_t resource_initialize(
@@ -127,7 +126,7 @@ struct v8::rendering::render_assets_cache::implementation_details {
     <
         v8_size_t,
         v8::rendering::texture,
-        v8::rendering::texture_info_t
+        std::string
     >                                                           textures_pool_;
 
     // resource_pool
@@ -154,22 +153,15 @@ v8::rendering::render_assets_cache::~render_assets_cache() {}
 //}
 
 v8::rendering::texture* v8::rendering::render_assets_cache::get_texture(
-    const v8::rendering::texture_info_t& tex_info
+    const char* path
     ) {
-    const v8_uint32_t member_hashes[] = {
-        v8::utility::SpookyHash::Hash32(tex_info.tex_filename.c_str(), 
-                                        tex_info.tex_filename.length(), 
-                                        0),
-        v8::utility::SpookyHash::Hash32(&tex_info.tex_bindflags, 
-                                        sizeof(tex_info.tex_bindflags),
-                                        0)
-    };
+    const std::string i_am_an_idiot(path);
 
     const v8_size_t tex_unique_id = v8::utility::SpookyHash::Hash64(
-        member_hashes, sizeof(member_hashes), 0
+        i_am_an_idiot.c_str(), i_am_an_idiot.length(), 0
         );
     return pimpl_->textures_pool_.get_resource(tex_unique_id, 
-                                               tex_info,
+                                               path,
                                                pimpl_->render_sys_);
 }
 

@@ -30,7 +30,7 @@
 #include <v8/rendering/fragment_shader.hpp>
 #include <v8/rendering/index_buffer.hpp>
 #include <v8/rendering/sampler_state.hpp>
-#include <v8/rendering/texture.hpp>
+#include <v8/rendering/texture_shader_binding.hpp>
 #include <v8/rendering/vertex_buffer.hpp>
 #include <v8/rendering/vertex_shader.hpp>
 
@@ -189,21 +189,21 @@ private :
     };
 
 private :
-    v8::rendering::index_buffer         indexbuffer_;
-    v8::rendering::vertex_buffer        vertexbuffer_;
-    v8::rendering::vertex_shader        vertexshader_;
-    v8::rendering::fragment_shader      fragshader_;
-    v8::rendering::texture              mtl_diffuse_;
-    v8::rendering::sampler_state        sam_state_;
+    v8::rendering::index_buffer                 indexbuffer_;
+    v8::rendering::vertex_buffer                vertexbuffer_;
+    v8::rendering::vertex_shader                vertexshader_;
+    v8::rendering::fragment_shader              fragshader_;
+    v8::rendering::texture_shader_binding       material_;
+    v8::rendering::sampler_state                sam_state_;
 
-    v8_bool_t                           keystates_[v8::input::Key_Sym_t::Last];
-    v8_bool_t                           is_valid_;
+    v8_bool_t                                   keystates_[v8::input::Key_Sym_t::Last];
+    v8_bool_t                                   is_valid_;
 
     ///< Flight parameters.
-    F4PhantomFlightCharacteristics_t    flight_characteristics_;
+    F4PhantomFlightCharacteristics_t            flight_characteristics_;
 
     ///< Data that defines the aircraft's orientation and position.
-    F4PhantomCoordinateFrame_t          coord_frame_;
+    F4PhantomCoordinateFrame_t                  coord_frame_;
 
 private :
     NO_CC_ASSIGN(F4Phantom);

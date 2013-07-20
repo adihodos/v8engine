@@ -8,4 +8,4 @@ add_library(
 )
 
 target_link_libraries(v8_utility ${Assimp_LIBRARIES})
-install(TARGETS v8_utility ARCHIVE DESTINATION libs)
+install(TARGETS v8_utility DESTINATION libs)

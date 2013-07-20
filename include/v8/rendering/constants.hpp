@@ -5,7 +5,7 @@
 #if defined(V8FRAMEWORK_GRAPHICS_API_IS_DIRECTX)
 #include <v8/rendering/directx/constants.hpp>
 #elif defined(V8FRAMEWORK_GRAPHICS_API_IS_OPENGL)
-#error Not implemented yet!
+
 #else
 #error Unsuppoorted graphics API
 #endif
@@ -37,7 +37,7 @@ namespace v8 { namespace rendering {
     using directx::ElementType;
 
 #else
-#error Unsuppoorted graphics API
+
 #endif 
 
 } // namespace rendering

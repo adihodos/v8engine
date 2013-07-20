@@ -4,7 +4,7 @@
 #include <v8/rendering/renderer.hpp>
 #include <v8/rendering/render_assets_cache.hpp>
 #include <v8/utility/win_util.hpp>
-#include <third_party/fast_delegate/fast_delegate.hpp>
+#include <v8/fast_delegate/fast_delegate.hpp>
 #include <v8/v8.hpp>
 #include <v8/base/debug_helpers.hpp>
 #include <v8/base/scoped_pointer.hpp>

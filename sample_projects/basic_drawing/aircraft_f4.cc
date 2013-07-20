@@ -6,7 +6,7 @@
 #include <v8/rendering/constants.hpp>
 #include <v8/rendering/renderer.hpp>
 #include <v8/rendering/shader_info.hpp>
-#include <v8/rendering/texture_info.hpp>
+#include <v8/rendering/texture_descriptor.hpp>
 #include <v8/rendering/vertex_pnt.hpp>
 #include <v8/utility/geometry_importer.hpp>
 
@@ -14,12 +14,13 @@
 #include "aircraft_f4.hpp"
 
 F4Phantom::F4Phantom() 
-    : is_valid_(false) {}
+    :       is_valid_(false) {}
 
 F4Phantom::~F4Phantom() {
 }
 
-v8_bool_t F4Phantom::Initialize(const InitContext* init_context) {
+v8_bool_t 
+F4Phantom::Initialize(const InitContext* init_context) {
     assert(!is_valid());
 
     memset(keystates_, 0, sizeof(keystates_));
@@ -39,6 +40,7 @@ v8_bool_t F4Phantom::Initialize(const InitContext* init_context) {
         model_path.c_str(), true, scoped_pointer_get_impl(vertices),
         scoped_pointer_get_impl(indices), &num_vertices, &num_indices
         );
+
     if (!load_succeeded) {
         return false;
     }
@@ -93,11 +95,9 @@ v8_bool_t F4Phantom::Initialize(const InitContext* init_context) {
         return false;
     }
 
-    v8::rendering::texture_info_t diffuse_mat_info(
-        init_context->FileSystem->make_texture_path("f4_texture.dds"),
-        v8::rendering::BindingFlag::ShaderResource
-        );
-    if (!mtl_diffuse_.initialize(diffuse_mat_info, init_context->Renderer)) {
+    const std::string tex_filename(init_context->FileSystem->make_texture_path("f4_texture.jpg"));
+
+    if (!material_.initialize(tex_filename.c_str(), *init_context->Renderer)) {
         return false;
     }
 
@@ -113,12 +113,14 @@ v8_bool_t F4Phantom::Initialize(const InitContext* init_context) {
     return true;
 }
 
-void F4Phantom::SetDefaultAicraftDefaultParameters() {
+void 
+F4Phantom::SetDefaultAicraftDefaultParameters() {
     flight_characteristics_.SetDefaultValues();
     coord_frame_.SetDefaultValues();
 }
 
-void F4Phantom::Update(const float /*delta*/) {
+void 
+F4Phantom::Update(const float /*delta*/) {
     using v8::input::Key_Sym_t;
 
     F4RotationData_t orientation;
@@ -174,7 +176,8 @@ void F4Phantom::Update(const float /*delta*/) {
     UpdateCorrdFrameAxisVectors(orientation);
 }
 
-void F4Phantom::UpdateCorrdFrameAxisVectors(
+void 
+F4Phantom::UpdateCorrdFrameAxisVectors(
     const F4Phantom::F4RotationData_t& rot_data
     ) {
     using namespace v8::math;
@@ -211,7 +214,8 @@ void F4Phantom::UpdateCorrdFrameAxisVectors(
     }
 }
 
-void F4Phantom::Draw(const DrawingContext* draw_ctx) {
+void 
+F4Phantom::Draw(const DrawingContext* draw_ctx) {
     assert(is_valid());
 
     using namespace v8::math;
@@ -266,7 +270,7 @@ void F4Phantom::Draw(const DrawingContext* draw_ctx) {
     fragshader_.set_uniform_by_name("specular_pow", 128.0f);
 
     fragshader_.set_sampler("sam_linear", sam_state_.internal_np_get_handle());
-    fragshader_.set_resource_view("tex_diffuse", mtl_diffuse_.get_srv());
+    fragshader_.set_resource_view("tex_diffuse", material_.handle());
 
     vertexshader_.bind_to_pipeline(draw_ctx->Renderer);
     fragshader_.bind_to_pipeline(draw_ctx->Renderer);
@@ -274,7 +278,8 @@ void F4Phantom::Draw(const DrawingContext* draw_ctx) {
     draw_ctx->Renderer->draw_indexed(indexbuffer_.get_element_count());
 }
 
-void F4Phantom::InputEvent(const v8::input_event& in_evt) {
+void 
+F4Phantom::InputEvent(const v8::input_event& in_evt) {
     if (in_evt.type != v8::InputEventType::Key) {
         return;
     }

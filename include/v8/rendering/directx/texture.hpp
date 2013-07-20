@@ -1,164 +1,152 @@
 #pragma once
 
 #include <d3d11.h>
-#include <v8/base/com_exclusive_pointer.hpp>
 
+#include <v8/base/com_exclusive_pointer.hpp>
+#include <v8/base/operator_bool.hpp>
 #include <v8/rendering/directx/constants.hpp>
 #include <v8/rendering/directx/fwd_renderer.hpp>
-#include <v8/base/operator_bool.hpp>
+#include <v8/rendering/texture_descriptor.hpp>
 
-namespace v8 { namespace directx {
-
-struct texture_info_t;    
-
-//struct textureDescriptor_t {
-//    v8_uint32_t     texWidth;
-//    v8_uint32_t     texHeight;
-//    v8_uint32_t     texDepth;
-//    v8_uint32_t     elementsPerPixel;
-//    v8_int32_t      elementType;
-//    v8_uint32_t     stageBindFlags;
-//    v8_uint32_t     usageFlags;
-//    v8_uint32_t     cpuFlags;
-//    const void*     initialData;
-//
-//    textureDescriptor_t(
-//        const v8_uint32_t width,
-//        const v8_uint32_t height,
-//        const v8_uint32_t depth = 1u,
-//
-//};
+namespace v8 { namespace directx {   
 
 class texture {
-/// \name Construction/init
+
+/// \name   Defined types.
+/// @{
+
+public :
+
+    typedef ID3D11Texture1D*                    tex1D_native_handle_type;
+    typedef ID3D11Texture2D*                    tex2D_native_handle_type;
+    typedef ID3D11Texture3D*                    tex3D_native_handle_type;
+    typedef ID3D11Resource*                     tex_generic_native_handle_type;
+
+/// @}
+
+/// \name   Construction, initialization.
 /// @{
 
 public :
 
     texture();
 
-    texture(const texture_info_t& tex_info, renderer* rsys);
+    texture(const v8::rendering::textureDescriptor_t&   tex_desc,
+            const v8::directx::renderer&                rsys,
+            const void**                                tex_data = nullptr);
 
-    ~texture();
+    texture(const char*                    filename,
+            const v8::directx::renderer&         rsys);
 
-    //v8_bool_t Initialize(
-    //    renderer* renderSys,
-    //    v8_uint32_t texWidth,
-    //    v8_uint32_t texHeight,
-    //    v8_uint32_t texDepth,
-    //    v8_uint32_t numElementsPerPixel,
-    //    v8_uint32_t elementBitsCount,
-    //    v8_uint32_t bindingFlags,
-    //    v8_uint32_t usageFlags,
-    //    v8_uint32_t cpuFlags,
-    //    const void* initialData
-    //    );
+    v8_bool_t 
+    initialize(const v8::rendering::textureDescriptor_t&     tex_desc,
+               const v8::directx::renderer&                  rsys,
+               const void**                                  tex_data = nullptr);
 
-    v8_bool_t initialize(const texture_info_t& tex_info, renderer* rsys);
+    v8_bool_t initialize(const char*                    filename,
+                         const v8::directx::renderer&   rsys);
 
 /// @}
 
-/// \name Sanity checking
+/// \name   Sanity checking
 /// @{
 
 public :
 
-    v8_bool_t check_if_valid() const {
-        return resource_ && tex_srv_.view;
+    v8_bool_t is_valid() const {
+        return resource_ != nullptr;
     }
 
-    operator int base::operator_bool::*() const {
-        return check_if_valid() ? &base::operator_bool::a_member : nullptr;
+    operator int v8::base::operator_bool::*() const {
+        return is_valid() ? &v8::base::operator_bool::a_member : nullptr;
     }
 
 /// @}
 
-/// \name Attributes.
+/// \name   Attributes
 /// @{
 
-public :
+public:
 
-    ID3D11ShaderResourceView* get_srv() const {
-        assert(check_if_valid());
-        return v8::base::scoped_pointer_get(tex_srv_.view);
+    v8_uint32_t width() const NOEXCEPT {
+        assert(is_valid());
+        return width_;
     }
 
-    ID3D11UnorderedAccessView* get_uav() const {
-        assert(check_if_valid());
-        return v8::base::scoped_pointer_get(tex_uav_.view);
+    v8_uint32_t height() const NOEXCEPT {
+        assert(is_valid());
+        return height_;
     }
 
-    ID3D11RenderTargetView* get_rtv() const {
-        assert(check_if_valid());
-        return v8::base::scoped_pointer_get(tex_rtv_.view);
+    v8_uint32_t array_size() const NOEXCEPT {
+        assert(is_valid());
+        return array_size_;
+    }
+
+    v8_bool_t is_array() const NOEXCEPT {
+        assert(is_valid());
+        return array_size_ > 1;
+    }
+
+    v8_uint32_t mip_levels() const NOEXCEPT {
+        assert(is_valid());
+        return mip_levels_;
+    }
+
+    tex_generic_native_handle_type handle() const NOEXCEPT {
+        assert(is_valid());
+        return v8::base::scoped_pointer_get(resource_);
+    }
+
+    v8_uint32_t format() const NOEXCEPT {
+        assert(is_valid());
+        return format_;
+    }
+
+    v8_uint32_t type() const NOEXCEPT {
+        assert(is_valid());
+        return type_;
     }
 
 /// @}
-    
-/// \name Private helper types.
+
+/// \name   Private data types and members.
 /// @{
 
 private :
-
-    struct texture_sr_view {
-        texture_sr_view() : view(nullptr) {}
-
-        v8::base::com_exclusive_pointer
-        <
-            ID3D11ShaderResourceView
-        >::type                                     view;
-        D3D11_SHADER_RESOURCE_VIEW_DESC             view_desc;
-    };
-
-    struct texture_ua_view {
-        texture_ua_view() : view(nullptr) {}
-
-        v8::base::com_exclusive_pointer
-        <
-            ID3D11UnorderedAccessView
-        >::type                                     view;
-        D3D11_UNORDERED_ACCESS_VIEW_DESC            view_desc;
-    };
-
-    struct texture_rt_view {
-        texture_rt_view() : view(nullptr) {}
-
-        v8::base::com_exclusive_pointer
-        <
-            ID3D11RenderTargetView
-        >::type                                     view;
-        D3D11_RENDER_TARGET_VIEW_DESC               view_desc;
-    };
 
     typedef v8::base::com_exclusive_pointer
     <
         ID3D11Resource
-    >::type                                 ScopedtextureResource_t;
+    >::type                                             tex_resource_type_t;
+
+    v8_bool_t 
+    initialize_texture2D(const D3D11_TEXTURE2D_DESC&             desc_tex2D,
+                         const void*                             data,
+                         ID3D11Device*                           dev_context);
+
+private :
+
+    v8_uint32_t                                         width_;
+    v8_uint32_t                                         height_;
+    v8_uint32_t                                         array_size_;
+    v8_uint32_t                                         type_;
+    v8_uint32_t                                         pipeline_stage_bindings_;
+    v8_uint32_t                                         mip_levels_;
+    v8_uint32_t                                         format_;
+    tex_resource_type_t                                 resource_;
 
 /// @}
 
-/// \name Data members.
+/// \name   Disabled functions
 /// @{
 
 private :
 
-    ScopedtextureResource_t                         resource_;
-    texture_sr_view                                 tex_srv_;
-    texture_ua_view                                 tex_uav_;
-    texture_rt_view                                 tex_rtv_;
-    v8_uint32_t                                     width_;
-    v8_uint32_t                                     height_;
-    v8_uint32_t                                     depth_;
-    v8_uint32_t                                     array_size_;
-    v8_uint32_t                                     format_;
-    v8_uint32_t                                     flags_;
+    NO_CC_ASSIGN(texture);
 
 /// @}
-    
-private :
-    NO_CC_ASSIGN(texture);
 };
 
 } // namespace directx
 } // namespace v8
-
