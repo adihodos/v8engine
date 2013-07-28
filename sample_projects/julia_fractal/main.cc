@@ -64,15 +64,11 @@ v8_bool_t fractal_application::initialize() {
     //
     //  Initialize the rendering system.
     rendersys_ = new v8::rendering::renderer();
-    v8::rendering::render_init_params initialization_params;
-    initialization_params.width = window_->get_width();
-    initialization_params.height = window_->get_height();
-    initialization_params.target_window = window_->get_handle();
-    initialization_params.render_targets_count = 1;
-    initialization_params.stencil_bits = 8;
-    initialization_params.depth_bits = 24;
-    initialization_params.buffer_element_type = v8::rendering::ElementType::Unorm8;
-    initialization_params.buffer_element_count = 4;
+    v8::rendering::renderOptions_t initialization_params(
+        window_->get_handle(),
+        window_->get_width(), 
+        window_->get_height(),
+        false);
 
     if (!rendersys_->initialize(initialization_params)) {
         return false;

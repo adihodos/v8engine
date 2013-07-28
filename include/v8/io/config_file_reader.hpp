@@ -43,6 +43,7 @@ inline void get_json_value(
     size_t_value = static_cast<v8_size_t>(json_value.GetUint());
 }
 
+/*
 template<>
 inline void get_json_value( 
     const rapidjson::Value& json_value, v8_uint_t& uint_value
@@ -50,7 +51,7 @@ inline void get_json_value(
     assert(json_value.IsUint());
     uint_value = json_value.GetUint();
 }
-
+*/
 
 template<>
 inline void get_json_value(

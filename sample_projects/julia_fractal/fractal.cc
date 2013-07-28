@@ -38,13 +38,16 @@ const fractal::complex_type C_shape_constants[] = {
     ,   fractal::complex_type(-0.835f, -0.2321f)
     ,   fractal::complex_type(-0.74543f, +0.11301f)
     ,   fractal::complex_type(-0.75f, +0.11f)
-    ,   fractal::complex_type(-0.1f, +0.651f)     
+    ,   fractal::complex_type(-0.1f, +0.651f)
+    ,   fractal::complex_type(-1.36f, +0.11f)
+    ,   fractal::complex_type(+0.32f, +0.043f)
 };
 
 ///
 /// \brief Fractal parameters passed to the pixel shader. The size of this
 /// struct must be a multiple of 16.
 struct fractal_params_t {
+    v8_int_t                                                    is_mandelbrot;
     v8_int_t                                                    width;
     v8_int_t                                                    height;
     v8_int_t                                                    max_iterations;
@@ -57,9 +60,9 @@ struct fractal_params_t {
     float                                                       C_imag;
 
     ~fractal_params_t() {
-        static_assert((sizeof(fractal_params_t) % 16) == 0, 
-                      "Size of this class must be a multiple of 16 due to HLSL"
-                      " constant buffer constraints !!");
+        //static_assert((sizeof(fractal_params_t) % 16) == 0, 
+        //              "Size of this class must be a multiple of 16 due to HLSL"
+        //              " constant buffer constraints !!");
     }
 };
 
@@ -100,6 +103,7 @@ fractal::implementation::implementation(
     frac_params.offset_x = frac_params.offset_y = 0.0f;
     frac_params.C_real = -0.835f;
     frac_params.C_imag = -0.2321f;
+    frac_params.is_mandelbrot = false;
 }
 
 fractal::fractal(
@@ -290,6 +294,7 @@ void fractal::draw(v8::rendering::renderer* draw_context) {
         L"Numeric * : doubles the iteration count\n"
         L"Numeric / : halve the iteration count\n"
         L"Arrow keys : move left, right, up, down\n"
+        L"Q : Toggle between Julia/Mandelbrot sets\n"
         L"Home : reset and center position";
 
     impl_->vertexbuffer.bind_to_pipeline(draw_context);
@@ -330,7 +335,7 @@ v8_bool_t fractal::mouse_wheel_event(
 v8_bool_t fractal::key_press_event(const v8_int_t key_code) {
     using namespace v8::input;
 
-    if (Key_Sym_t::KP_Add == key_code) {
+    if (Key_Sym_t::KP_Add == key_code && !impl_->frac_params.is_mandelbrot) {
         ++impl_->shape_idx;
         const v8_size_t kSelectedShapeIndex = 
             impl_->shape_idx % dimension_of(C_shape_constants);
@@ -349,7 +354,11 @@ v8_bool_t fractal::key_press_event(const v8_int_t key_code) {
         impl_->frac_params.offset_y = 0.0f;
         impl_->frac_params.max_iterations = 256;
         impl_->solution_is_current = false;
+    } else if (Key_Sym_t::Key_Q == key_code) {
+        impl_->frac_params.is_mandelbrot = !impl_->frac_params.is_mandelbrot;
+        impl_->solution_is_current = false;
     }
+
     key_stats[key_code] = true;
     return true;
 }

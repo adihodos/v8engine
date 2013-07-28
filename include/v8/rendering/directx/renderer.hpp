@@ -10,7 +10,9 @@
 #include <v8/base/debug_helpers.hpp>
 #include <v8/base/pointer_policies.hpp>
 #include <v8/base/scoped_pointer.hpp>
+#include <v8/base/shims/scoped_ptr.hpp>
 #include <v8/math/color.hpp>
+#include <v8/rendering/render_init_params.hpp>
 #include <v8/rendering/viewport.hpp>
 #include <v8/rendering/directx/constants.hpp>
 #include <v8/rendering/directx/depth_stencil_state.hpp>
@@ -135,11 +137,14 @@ public :
 
     v8_bool_t initialize(const render_init_params& init_params);
 
+    v8_bool_t initialize(const v8::rendering::renderOptions_t& options);
+
 private :
 
     v8_bool_t disable_auto_alt_enter() const;
 
-    v8_bool_t initialize_swap_chain(v8_bool_t fullscreen);
+    v8_bool_t 
+    initialize_swap_chain(const v8::rendering::renderOptions_t& options);
 
     v8_bool_t initialize_font_engine();
 

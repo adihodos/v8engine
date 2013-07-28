@@ -241,7 +241,7 @@ v8_bool_t basic_drawing_app::initialize() {
     // Initialize windowing system.
     window_ = new v8::gui::basic_window();
     v8::gui::window_init_params_t win_init_params = {
-            1024, 1024, "Basic Drawing with D3D"
+        1024, 1024, "Basic Drawing with D3D"
     };
 
     if (!window_->initialize(win_init_params)) {
@@ -252,21 +252,10 @@ v8_bool_t basic_drawing_app::initialize() {
     // Initialize rendering system.
     rendersys_ = new v8::rendering::renderer();
 
-    v8::rendering::render_init_params graphics_init_params;
-    graphics_init_params.target_window        = window_->get_handle();
-    graphics_init_params.antialiasing         = false;
-    graphics_init_params.buffer_element_type  = 
-        v8::rendering::ElementType::Unorm8;
-    graphics_init_params.buffer_element_count = 4;
-    graphics_init_params.depth_bits           = 24;
-    graphics_init_params.stencil_bits         = 8;
-    graphics_init_params.full_screen          = false;
-    graphics_init_params.handle_full_screen   = true;
-    graphics_init_params.render_targets_count = 1;
-    graphics_init_params.width                = 1024;
-    graphics_init_params.height               = 1024;
-    graphics_init_params.clear_color          = 
-        v8::math::color_rgb::C_Darkorange;
+    v8::rendering::renderOptions_t graphics_init_params(
+        window_->get_handle(),
+        1024,
+        1024);
 
     if (!rendersys_->initialize(graphics_init_params)) {
         return false;
