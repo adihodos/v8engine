@@ -1,4 +1,7 @@
 #include <algorithm>
+#include <cstdlib>
+#include <ctime>
+
 #include <v8/v8.hpp>
 #include <v8/base/auto_buffer.hpp>
 #include <v8/base/debug_helpers.hpp>
@@ -16,10 +19,13 @@
 #include <v8/utility/win_util.hpp>
 #include <v8/math/camera.hpp>
 #include <v8/math/color.hpp>
+#include <v8/math/color_palette_generator.hpp>
 #include <v8/graphis_api_traits.hpp>
 #include <v8/math/light.hpp>
 #include <v8/math/math_constants.hpp>   
 #include <v8/math/projection.hpp>
+#include <v8/rendering/texture.hpp>
+#include <v8/rendering/texture_descriptor.hpp>
 #include <v8/rendering/viewport.hpp>
 #include <v8/scene/null_camera_controller.hpp>
 #include <v8/scene/cam_controller_spherical_coordinates.hpp>
@@ -340,14 +346,14 @@ void basic_drawing_app::draw() {
 
     const DrawingContext* kDrawCtx = &draw_context;
 
-    const float screen_center_x = window_->get_width() * 0.5f;
-    const float screen_center_y = window_->get_height() * 0.5f;
+    //const float screen_center_x = window_->get_width() * 0.5f;
+    //const float screen_center_y = window_->get_height() * 0.5f;
 
-    v8::rendering::viewPort_t viewport = { 
-        screen_center_x, screen_center_y, screen_center_x, screen_center_y, 0.0f, 1.0f
-    };
+    //v8::rendering::viewPort_t viewport = { 
+    //    screen_center_x, screen_center_y, screen_center_x, screen_center_y, 0.0f, 1.0f
+    //};
 
-    rendersys_->set_viewport(viewport);
+    //rendersys_->set_viewport(viewport);
 
     using namespace std;
     for_each(begin(geometric_objects_), end(geometric_objects_),
@@ -396,6 +402,55 @@ void basic_drawing_app::initialize_objects() {
         color_rgb(1.0f, 1.0f, 1.0f, 1.0f),
         normal_of(vector3F(1.0f, -1.0f, 1.0f))
         );
+}
+
+using namespace v8::math;
+
+void
+test_colors() {
+    //color_lab lab(0.42498702401561955f, 0.5112707395996318f, 0.4187917517617766f);
+    //color_rgb rgb;
+    //lab_to_rgb(lab, &rgb);
+
+    //const int vals[] = { (int) (rgb.Red * 255.0f), 
+    //                     (int) (rgb.Green * 255.0f), 
+    //                     (int) (rgb.Blue * 255.0f) };
+
+    //printf("\n%d, %d, %d", vals[0], vals[1], vals[2]);
+    //color_rgb rgb(0.1450980392156863f, 0.01568627450980392f, 0.1450980392156863f);
+    //color_hcl hcl;
+    //rgb_to_hcl(rgb, &hcl);
+
+    //const float arr[] = { hcl.Elements[0], hcl.Elements[1], hcl.Elements[2] };
+    
+
+    auto color_check_fn = [](const v8::math::color_rgb& rgb) {
+        using namespace v8::math;
+        color_hcl hcl;
+        rgb_to_hcl(rgb, &hcl);
+
+        return hcl.Elements[0] >= 0.0f && hcl.Elements[0] <= 360.0f
+            && hcl.Elements[1] >= 0.0f && hcl.Elements[1] <= 3.0f
+            && hcl.Elements[2] >= 0.0f && hcl.Elements[2] <= 1.5f;
+    };
+
+    FILE* fp = fopen("C:\\temp\\colors.txt", "wt");
+
+    for (int i = 0; i < 3; ++i) {
+        const int num_colors = 16;
+
+        std::vector<color_rgb> colors(num_colors);
+
+        generate_color_palette(colors.size(), color_check_fn, true, 50, false, &colors[0]);
+
+        for (int idx = 0; idx < colors.size(); ++idx) {
+            const color_rgb& c = colors[idx];
+
+            fprintf(fp, "\n[%3.6f, %3.6f, %3.6f]", c.Red, c.Green, c.Blue);
+        }
+
+        fprintf(fp, "\n###########\n");
+    }
 }
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {

@@ -32,6 +32,8 @@
 #include <v8/rendering/index_buffer.hpp>
 #include <v8/rendering/vertex_buffer.hpp>
 #include <v8/rendering/vertex_shader.hpp>
+#include <v8/rendering/texture_shader_binding.hpp>
+#include <v8/rendering/sampler_state.hpp>
 
 #include "igeometry_shape.hpp"
 
@@ -50,11 +52,13 @@ public :
     void Draw(const DrawingContext* draw_context);
 
 private :
-    v8::rendering::vertex_buffer    vertexbuffer_;
-    v8::rendering::index_buffer     indexbuffer_;
-    v8::rendering::vertex_shader    vertexshader_;
-    v8::rendering::fragment_shader  fragshader_;
-    v8::rendering::rasterizer_state rs_wireframe_;
+    v8::rendering::vertex_buffer            vertexbuffer_;
+    v8::rendering::index_buffer             indexbuffer_;
+    v8::rendering::vertex_shader            vertexshader_;
+    v8::rendering::fragment_shader          fragshader_;
+    v8::rendering::rasterizer_state         rs_wireframe_;
+    v8::rendering::texture_shader_binding   mtl_grid_;
+    v8::rendering::sampler_state            tex_sampler_;
 
 private :
     NO_CC_ASSIGN(FloorPlane);

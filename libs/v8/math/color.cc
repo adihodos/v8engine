@@ -327,3 +327,228 @@ void v8::math::hls_to_rgb(
     rgb->Green = compute_color_value(m1, m2, hls->Hue);
     rgb->Blue = compute_color_value(m1, m2, hls->Hue - 120.0f);
 }
+
+void
+v8::math::rgb_to_xyz(const color_rgb*     rgb,
+                     color_xyz*           xyz) 
+{
+    auto correct_color = [](const float input_val) -> float {
+        if (input_val <= 0.04045f) {
+            return input_val / 12.92f;
+        }
+
+        const float kConstant = 0.055f;
+        return pow((input_val + kConstant) / (1.0f + kConstant), 2.4f);
+    };
+
+    const float kRval = correct_color(rgb->Red);
+    const float kGVal = correct_color(rgb->Green);
+    const float kBVal = correct_color(rgb->Blue);
+
+    xyz->X = 0.4124f * kRval + 0.3576f * kGVal + 0.1805f * kBVal;
+    xyz->Y = 0.2126f * kRval + 0.7152f * kGVal + 0.0722f * kBVal;
+    xyz->Z = 0.0193f * kRval + 0.1192f * kGVal + 0.9505f * kBVal;
+}
+
+// void
+// v8::math::xyz_to_rgb(const color_xyz*     xyz,
+//                      color_rgb*           rgb) 
+// {
+//     const float refx = 95.047f;
+//     const float refy = 100.0f;
+//     const float refz = 108.883f;
+
+//     const float x = xyz->X * refx * 0.01f;
+//     const float y = xyz->Y * refy * 0.01f;
+//     const float z = xyz->Z * refz * 0.01f;
+
+//     //const float kRLinear = clamp(3.2406f * xyz->X - 1.5372f * xyz->Y - 0.4986f * xyz->Z,
+//     //                             0.0f,
+//     //                             1.0f);
+
+//     //const float kGLinear = clamp(-0.9689f * xyz->X + 1.8758f * xyz->Y + 0.0415f * xyz->Z,
+//     //                             0.0f,
+//     //                             1.0f);
+
+//     //const float kBLinear = clamp(0.0557f * xyz->X - 0.2040f * xyz->Y + 1.0570f * xyz->Z,
+//     //                             0.0f,
+//     //                             1.0f);
+//     const float r_linear = x * 3.2406f + y * -1.5372f + z * - 0.4986f;
+//     const float g_linear = x * -0.9689f + y * 1.8758f + z * 0.0415f;
+//     const float b_linear = x * 0.0557f + y * -0.2040f + z * 1.0570f;
+
+//     auto xform_fn = [](const float linear_val) {
+//         const float a_value = 0.055f;
+
+//         if (linear_val > 0.0031308f) {
+//             return (1.0f + a_value) * pow(linear_val, 1.0f / 2.4f) - a_value;
+//         }
+
+//         return 12.92f * linear_val;
+//     };
+
+//     rgb->Red   = xform_fn(r_linear);
+//     rgb->Green = xform_fn(g_linear);
+//     rgb->Blue  = xform_fn(b_linear);
+// }
+
+void
+v8::math::xyz_to_rgb(const v8::math::color_xyz&     xyz,
+                     v8::math::color_rgb*           rgb)
+{
+    const float x = xyz.X;
+    const float y = xyz.Y;
+    const float z = xyz.Z;
+
+    const float r_linear = 3.2406f * x - 1.5372f * y - 0.4986f * z;
+    const float g_linear = -0.9689f * x + 1.8758f * y + 0.0415f * z;
+    const float b_linear = 0.0557f * x - 0.2040f * y + 1.0570f * z;
+
+    auto correct = [](const float cl) {
+        const float a = 0.055f;
+
+        if (cl <= 0.0031308f) {
+            return 12.92f * cl;
+        }
+
+        return (1.0f + a) * pow(cl, 1.0f / 2.4f) - a;
+    };
+
+    rgb->Red = clamp(correct(r_linear), 0.0f, 1.0f);
+    rgb->Green = clamp(correct(g_linear), 0.0f, 1.0f);
+    rgb->Blue = clamp(correct(b_linear), 0.0f, 1.0f);
+}
+
+void
+v8::math::xyz_to_lab(const color_xyz*     xyz,
+                     color_lab*           lab) 
+{
+    auto f = [](const float input) -> float {
+        const float kThreshold = 0.008856451679035631f; // (6/29) ^ 3
+
+        if (input > kThreshold) {
+            return pow(input, 0.333333f);
+        }
+
+        return 7.787037037037035f * input + 0.13793103448275862f;
+    };
+
+    const float x = xyz->X;
+    const float y = xyz->Y;
+    const float z = xyz->Z;
+    const float ill[] = { 0.96421f, 1.00000f, 0.82519f };
+
+    lab->L = 1.16f * f(y / ill[1]) - 0.16f;
+    lab->A = 5.0f * (f(x / ill[0]) - f(y / ill[1]));
+    lab->B = 2.0f * (f(y / ill[1]) - f(z / ill[2]));
+}
+
+void
+v8::math::lab_to_xyz(const color_lab*     lab,
+                     color_xyz*           xyz) 
+{
+    auto xform_inv_fn = [](const float input_val) {
+        const float kThresholdValue = 0.20689655172413793f; // 6/29
+
+        if (input_val > kThresholdValue) {
+            return input_val * input_val * input_val;
+        }
+
+        return 0.12841854934601665f * (input_val - 0.13793103448275862f);
+    };
+
+    const float kXYZWhite[] = { 0.96421f, 1.0000f, 0.82519f };
+    const float kConstFactor = (lab->L + 0.16f) / 1.16f;
+
+    xyz->X = kXYZWhite[0] * xform_inv_fn(kConstFactor + 0.2f * lab->A);
+    xyz->Y = kXYZWhite[1] * xform_inv_fn(kConstFactor);
+    xyz->Z = kXYZWhite[2] * xform_inv_fn(kConstFactor - 0.5f * lab->B);
+}
+
+void
+v8::math::rgb_to_lab(const color_rgb*     rgb,
+                     color_lab*           lab) 
+{
+    color_xyz xyz;
+    rgb_to_xyz(rgb, &xyz);
+    xyz_to_lab(&xyz, lab);
+}
+
+void
+v8::math::lab_to_rgb(const color_lab&     lab,
+                     color_rgb*           rgb)
+{
+
+    color_xyz xyz;
+    lab_to_xyz(&lab, &xyz);
+    xyz_to_rgb(xyz, rgb);
+}
+
+void
+v8::math::lab_to_hcl(const color_lab&     lab,
+                     color_hcl*           hcl)
+{
+    //const float L = (lab.L - 0.09f) / 0.61f;
+    //const float r = sqrt(lab.A * lab.A + lab.B * lab.B);
+    //const float s = r / (L * 0.311f + 0.125f);
+
+    //const float TAU = 6.283185307179586476925287f;
+    //const float angle = atan2(lab.A, lab.B);
+
+    //float c = ((TAU / 6.0f - angle) / TAU) * 360.0f;
+
+    //if (c < 0.0f) {
+    //    c += 360.0f;
+    //}
+
+    //hcl->C = c;
+    //hcl->S = s;
+    //hcl->L = L;
+    const float l = (lab.L - 0.09f) / 0.61f;
+    const float a = lab.A;
+    const float b = lab.B;
+
+    const float r = sqrt(a * a + b * b);
+    const float s = r / (l * 0.311f + 0.125f);
+    const float tau = 6.283185307179586476925287f;
+
+    const float angle = atan2(a, b);
+    
+    float c = (tau / 6.0f - angle) / tau;
+    c *= 360.0f;
+
+    if (c < 0.0f) {
+        c += 360.0f;
+    }
+
+    hcl->C = c;
+    hcl->S = s;
+    hcl->L = l;
+}
+
+void
+v8::math::rgb_to_hcl(const color_rgb&     rgb,
+                     color_hcl*           hcl)
+{
+    color_lab lab;
+    rgb_to_lab(&rgb, &lab);
+    lab_to_hcl(lab, hcl);
+}
+
+void
+v8::math::hcl_to_lab(const color_hcl&     hcl,
+                     color_lab*           lab)
+{
+    const float c = hcl.C / 360.0f;
+    const float s = hcl.S;
+    const float l = hcl.L;
+
+    const float tau = 6.283185307179586476925287f;
+    
+    const float angle = tau / 6.0f - c * tau;
+    const float r = (l * 0.311f + 0.125f) * s;
+
+    lab->L = l * 0.61f + 0.09f;
+    lab->A = sin(angle) * r;
+    lab->B = cos(angle) * r;
+}

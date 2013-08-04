@@ -1,3 +1,5 @@
+#include <vector>
+
 #include <D3D11.h>
 #include <D3Dcompiler.h>
 
@@ -7,12 +9,18 @@
 #include <v8/io/filesystem.hpp>
 #include <v8/event/input_event.hpp>
 #include <v8/event/window_event.hpp>
+#include <v8/math/color.hpp>
+#include <v8/math/color_palette_generator.hpp>
 #include <v8/rendering/constants.hpp>
 #include <v8/rendering/depth_stencil_state.hpp>
 #include <v8/rendering/fragment_shader.hpp>
 #include <v8/rendering/index_buffer.hpp>
 #include <v8/rendering/input_layout.hpp>
 #include <v8/rendering/renderer.hpp>
+#include <v8/rendering/texture.hpp>
+#include <v8/rendering/texture_descriptor.hpp>
+#include <v8/rendering/texture_shader_binding.hpp>
+#include <v8/rendering/sampler_state.hpp>
 #include <v8/rendering/shader_info.hpp>
 #include <v8/rendering/vertex_buffer.hpp>
 #include <v8/rendering/vertex_shader.hpp>
@@ -21,6 +29,10 @@
 
 #include "fractal.hpp"
 
+using namespace std;
+using namespace v8::math;
+using namespace v8::rendering;
+
 namespace {
 
 v8_bool_t key_stats[v8::input::Key_Sym_t::Last];
@@ -28,12 +40,12 @@ v8_bool_t key_stats[v8::input::Key_Sym_t::Last];
 ///
 /// \brief Predefined constants that make nice shapes for Julia.
 const fractal::complex_type C_shape_constants[] = {
-        fractal::complex_type(-0.7f, 0.27015f)
-    ,   fractal::complex_type(0.400f, 0.0f)
+        fractal::complex_type(-0.7f, +0.27015f)
+    ,   fractal::complex_type(+0.400f, +0.0f)
     ,   fractal::complex_type(-0.8f, +0.156f)
-    ,   fractal::complex_type(0.285f, 0.0f)
-    ,   fractal::complex_type(-0.4f, 0.6f) 
-    ,   fractal::complex_type(0.285f, 0.01f)
+    ,   fractal::complex_type(+0.285f, +0.0f)
+    ,   fractal::complex_type(-0.4f, +0.6f) 
+    ,   fractal::complex_type(+0.285f, +0.01f)
     ,   fractal::complex_type(-0.70176f, -0.3842f)
     ,   fractal::complex_type(-0.835f, -0.2321f)
     ,   fractal::complex_type(-0.74543f, +0.11301f)
@@ -44,8 +56,7 @@ const fractal::complex_type C_shape_constants[] = {
 };
 
 ///
-/// \brief Fractal parameters passed to the pixel shader. The size of this
-/// struct must be a multiple of 16.
+/// \brief Fractal parameters passed to the pixel shader.
 struct fractal_params_t {
     v8_int_t                                                    is_mandelbrot;
     v8_int_t                                                    width;
@@ -60,9 +71,6 @@ struct fractal_params_t {
     float                                                       C_imag;
 
     ~fractal_params_t() {
-        //static_assert((sizeof(fractal_params_t) % 16) == 0, 
-        //              "Size of this class must be a multiple of 16 due to HLSL"
-        //              " constant buffer constraints !!");
     }
 };
 
@@ -84,6 +92,8 @@ struct fractal::implementation {
     v8::rendering::depth_stencil_state                      no_depth_test;
     v8::rendering::fragment_shader                          frag_shader;
     v8::rendering::vertex_shader                            vert_shader;
+    v8::rendering::texture_shader_binding                   color_table;
+    v8::rendering::sampler_state                            sampler;
 };
 
 fractal::implementation::implementation(
@@ -181,7 +191,59 @@ v8_bool_t fractal::initialize(fractal_app_context& app_context) {
     if (!impl_->frag_shader) {
         return false;
     }
+
+    if (!create_color_table(app_context)) {
+        return false;
+    }
+
+    sampler_descriptor_t sampler_desc;
+    if (!impl_->sampler.initialize(sampler_desc, app_context.Renderer)) {
+        return false;
+    }
+
     return true;
+}
+
+v8_bool_t fractal::create_color_table(fractal_app_context& app_context) {
+    const int num_colors = 16;
+
+    vector<color_rgb> color_palette(num_colors);
+
+    auto color_check_fn = [](const color_rgb& rgb) {
+        color_hcl hcl;
+        rgb_to_hcl(rgb, &hcl);
+
+        return hcl.Elements[0] >= 20.0f && hcl.Elements[0] <= 60.0f
+            && hcl.Elements[1] >= 0.3f && hcl.Elements[1] <= 1.6f
+            && hcl.Elements[2] >= 0.5f && hcl.Elements[2] <= 1.5f;
+    };
+
+    generate_color_palette(num_colors, 
+                           color_check_fn, 
+                           true, 
+                           50, 
+                           false, 
+                           &color_palette[0]);
+
+    textureDescriptor_t tex_desc(num_colors, 
+                                 1, 
+                                 textureType_t::Tex1D, 
+                                 1,
+                                 4, 
+                                 ElementType::Float32, 
+                                 BindingFlag::ShaderResource,
+                                 ResourceUsage::Default,
+                                 CPUAccess::None,
+                                 false);
+
+    const void* tex_data = &color_palette[0];
+    texture lookup_tex(tex_desc, *app_context.Renderer, &tex_data);
+
+    if (!lookup_tex) {
+        return false;
+    }
+
+    return impl_->color_table.initialize(lookup_tex, *app_context.Renderer);
 }
 
 v8_int_t fractal::get_width() const {
@@ -244,8 +306,8 @@ float fractal::get_y_offset() const {
 }
 
 void fractal::set_constant(const fractal::complex_type& const_factor) {
-    impl_->frac_params.C_real = const_factor.real();
-    impl_->frac_params.C_imag = const_factor.imag();
+    impl_->frac_params.C_real  = const_factor.real();
+    impl_->frac_params.C_imag  = const_factor.imag();
     impl_->solution_is_current = false;
 }
 
@@ -282,7 +344,7 @@ void fractal::evaluate(const float delta_ms) {
     if (impl_->solution_is_current) {
         return;
     }
-    impl_->frag_shader.set_uniform_block_by_name("globals", impl_->frac_params);
+
     impl_->solution_is_current = true;
 }
 
@@ -306,6 +368,10 @@ void fractal::draw(v8::rendering::renderer* draw_context) {
         v8::rendering::PrimitiveTopology::TriangleList
         );
 
+    impl_->frag_shader.set_uniform_block_by_name("globals", impl_->frac_params);
+    impl_->frag_shader.set_resource_view("colorTable", impl_->color_table.handle());
+    impl_->frag_shader.set_sampler("samplerState", impl_->sampler.internal_np_get_handle());
+
     impl_->vert_shader.bind_to_pipeline(draw_context);
     impl_->frag_shader.bind_to_pipeline(draw_context);
 
@@ -320,7 +386,7 @@ v8_bool_t fractal::mouse_wheel_event(
     const v8_int_t rotations, const v8_int_t /*xpos*/, const v8_int_t /*ypos*/
     ) {
     float zoom_val          = get_zoom_factor();
-    const float C_Exponent  = 3.0f;
+    const float C_Exponent  = 0.55f;
     const float C_Base      = 1.5f;
 
     if (rotations < 0) {
@@ -336,27 +402,37 @@ v8_bool_t fractal::key_press_event(const v8_int_t key_code) {
     using namespace v8::input;
 
     if (Key_Sym_t::KP_Add == key_code && !impl_->frac_params.is_mandelbrot) {
+
         ++impl_->shape_idx;
         const v8_size_t kSelectedShapeIndex = 
             impl_->shape_idx % dimension_of(C_shape_constants);
         set_constant(C_shape_constants[kSelectedShapeIndex]);
+
     } else if (Key_Sym_t::KP_Multiply == key_code) {
+
         set_iteration_count(get_iteration_count() * 2);
+
     } else if (Key_Sym_t::KP_Divide == key_code) {
+
         int iter_cnt = get_iteration_count();
         if (iter_cnt > 2) {
             iter_cnt /= 2;
             set_iteration_count(iter_cnt);
         }
+
     } else if (Key_Sym_t::Home == key_code) {
-        impl_->frac_params.zoom_factor = 1.0f;
-        impl_->frac_params.offset_x = 0.0f;
-        impl_->frac_params.offset_y = 0.0f;
+
+        impl_->frac_params.zoom_factor    = 1.0f;
+        impl_->frac_params.offset_x       = 0.0f;
+        impl_->frac_params.offset_y       = 0.0f;
         impl_->frac_params.max_iterations = 256;
-        impl_->solution_is_current = false;
-    } else if (Key_Sym_t::Key_Q == key_code) {
+        impl_->solution_is_current        = false;
+
+    } else if (Key_Sym_t::Key_Q  == key_code) {
+
         impl_->frac_params.is_mandelbrot = !impl_->frac_params.is_mandelbrot;
         impl_->solution_is_current = false;
+
     }
 
     key_stats[key_code] = true;
@@ -372,9 +448,15 @@ void fractal::on_input(const v8::input_event& ev_input) {
     using namespace v8;
 
     if (ev_input.type == InputEventType::Mouse_Wheel) {
+
         mouse_wheel_event(ev_input.mouse_wheel_ev.delta, 
                           ev_input.mouse_wheel_ev.x_pos,
                           ev_input.mouse_wheel_ev.y_pos);
+        return;
+    }
+
+    if (ev_input.type == InputEventType::Mouse_Button) {
+        mouse_button_event(ev_input.mouse_button_ev);
         return;
     }
 
@@ -384,6 +466,24 @@ void fractal::on_input(const v8::input_event& ev_input) {
         } else {
             key_depress_event(ev_input.key_ev.key);
         }
+        return;
+    }
+}
+
+void fractal::mouse_button_event(const v8::mouse_button_event_t& evt) {
+    if (!evt.down) {
+        return;
+    }
+
+    if (evt.id == v8::MouseButton::Left) {
+        //set_x_offset(evt.x_pos - get_width() / 2);
+        //set_y_offset(evt.y_pos - get_height() / 2);
+        mouse_wheel_event(1, 0, 0);
+        return;
+    }
+
+    if (evt.id == v8::MouseButton::Right) {
+        mouse_wheel_event(-1, 0, 0);
         return;
     }
 }

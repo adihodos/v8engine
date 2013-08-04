@@ -10,7 +10,10 @@
 #include <v8/rendering/renderer.hpp>
 #include <v8/rendering/shader_info.hpp>
 #include <v8/rendering/vertex_p.hpp>
+#include <v8/rendering/vertex_pt.hpp>
 #include <v8/rendering/vertex_shader.hpp>
+
+#include <stlsoft/shims/access/string.hpp>
 
 #include "app_context.hpp"
 #include "floor_plane.hpp"
@@ -27,13 +30,13 @@ v8_bool_t FloorPlane::Initialize(const InitContext* init_context) {
     geometry_gen::mesh_data_t grid_data;
     geometry_gen::create_grid(1024.0f, 1024.0f, 256, 256, &grid_data);
 
-    vector<vertex_p> grid_vertices;
+    vector<vertex_pt> grid_vertices;
     grid_vertices.reserve(grid_data.md_vertices.size());
 
     transform(begin(grid_data.md_vertices), end(grid_data.md_vertices),
               back_inserter(grid_vertices),
-              [](const geometry_gen::vertex_pntt& vtx) -> vertex_p {
-        return v8::rendering::vertex_p(vtx.vt_position);
+              [](const geometry_gen::vertex_pntt& vtx) -> vertex_pt {
+        return v8::rendering::vertex_pt(vtx.vt_position, vtx.vt_texcoord);
     });
 
     const v8_bool_t vb_created = vertexbuffer_.initialize(
@@ -48,6 +51,7 @@ v8_bool_t FloorPlane::Initialize(const InitContext* init_context) {
         init_context->Renderer, grid_data.md_indices.size(),
         sizeof(grid_data.md_indices[0]), &grid_data.md_indices[0]
     );
+
     if (!ib_created) {
         return false;
     }
@@ -57,7 +61,8 @@ v8_bool_t FloorPlane::Initialize(const InitContext* init_context) {
         Compile_Options::Generate_Debug_Info | Compile_Options::IEEE_Strictness |
         Compile_Options::Matrix_Packing_Row_Major | Compile_Options::Optimization_L0 |
         Compile_Options::Skip_Optimization | Compile_Options::Warnings_Are_Errors;
-    shader_info.entrypoint = "xform_vertex_p";
+
+    shader_info.entrypoint = "xform_vertex_pt";
     shader_info.is_filename = true;
     shader_info.name_or_source = init_context->FileSystem->make_shader_path(
         "basic_transform"
@@ -71,7 +76,7 @@ v8_bool_t FloorPlane::Initialize(const InitContext* init_context) {
         return false;
     }
 
-    shader_info.entrypoint = "color_vertex_p";
+    shader_info.entrypoint = "color_vertex_pt";
     shader_info.name_or_source = init_context->FileSystem->make_shader_path(
         "basic_coloring"
         );
@@ -84,7 +89,28 @@ v8_bool_t FloorPlane::Initialize(const InitContext* init_context) {
     raster_descriptor_t rsd(raster_descriptor_t::default_state());
     rsd.fill_mode = FillMode::Wireframe;
     rsd.cull_mode = CullMode::None;
+
     if (!rs_wireframe_.initialize(rsd, init_context->Renderer)) {
+        return false;
+    }
+
+    const std::string tex_file_path(
+            init_context->FileSystem->make_texture_path("ash_uvgrid01.dds"));
+
+    const v8_bool_t texture_loaded = mtl_grid_.initialize(
+            stlsoft::c_str_data(tex_file_path), *init_context->Renderer);
+
+    if (!texture_loaded) {
+        return false;
+    }
+
+    sampler_descriptor_t sampler_desc;
+    sampler_desc.tex_address_u = Texture_Address_Mode::Wrap;
+    sampler_desc.tex_address_v = Texture_Address_Mode::Wrap;
+
+    const v8_bool_t sampler_initialized = tex_sampler_.initialize(
+            sampler_desc, init_context->Renderer);
+    if (!sampler_initialized) {
         return false;
     }
 
@@ -99,9 +125,11 @@ void FloorPlane::Draw(const DrawingContext* draw_context) {
 
     vertexbuffer_.bind_to_pipeline(draw_context->Renderer);
     indexbuffer_.bind_to_pipeline(draw_context->Renderer);
+
     draw_context->Renderer->ia_stage_set_primitive_topology_type(
         PrimitiveTopology::TriangleList
         );
+
     draw_context->Renderer->ia_stage_set_input_layout(
         vertexshader_.get_input_signature()
         );
@@ -109,9 +137,23 @@ void FloorPlane::Draw(const DrawingContext* draw_context) {
     vertexshader_.set_uniform_by_name(
         "world_view_projection", draw_context->ProjectionViewXForm
         );
-    fragshader_.set_uniform_by_name(
-        "vertex_color", v8::math::color_rgb::C_MediumSpringGreen
-        );
+
+    const v8_int32_t use_texture = false;
+
+    fragshader_.set_sampler("texSampler", tex_sampler_.internal_np_get_handle());
+    fragshader_.set_uniform_by_name("g_use_texturing", use_texture);
+
+    if (use_texture) {
+
+        fragshader_.set_resource_view("colourTex", mtl_grid_.handle());
+
+    } else {
+
+        fragshader_.set_uniform_by_name(
+            "g_vertex_color", v8::math::color_rgb::C_MediumSpringGreen
+            );
+    }
+
     vertexshader_.bind_to_pipeline(draw_context->Renderer);
     fragshader_.bind_to_pipeline(draw_context->Renderer);
 

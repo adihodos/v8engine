@@ -4,6 +4,7 @@
 
 #include <v8/v8.hpp>
 #include <v8/event/fwd_event_types.hpp>
+#include <v8/event/input_event.hpp>
 #include <v8/rendering/fwd_renderer.hpp>
 #include <v8/base/scoped_pointer.hpp>
 #include "application_context.hpp"
@@ -33,6 +34,9 @@ public :
     ~fractal();
 
     v8_bool_t initialize(fractal_app_context& app_context);
+
+private :
+    v8_bool_t create_color_table(fractal_app_context& app_context);
 
     //! @}
 
@@ -100,6 +104,8 @@ private :
         const v8_int_t xpos, 
         const v8_int_t ypos
         );
+
+    void mouse_button_event(const v8::mouse_button_event_t& evt);
 
     v8_bool_t key_press_event(const v8_int_t key_code);
 

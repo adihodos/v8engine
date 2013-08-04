@@ -1,7 +1,6 @@
 add_executable(
     julia_fractal WIN32
     fractal.cc
-    fractal_window.cc
     main.cc
 )
 

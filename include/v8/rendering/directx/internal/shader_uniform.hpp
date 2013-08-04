@@ -66,19 +66,19 @@ public :
     //! \name Operators
     //!
     
-    shader_uniform_block_t& operator=(
-        shader_uniform_block_t&& rvalue
-        ) {
-        handle_ = std::move(rvalue.handle_);
+    shader_uniform_block_t& operator=(shader_uniform_block_t&& rvalue) {
+
+        handle_       = std::move(rvalue.handle_);
         data_storage_ = std::move(rvalue.data_storage_);
-        name_ = std::move(rvalue.name_);
-        varcount_ = rvalue.varcount_;
-        size_ = rvalue.size_;
-        data_dirty_ = rvalue.data_dirty_;
+        name_         = std::move(rvalue.name_);
+        varcount_     = rvalue.varcount_;
+        size_         = rvalue.size_;
+        data_dirty_   = rvalue.data_dirty_;
+
         return *this;
     }
 
-    operator int base::operator_bool::*() const {
+    operator v8_int_t base::operator_bool::*() const {
         return !handle_ ? nullptr : &base::operator_bool::a_member;
     }
 
@@ -178,6 +178,7 @@ inline v8_bool_t shader_uniform_block_t::initialize(
     v8::base::scoped_pointer_reset(
         data_storage_,
         static_cast<v8_byte_t*>(malloc(buff_desc.Size * sizeof(v8_byte_t))));
+
     return true;
 }
 
@@ -266,16 +267,13 @@ struct shader_uniform_t {
 };
 
 template<typename DataType>
-inline void shader_uniform_t::set_value(
-    const DataType& value
-    ) {
+inline void shader_uniform_t::set_value(const DataType& value) {
     set_raw_value(&value, sizeof(value));
 }
 
-inline void shader_uniform_t::set_raw_value(
-    const void* data, 
-    v8_uint32_t byte_count
-    ) {
+inline void shader_uniform_t::set_raw_value(const void*     data, 
+                                            v8_uint32_t     byte_count) 
+{
     assert(parent_block_);
     assert(byte_count <= size_);
     parent_block_->set_block_component_data(data, start_offset_, byte_count);
@@ -291,10 +289,8 @@ struct sampler_state_t {
     //! GPU register that the sampler is bound to.
     v8_uint32_t                bindpoint_;
 
-    sampler_state_t(
-        const char* name, 
-        v8_uint32_t bind_point
-        )
+    sampler_state_t(const char*     name, 
+                    v8_uint32_t     bind_point)
         :   name_(name), 
             bindpoint_(bind_point) {}
 };

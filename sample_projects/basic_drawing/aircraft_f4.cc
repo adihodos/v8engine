@@ -95,7 +95,8 @@ F4Phantom::Initialize(const InitContext* init_context) {
         return false;
     }
 
-    const std::string tex_filename(init_context->FileSystem->make_texture_path("f4_texture.jpg"));
+    const char* const fname = "f4_texture.dds";
+    const std::string tex_filename(init_context->FileSystem->make_texture_path(fname));
 
     if (!material_.initialize(tex_filename.c_str(), *init_context->Renderer)) {
         return false;

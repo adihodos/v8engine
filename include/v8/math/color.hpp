@@ -83,6 +83,53 @@ struct color_hls {
             ,   Saturation(saturation) {}
 };
 
+struct color_xyz {
+    float   X;
+    float   Y;
+    float   Z;
+
+    color_xyz() {}
+
+    color_xyz(const float x, const float y, const float z)
+        :       X(x)
+            ,   Y(y)
+            ,   Z(z)
+    {}
+};
+
+struct color_lab {
+    float   L;
+    float   A;
+    float   B;
+
+    color_lab() {}
+
+    color_lab(const float l, const float a, const float b)
+        :       L(l)
+            ,   A(a)
+            ,   B(b)
+    {}
+};
+
+struct color_hcl {
+    union {
+        struct {
+            float   C;
+            float   S;
+            float   L;
+        };
+        float Elements[3];
+    };
+
+    color_hcl() {}
+
+    color_hcl(const float chroma, const float sat, const float lum)
+        :       C(chroma)
+            ,   S(sat)
+            ,   L(lum)
+    {}
+};
+
 /*!
  *\brief Represents a 4 component (red, green, blue, alpha) 
  *       normalized color vector (128 bits).
@@ -584,5 +631,44 @@ rgb_to_hls(const color_rgb* rgb, color_hls* hls);
 void
 hls_to_rgb(const color_hls* hls, color_rgb *rgb);
 
+void
+rgb_to_xyz(const color_rgb*     rgb,
+           color_xyz*           xyz);
+
+void
+rgb_to_lab(const color_rgb*     rgb,
+           color_lab*           lab);
+
+void
+rgb_to_hcl(const color_rgb&     rgb,
+           color_hcl*           lab);
+
+void
+xyz_to_rgb(const color_xyz&     xyz,
+           color_rgb*           rgb);
+
+void
+xyz_to_lab(const color_xyz*     xyz,
+           color_lab*           lab);
+
+void
+lab_to_xyz(const color_lab*     lab,
+           color_xyz*           xyz);
+
+void
+lab_to_rgb(const color_lab&     lab,
+           color_rgb*           rgb);
+
+void
+hcl_to_lab(const color_hcl&     hcl,
+           color_lab*           lab);
+
+void
+lab_to_hcl(const color_lab&     lab,
+           color_hcl*           hcl);
+
+
 } // namespace math
 } // namespace v8
+
+#include <v8/math/color_palette_generator.hpp>

@@ -80,14 +80,12 @@ v8_bool_t v8::utility::import_geometry(
             new_vtx.texcoord.x_ = k_imported_vtx->x;
             new_vtx.texcoord.y_ = k_imported_vtx->y;
 
-            //vertices->push_back(new_vtx);
             ptr_vertices[vertex_count++] = new_vtx;
         }
 
         for (v8_uint_t face_index = 0; face_index < k_mesh->mNumFaces; ++face_index) {
             const aiFace* k_face = &k_mesh->mFaces[face_index];
             for (v8_uint_t i = 0; i < k_face->mNumIndices; ++i) {
-                //indices->push_back(k_face->mIndices[i] + indices_offset);
                 ptr_indices[index_count++] = k_face->mIndices[i] + indices_offset;
             }
         }

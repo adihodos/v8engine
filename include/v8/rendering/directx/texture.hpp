@@ -36,7 +36,7 @@ public :
             const void**                                tex_data = nullptr);
 
     texture(const char*                    filename,
-            const v8::directx::renderer&         rsys);
+            const v8::directx::renderer&   rsys);
 
     v8_bool_t 
     initialize(const v8::rendering::textureDescriptor_t&     tex_desc,
@@ -48,16 +48,27 @@ public :
 
 /// @}
 
+/// \name   Operations.
+/// @{
+
+public :
+
+    v8_bool_t
+    write_to_file(const char*                       output_file,
+                  const v8::directx::renderer&      rsys);
+
+/// @}
+
 /// \name   Sanity checking
 /// @{
 
 public :
 
-    v8_bool_t is_valid() const {
+    v8_bool_t is_valid() const NOEXCEPT {
         return resource_ != nullptr;
     }
 
-    operator int v8::base::operator_bool::*() const {
+    operator int v8::base::operator_bool::*() const NOEXCEPT {
         return is_valid() ? &v8::base::operator_bool::a_member : nullptr;
     }
 
@@ -124,6 +135,12 @@ private :
     initialize_texture2D(const D3D11_TEXTURE2D_DESC&             desc_tex2D,
                          const void*                             data,
                          ID3D11Device*                           dev_context);
+
+    v8_bool_t 
+    initialize_texture1D(const D3D11_TEXTURE1D_DESC&             desc_tex1D,
+                         const void*                             data,
+                         ID3D11Device*                           dev_context);
+
 
 private :
 

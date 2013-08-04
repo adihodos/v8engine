@@ -9,6 +9,8 @@
 
 namespace {
 
+const UINT kAllAccessibleMipLevels = static_cast<UINT>(-1);
+
 v8::base::com_exclusive_pointer<ID3D11ShaderResourceView>::type
 make_srv(ID3D11Resource*                            resource,
          ID3D11Device*                              device,
@@ -49,6 +51,26 @@ initialize(const texture&         bound_texture,
     if (texture_->type() == rendering::textureType_t::Tex1D) {
         //
         // TODO : handle this case
+        if (texture_->is_array()) {
+
+            srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE1DARRAY;
+            srv_desc.Texture1DArray.ArraySize = texture_->array_size();
+            srv_desc.Texture1DArray.FirstArraySlice = 0;
+            srv_desc.Texture1DArray.MipLevels = kAllAccessibleMipLevels;
+            srv_desc.Texture1DArray.MostDetailedMip = most_detailed_mip;
+
+        } else {
+
+            srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE1D;
+            srv_desc.Texture1D.MipLevels = kAllAccessibleMipLevels;
+            srv_desc.Texture1D.MostDetailedMip = most_detailed_mip;
+
+        }
+
+        binding_ptr_ = make_srv(texture_->handle(), 
+                                rsys.internal_np_get_device(),
+                                srv_desc);
+
     } else if (texture_->type() == rendering::textureType_t::Tex2D) {
 
         if (texture_->is_array()) {
@@ -56,13 +78,13 @@ initialize(const texture&         bound_texture,
             srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
             srv_desc.Texture2DArray.ArraySize = texture_->array_size();
             srv_desc.Texture2DArray.FirstArraySlice = 0;
-            srv_desc.Texture2DArray.MipLevels = texture_->mip_levels();
+            srv_desc.Texture2DArray.MipLevels = kAllAccessibleMipLevels;
             srv_desc.Texture2DArray.MostDetailedMip = most_detailed_mip;
 
         } else {
 
             srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-            srv_desc.Texture2D.MipLevels = texture_->mip_levels();
+            srv_desc.Texture2D.MipLevels = kAllAccessibleMipLevels;
             srv_desc.Texture2D.MostDetailedMip = most_detailed_mip;
 
         }

@@ -4,6 +4,7 @@
 #include <v8/base/scoped_pointer.hpp>
 #include <v8/base/scoped_resource.hpp>
 #include <v8/base/string_util.hpp>
+#include <v8/gui/basic_window.hpp>
 #include <v8/io/filesystem.hpp>
 #include <v8/rendering/constants.hpp>
 #include <v8/rendering/renderer.hpp>
@@ -16,7 +17,6 @@
 #include <v8/scene/scene_system.hpp>
 
 #include "fractal.hpp"
-#include "fractal_window.hpp"
 
 namespace {
 
@@ -40,7 +40,7 @@ private :
     }
 
 private :
-    v8::base::scoped_ptr<fractal_window>                  window_;
+    v8::base::scoped_ptr<v8::gui::basic_window>           window_;
     v8::base::scoped_ptr<v8::rendering::renderer>         rendersys_;
     v8::base::scoped_ptr<v8::filesys>                     filesys_;
     v8::base::scoped_ptr<fractal>                         julia_;
@@ -52,7 +52,7 @@ v8_bool_t fractal_application::initialize() {
 
     //
     // Initialize windowing system.
-    window_ = new fractal_window();
+    window_ = new v8::gui::basic_window;
     v8::gui::window_init_params_t win_init_params = {
         1024, 1024, "Julia Fractal Visualiser"
     };
