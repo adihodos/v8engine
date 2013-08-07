@@ -183,12 +183,14 @@ v8_bool_t v8::directx::internal::shader_common_base::reflect_shader(
     //
     // Collect info about the constant buffers used by the shader.
     std::vector<ConstBufferInfo_t> shader_cbuff_data;
-    const v8_uint32_t   num_global_vars = reflect_shader_const_buffers(
+    const v8_uint32_t num_global_vars = reflect_shader_const_buffers(
         device, 
         scoped_pointer_get(shader_reflector), 
         shader_description.ConstantBuffers,
         &shader_cbuff_data
         );
+
+    UNREFERENCED_PARAMETER(num_global_vars);
 
     //
     // Need to reserve space in advance, otherwise iterators might become invalid.

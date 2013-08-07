@@ -1,17 +1,25 @@
+#include <cstdlib>
+#include <ctime>
+
 #include <v8/v8.hpp>
 #include <v8/base/auto_buffer.hpp>
 #include <v8/base/debug_helpers.hpp>
 #include <v8/base/scoped_pointer.hpp>
 #include <v8/base/scoped_resource.hpp>
 #include <v8/base/string_util.hpp>
+#include <v8/base/string_util.hpp>
 #include <v8/gui/basic_window.hpp>
 #include <v8/io/filesystem.hpp>
 #include <v8/rendering/constants.hpp>
 #include <v8/rendering/renderer.hpp>
 #include <v8/rendering/render_assets_cache.hpp>
+#include <v8/rendering/texture_descriptor.hpp>
+#include <v8/rendering/texture.hpp>
 #include <v8/utility/win_util.hpp>
 #include <v8/fast_delegate/fast_delegate.hpp>
 #include <v8/math/color.hpp>
+#include <v8/math/color_palette_generator.hpp>
+#include <v8/math/random/random.hpp>
 #include <v8/math/vector3.hpp>
 #include <v8/math/matrix4X4.hpp>
 #include <v8/scene/scene_system.hpp>
@@ -19,6 +27,36 @@
 #include "fractal.hpp"
 
 namespace {
+
+using namespace v8::base;
+//using namespace v8::math;
+using namespace v8::rendering;
+
+v8_bool_t write_palette_as_dds(
+    const char*                                         file_name,
+    const v8::base::array_proxy<v8::math::color_rgb>&   palette,
+    const v8::rendering::renderer&                      rsys) 
+{
+    textureDescriptor_t tex_desc((v8_uint32_t) palette.length(),
+                                 1,
+                                 textureType_t::Tex1D,
+                                 1,
+                                 4,
+                                 ElementType::Float32,
+                                 BindingFlag::ShaderResource,
+                                 ResourceUsage::Default,
+                                 CPUAccess::None,
+                                 false);
+
+    const void* tex_data = palette.base();
+    texture palette_texture(tex_desc, rsys, &tex_data);
+
+    if (!palette_texture) {
+        return false;
+    }
+
+    return palette_texture.write_to_file(file_name, rsys);
+}
 
 class fractal_application {
 public :
@@ -30,6 +68,8 @@ public :
         window_->message_loop();
     }
 
+    void boogie_boogie();
+
 private :
     void update_scene(const float delta);
 
@@ -40,11 +80,12 @@ private :
     }
 
 private :
-    v8::base::scoped_ptr<v8::gui::basic_window>           window_;
-    v8::base::scoped_ptr<v8::rendering::renderer>         rendersys_;
-    v8::base::scoped_ptr<v8::filesys>                     filesys_;
-    v8::base::scoped_ptr<fractal>                         julia_;
-    fractal_app_context                                   app_context_;
+    v8::base::scoped_ptr<v8::gui::basic_window>             window_;
+    v8::base::scoped_ptr<v8::rendering::renderer>           rendersys_;
+    v8::base::scoped_ptr<v8::filesys>                       filesys_;
+    v8::base::scoped_ptr<fractal>                           julia_;
+    v8::math::random                                        rng_;
+    fractal_app_context                                     app_context_;
 };
 
 v8_bool_t fractal_application::initialize() {
@@ -165,9 +206,67 @@ void fractal_application::draw_scene() {
     app_context_.Renderer->present_frame(v8::rendering::FramePresent::All);
 }
 
+void fractal_application::boogie_boogie() {
+    v8::math::color_rgb uniform_colors[16];
+    array_proxy<v8::math::color_rgb> color_arr(uniform_colors);
+
+    for (v8_int_t i = 0; i < 16; ++i) {
+        v8::math::procedural_palette::gen_uniform_colors(color_arr);
+
+        char file_path [256];
+        snprintf(file_path, dimension_of(file_path), "C:\\temp\\palette_uniform%d.dds", i);
+        write_palette_as_dds(file_path, color_arr, *rendersys_);
+    }
+
+    const v8::math::color_rgb base_colors [] = {
+        v8::math::color_rgb(1.0f, 0.5f, 0.0f),
+        v8::math::color_rgb(0.5f, 1.0f, 0.25f),
+        v8::math::color_rgb(0.25f, 0.5f, 1.0f),
+    };
+
+    for (v8_size_t idx = 0; idx < dimension_of(base_colors); ++idx) {
+        v8::math::procedural_palette::gen_random_walk_colors(
+            base_colors[idx],
+            0.2f,
+            0.4f,
+            color_arr);
+
+        char file_path [256];
+        snprintf(file_path, 
+                 dimension_of(file_path), 
+                 "C:\\temp\\palette_rand_walk%u.dds", 
+                 idx);
+
+        write_palette_as_dds(file_path, color_arr, *rendersys_);
+    }
+
+    v8::math::color_rgb palette2 [128];
+    v8::base::array_proxy<v8::math::color_rgb> arrp(palette2);
+
+    using v8::math::procedural_palette;
+
+    auto color_check_fn = [](const v8::math::color_rgb& rgb) -> float {
+        using namespace v8::math;
+        color_hcl hcl;
+        rgb_to_hcl(rgb, &hcl);
+
+        return hcl.Elements[0] >= 0.0f && hcl.Elements[0] <= 250.0f
+            && hcl.Elements[1] >= 2.0f && hcl.Elements[1] <= 3.0f
+            && hcl.Elements[2] >= 0.0f && hcl.Elements[2] <= 1.5f;
+    };
+
+    procedural_palette::generate_color_palette(color_check_fn,
+                                               true,
+                                               50,
+                                               false,
+                                               arrp);
+
+    write_palette_as_dds("C:\\temp\\color_palette.dds", arrp, *rendersys_);
 }
 
-int WINAPI WinMain(HINSTANCE inst, HINSTANCE, LPSTR, int) {
+}
+
+int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     //
     // Must be the first constructed object to report any leaked memory.
     v8::utility::win32::scoped_mem_leak_checker leak_check_obj;
@@ -176,6 +275,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE, LPSTR, int) {
         if (!fractal_app.initialize()) {
             return -1;
         }
+        //fractal_app.boogie_boogie();
         fractal_app.run();
     }
     return 0;

@@ -222,6 +222,13 @@ inline real_t random_number_in_interval(
     return static_cast<real_t>(rand_num);
 }
 
+template<typename T>
+struct Interpolator {
+    T operator()(const T& left, const T& right, const float amount) const {
+        return left * (1.0f - amount) + right * amount;
+    }
+};
+
 //! @}
 
 } // namespace math

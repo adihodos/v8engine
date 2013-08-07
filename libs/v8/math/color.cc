@@ -238,15 +238,15 @@ void v8::math::hsv_to_rgb(const color_hsv *hsv, color_rgb *rgb) {
 }
 
 void v8::math::rgb_to_hls(
-    const color_rgb *rgb,
-    color_hls *hls
+    const color_rgb&    rgb,
+    color_hls*          hls
     ) {
 
-    const float max = v8::math::max(v8::math::max(rgb->Red, rgb->Green),
-                                    rgb->Blue);
+    const float max = v8::math::max(v8::math::max(rgb.Red, rgb.Green),
+                                    rgb.Blue);
 
-    const float min = v8::math::min(v8::math::min(rgb->Red, rgb->Green),
-                                    rgb->Blue);
+    const float min = v8::math::min(v8::math::min(rgb.Red, rgb.Green),
+                                    rgb.Blue);
 
     hls->Lightness = (max + min) * 0.5f;
 
@@ -266,12 +266,12 @@ void v8::math::rgb_to_hls(
         hls->Saturation = delta / (2.0f - max - min);
     }
 
-    if (rgb->Red == max) {
-        hls->Hue = (rgb->Green - rgb->Blue) / delta;
-    } else if (rgb->Green == max) {
-        hls->Hue = 2.0f + (rgb->Blue - rgb->Red) / delta;
+    if (rgb.Red == max) {
+        hls->Hue = (rgb.Green - rgb.Blue) / delta;
+    } else if (rgb.Green == max) {
+        hls->Hue = 2.0f + (rgb.Blue - rgb.Red) / delta;
     } else {
-        hls->Hue = 4.0f + (rgb->Red - rgb->Green) / delta;
+        hls->Hue = 4.0f + (rgb.Red - rgb.Green) / delta;
     }
 
     hls->Hue *= 60.0f;
@@ -304,28 +304,27 @@ float compute_color_value(float n1, float n2, float hue) {
 } // anonymous namespace
 
 void v8::math::hls_to_rgb(
-    const color_hls *hls,
-    color_rgb *rgb
-    ) {
-
+    const color_hls&    hls,
+    color_rgb*          rgb) 
+{
     float m1 = 0.0f;
     float m2 = 0.0f;
 
-    if (operands_le(hls->Lightness, 0.5f)) {
-        m2 = hls->Lightness * (1.0f + hls->Saturation);
+    if (operands_le(hls.Lightness, 0.5f)) {
+        m2 = hls.Lightness * (1.0f + hls.Saturation);
     } else {
-        m2 = hls->Lightness + hls->Saturation - hls->Lightness * hls->Saturation;
-        m1 = 2.0f * hls->Lightness - m2;
+        m2 = hls.Lightness + hls.Saturation - hls.Lightness * hls.Saturation;
+        m1 = 2.0f * hls.Lightness - m2;
     }
 
-    if (is_zero(hls->Saturation)) {
-        rgb->Red = rgb->Green = rgb->Blue = hls->Lightness;
+    if (is_zero(hls.Saturation)) {
+        rgb->Red = rgb->Green = rgb->Blue = hls.Lightness;
         return;
     }
 
-    rgb->Red = compute_color_value(m1, m2, hls->Hue + 120.0f);
-    rgb->Green = compute_color_value(m1, m2, hls->Hue);
-    rgb->Blue = compute_color_value(m1, m2, hls->Hue - 120.0f);
+    rgb->Red = compute_color_value(m1, m2, hls.Hue + 120.0f);
+    rgb->Green = compute_color_value(m1, m2, hls.Hue);
+    rgb->Blue = compute_color_value(m1, m2, hls.Hue - 120.0f);
 }
 
 void
@@ -396,15 +395,36 @@ void
 v8::math::xyz_to_rgb(const v8::math::color_xyz&     xyz,
                      v8::math::color_rgb*           rgb)
 {
+    /*
+      double rl =  3.2406*x - 1.5372*y - 0.4986*z;
+  double gl = -0.9689*x + 1.8758*y + 0.0415*z;
+  double bl =  0.0557*x - 0.2040*y + 1.0570*z;
+  int clip = (rl < 0.0 || rl > 1.0 || gl < 0.0 || gl > 1.0 || bl < 0.0 || bl > 1.0);
+  if(clip) {
+    rl = (rl<0.0)?0.0:((rl>1.0)?1.0:rl);
+    gl = (gl<0.0)?0.0:((gl>1.0)?1.0:gl);
+    bl = (bl<0.0)?0.0:((bl>1.0)?1.0:bl);
+  }
+  //Uncomment the below to detect clipping by making clipped zones red.
+  //if(clip) {rl=1.0;gl=bl=0.0;}
+  double correct(double cl) {
+    double a = 0.055;
+    return (cl<=0.0031308)?(12.92*cl):((1+a)*pow(cl,1/2.4)-a);
+  }
+  *r = (unsigned char)(255.0*correct(rl));
+  *g = (unsigned char)(255.0*correct(gl));
+  *b = (unsigned char)(255.0*correct(bl));
+
+    */
     const float x = xyz.X;
     const float y = xyz.Y;
     const float z = xyz.Z;
 
-    const float r_linear = 3.2406f * x - 1.5372f * y - 0.4986f * z;
-    const float g_linear = -0.9689f * x + 1.8758f * y + 0.0415f * z;
-    const float b_linear = 0.0557f * x - 0.2040f * y + 1.0570f * z;
+    const float r_linear = clamp(3.2406f * x - 1.5372f * y - 0.4986f * z, 0.0f, 1.0f);
+    const float g_linear = clamp(-0.9689f * x + 1.8758f * y + 0.0415f * z, 0.0f, 1.0f);
+    const float b_linear = clamp(0.0557f * x - 0.2040f * y + 1.0570f * z, 0.0f, 1.0f);
 
-    auto correct = [](const float cl) {
+    auto correct = [](const float cl) -> float {
         const float a = 0.055f;
 
         if (cl <= 0.0031308f) {
@@ -414,9 +434,9 @@ v8::math::xyz_to_rgb(const v8::math::color_xyz&     xyz,
         return (1.0f + a) * pow(cl, 1.0f / 2.4f) - a;
     };
 
-    rgb->Red = clamp(correct(r_linear), 0.0f, 1.0f);
-    rgb->Green = clamp(correct(g_linear), 0.0f, 1.0f);
-    rgb->Blue = clamp(correct(b_linear), 0.0f, 1.0f);
+    rgb->Red = correct(r_linear);
+    rgb->Green = correct(g_linear);
+    rgb->Blue = correct(b_linear);
 }
 
 void
@@ -447,7 +467,18 @@ void
 v8::math::lab_to_xyz(const color_lab*     lab,
                      color_xyz*           xyz) 
 {
-    auto xform_inv_fn = [](const float input_val) {
+    /*
+      double finv(double t) {
+    return (t>(6.0/29.0))?(t*t*t):(3*(6.0/29.0)*(6.0/29.0)*(t-4.0/29.0));
+  }
+  double sl = (l+0.16)/1.16;
+  double ill[3] = {0.9643,1.00,0.8251}; //D50
+  *y = ill[1] * finv(sl);
+  *x = ill[0] * finv(sl + (a/5.0));
+  *z = ill[2] * finv(sl - (b/2.0));
+
+    */
+    auto xform_inv_fn = [](const float input_val) -> float {
         const float kThresholdValue = 0.20689655172413793f; // 6/29
 
         if (input_val > kThresholdValue) {
@@ -460,8 +491,8 @@ v8::math::lab_to_xyz(const color_lab*     lab,
     const float kXYZWhite[] = { 0.96421f, 1.0000f, 0.82519f };
     const float kConstFactor = (lab->L + 0.16f) / 1.16f;
 
-    xyz->X = kXYZWhite[0] * xform_inv_fn(kConstFactor + 0.2f * lab->A);
     xyz->Y = kXYZWhite[1] * xform_inv_fn(kConstFactor);
+    xyz->X = kXYZWhite[0] * xform_inv_fn(kConstFactor + 0.2f * lab->A);
     xyz->Z = kXYZWhite[2] * xform_inv_fn(kConstFactor - 0.5f * lab->B);
 }
 
@@ -478,7 +509,6 @@ void
 v8::math::lab_to_rgb(const color_lab&     lab,
                      color_rgb*           rgb)
 {
-
     color_xyz xyz;
     lab_to_xyz(&lab, &xyz);
     xyz_to_rgb(xyz, rgb);

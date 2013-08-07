@@ -408,23 +408,7 @@ using namespace v8::math;
 
 void
 test_colors() {
-    //color_lab lab(0.42498702401561955f, 0.5112707395996318f, 0.4187917517617766f);
-    //color_rgb rgb;
-    //lab_to_rgb(lab, &rgb);
-
-    //const int vals[] = { (int) (rgb.Red * 255.0f), 
-    //                     (int) (rgb.Green * 255.0f), 
-    //                     (int) (rgb.Blue * 255.0f) };
-
-    //printf("\n%d, %d, %d", vals[0], vals[1], vals[2]);
-    //color_rgb rgb(0.1450980392156863f, 0.01568627450980392f, 0.1450980392156863f);
-    //color_hcl hcl;
-    //rgb_to_hcl(rgb, &hcl);
-
-    //const float arr[] = { hcl.Elements[0], hcl.Elements[1], hcl.Elements[2] };
-    
-
-    auto color_check_fn = [](const v8::math::color_rgb& rgb) {
+    auto color_check_fn = [](const v8::math::color_rgb& rgb) -> float {
         using namespace v8::math;
         color_hcl hcl;
         rgb_to_hcl(rgb, &hcl);
@@ -440,8 +424,14 @@ test_colors() {
         const int num_colors = 16;
 
         std::vector<color_rgb> colors(num_colors);
+        v8::base::array_proxy<color_rgb> arr(&colors[0], &colors[0] + colors.size());
 
-        generate_color_palette(colors.size(), color_check_fn, true, 50, false, &colors[0]);
+        procedural_palette::generate_color_palette( 
+                               color_check_fn, 
+                               true, 
+                               50, 
+                               false, 
+                               arr);
 
         for (int idx = 0; idx < colors.size(); ++idx) {
             const color_rgb& c = colors[idx];

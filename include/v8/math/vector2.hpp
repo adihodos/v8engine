@@ -65,13 +65,14 @@ public:
      * \brief   Alias for const reference to a vector element.
      */
     typedef const real_t&   const_reference;
-    typedef vector2<real_t> vector2_t;
 
-    static const vector2_t zero;	///< The zero vector (0, 0)*/
+    typedef vector2<real_t>                     class_type;
 
-    static const vector2 unit_x;	///< The unit x vector (1, 0) */
+    static const class_type zero;	///< The zero vector (0, 0)*/
 
-    static const vector2 unit_y;	///< The unit y vector (0, 1) */
+    static const class_type unit_x;	///< The unit x vector (1, 0) */
+
+    static const class_type unit_y;	///< The unit y vector (0, 1) */
 
     /**
      * \brief   Default constructor. Leaves components uninitialized.
@@ -177,6 +178,12 @@ public:
      */
     bool is_unit_length() const {
         return operands_eq(real_t(1), length_squared());
+    }
+
+    /** Set to zero. */
+    class_type& make_zero() {
+        x_ = y_ = real_t(0);
+        return *this;
     }
 };
 

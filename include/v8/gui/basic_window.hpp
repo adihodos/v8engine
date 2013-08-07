@@ -170,6 +170,12 @@ protected :
         LPARAM l_param
         );
 
+    v8_bool_t handle_wm_rightbutton_down(WPARAM     w_param,
+                                         LPARAM     l_param);
+
+    v8_bool_t handle_wm_rightbutton_up(WPARAM       w_param,
+                                       LPARAM       l_param);
+
     virtual v8_bool_t handle_wm_mousemove(
         WPARAM w_param, 
         LPARAM l_param
@@ -189,6 +195,17 @@ protected :
         WPARAM w_param, 
         LPARAM l_param
         );
+
+    void capture_mouse() {
+        SetCapture(m_windata.win);
+        m_windata.mousecaptured = true;
+    }
+
+    void release_mouse() {
+        assert(m_windata.mousecaptured);
+        ReleaseCapture();
+        m_windata.mousecaptured = false;
+    }
 
 //! @}
 

@@ -26,43 +26,226 @@
 
 #pragma once
 
-#include <algorithm>
 #include <vector>
 
 #include <v8/v8.hpp>
+#include <v8/base/array_proxy.hpp>
 #include <v8/math/color.hpp>
 #include <v8/math/math_utils.hpp>
+#include <v8/math/random/random.hpp>
 
 namespace v8 { namespace math {
 
-struct force_vector_t {
-    float   dl;
-    float   da;
-    float   db;
+class procedural_palette {
+public :
 
-    force_vector_t() {}
+    /** Fills an array with random generated colors. 
+        \see http://devmag.org.za/2012/07/29/how-to-choose-colours-procedurally-algorithms/
+    */
+    static void 
+    gen_uniform_colors(
+        v8::base::array_proxy<color_rgb>&    output_colors);
 
-    force_vector_t(const float delta_lum,
-                   const float delta_a,
-                   const float delta_b)
-        :       dl(delta_lum)
-            ,   da(delta_a)
-            ,   db(delta_b)
-    {}
+    /** Generates random colors from standard color harmonies, applying the
+        specified constraint parameters.
+        \see http://devmag.org.za/2012/07/29/how-to-choose-colours-procedurally-algorithms/
+    */
+    static void
+    gen_harmony_colors(
+        const float                          offset_angle1,
+        const float                          offset_angle2,
+        const float                          range_angle0,
+        const float                          range_angle1,
+        const float                          range_angle2,
+        const float                          saturation,
+        const float                          luminance,
+        v8::base::array_proxy<color_rgb>&    output_colors);
+
+    /** Generates random colors from standard color harmonies, applying the
+        specified constraint parameters.
+        \see http://devmag.org.za/2012/07/29/how-to-choose-colours-procedurally-algorithms/
+    */
+    static void
+    gen_harmony_colors2(
+        const float                          offset_angle1,
+        const float                          offset_angle2,
+        const float                          range_angle0,
+        const float                          range_angle1,
+        const float                          range_angle2,
+        const float                          saturation,
+        const float                          saturation_range,
+        const float                          luminance,
+        const float                          luminance_range,
+        v8::base::array_proxy<color_rgb>&    output_colors);
+
+    /** Fills an array with random colors generated from a starting color. 
+        \see http://devmag.org.za/2012/07/29/how-to-choose-colours-procedurally-algorithms/
+    */
+    static void
+    gen_random_walk_colors(
+        const color_rgb&                     base_color,
+        const float                          min,
+        const float                          max,
+        v8::base::array_proxy<color_rgb>&    output_colors);
+
+    /** Fills an array with random colors, generated from 3 base colors.
+        \see http://devmag.org.za/2012/07/29/how-to-choose-colours-procedurally-algorithms/
+    */
+    static void
+    gen_random_mix_colors(
+        const color_rgb&                    color1,
+        const color_rgb&                    color2,
+        const color_rgb&                    color3,
+        const float                         grey_control,
+        const v8_bool_t                     paint,
+        v8::base::array_proxy<color_rgb>&   output_colors);
+
+    /** Fills an array with random colors, generated from 3 base colors.
+        \see http://devmag.org.za/2012/07/29/how-to-choose-colours-procedurally-algorithms/
+    */
+    static void
+    gen_random_add_colors(
+        const color_rgb&                    color1,
+        const color_rgb&                    color2,
+        const color_rgb&                    color3,
+        const float                         non_gray_bias,
+        v8::base::array_proxy<color_rgb>&   output_colors);
+
+    /** Fills an array with random colors, generated from a base color.
+        \see http://devmag.org.za/2012/07/29/how-to-choose-colours-procedurally-algorithms/
+    */
+    static void
+    gen_colors_offset(
+        const color_rgb&                    base_color,
+        const float                         max_range,
+        v8::base::array_proxy<color_rgb>&   output_colors);
+
+    /** Fills an array with random colors, using a random hue.
+        \see http://devmag.org.za/2012/07/29/how-to-choose-colours-procedurally-algorithms/
+        \remarks    Colors are generated in HSL space, then converted to RGB.
+    */
+    static void
+    gen_colors_hue(
+        const float                         saturation,
+        const float                         luminance,
+        v8::base::array_proxy<color_rgb>&   output_colors);
+
+    /** Fills an array with random colors, using a random luminance.
+        \see http://devmag.org.za/2012/07/29/how-to-choose-colours-procedurally-algorithms/
+        \remarks    Colors are generated in HSL space, then converted to RGB.
+    */
+    static void
+    gen_colors_luminance(
+        const float                         hue,
+        const float                         saturation,
+        v8::base::array_proxy<color_rgb>&   output_colors);
+
+    /** Fills an array with random colors, using a random luminance and saturation.
+        \see http://devmag.org.za/2012/07/29/how-to-choose-colours-procedurally-algorithms/
+        \remarks    Colors are generated in HSL space, then converted to RGB.
+    */
+    static void
+    gen_colors_luminance_saturation(
+        const float                         hue,
+        v8::base::array_proxy<color_rgb>&   output_colors);
+
+    /** Fills an array with random colors. Starts with a random hue and accumulates
+        with each color the golden ratio conjugate.
+        \see http://devmag.org.za/2012/07/29/how-to-choose-colours-procedurally-algorithms/
+        \remarks    Colors are generated in HSL space, then converted to RGB.
+    */
+    static void
+    gen_colors_golden_ration_rainbow(
+        const float                         saturation,
+        const float                         luminance,
+        v8::base::array_proxy<color_rgb>&   output_colors);
+
+    /** Fills an array with random colors. Each color is generated by sampling
+        the gradient colors with a random value that is incremented with
+        the golden ratio conjugate.
+        \see http://devmag.org.za/2012/07/29/how-to-choose-colours-procedurally-algorithms/
+        \remarks    Colors are generated in HSL space, then converted to RGB.
+    */
+    static void
+    gen_colors_golden_ration_gradient(
+        const float                                 saturation,
+        const float                                 luminance,
+        const v8::base::array_proxy<color_rgb>&     gradient,
+        v8::base::array_proxy<color_rgb>&           output_colors);
+
+    /** Fills an array with random colors. Each color is generated from a
+        random hue in the [hue_min, hue_max] interval.
+        \see http://devmag.org.za/2012/07/29/how-to-choose-colours-procedurally-algorithms/
+        \remarks    Colors are generated in HSL space, then converted to RGB.
+    */
+    static void
+    gen_colors_hue_range(
+        const float                                 hue_min,
+        const float                                 hue_max,
+        const float                                 saturation,
+        const float                                 luminance,
+        v8::base::array_proxy<color_rgb>&           output_colors);
+
+
+    /** Fills an array with random colors.
+        \see http://devmag.org.za/2012/07/29/how-to-choose-colours-procedurally-algorithms/
+        \remarks    Colors are generated in HSL space, then converted to RGB.
+    */
+    static void
+    gen_colors_jittered_rainbow(
+        const float                                 hue_min,
+        const float                                 hue_max,
+        const float                                 saturation,
+        const float                                 luminance,
+        const v8_bool_t                             jitter,
+        v8::base::array_proxy<color_rgb>&           output_colors);
+
+    /** Generates a color palette.
+        \see    http://tools.medialab.sciences-po.fr/iwanthue/theory.php
+                algorithm explanation.
+    */
+    template<typename ColorChecker>
+    static void 
+    generate_color_palette(const ColorChecker&                  color_checker__,
+                           const v8_bool_t                      force_mode,
+                           const v8_int32_t                     quality,
+                           const v8_bool_t                      /*higher_precision*/,
+                           v8::base::array_proxy<color_rgb>&    output_colors);
+
+private :
+
+    struct force_vector_t {
+        float   dl;
+        float   da;
+        float   db;
+
+        force_vector_t() {}
+
+        force_vector_t(const float delta_lum,
+                       const float delta_a,
+                       const float delta_b)
+            :       dl(delta_lum)
+                ,   da(delta_a)
+                ,   db(delta_b)
+        {}
+    };
+
 };
 
 template<typename ColorChecker>
 void 
-generate_color_palette(const v8_int32_t                 num_colors,
-                       const ColorChecker&              color_checker__,
-                       const v8_bool_t                  force_mode,
-                       const v8_int32_t                 quality,
-                       const v8_bool_t                  /*higher_precision*/,
-                       v8::math::color_rgb*             output_colors)
+procedural_palette::generate_color_palette(
+    const ColorChecker&                  color_checker__,
+    const v8_bool_t                      force_mode,
+    const v8_int32_t                     quality,
+    const v8_bool_t                      /*higher_precision*/,
+    v8::base::array_proxy<color_rgb>&    output_colors)
 {
+    const v8_size_t num_colors = output_colors.length();
+
     if (force_mode) {
 
-        auto check_if_lab_in_rgb_space = [&color_checker__](const color_lab& lab) {
+        auto check_if_lab_in_rgb_space = [&color_checker__](const color_lab& lab) -> bool {
             color_rgb rgb;
             lab_to_rgb(lab, &rgb);
 
@@ -78,15 +261,17 @@ generate_color_palette(const v8_int32_t                 num_colors,
         std::vector<color_lab> colors;
         colors.reserve(num_colors);
 
-        for (int idx = 0; idx < num_colors; ++idx) {
-            color_lab lcolor(random_number_in_interval(0.0f, 1.0f),
-                             2.0f * random_number_in_interval(0.0f, 1.0f) - 1.0f,
-                             2.0f * random_number_in_interval(0.0f, 1.0f) - 1.0f);
+        random rng;
+
+        for (v8_size_t idx = 0; idx < num_colors; ++idx) {
+            color_lab lcolor(rng.next_float(),
+                             2.0f * rng.next_float() - 1.0f,
+                             2.0f * rng.next_float() - 1.0f);
 
             while (!check_if_lab_in_rgb_space(lcolor)) {
-                lcolor = color_lab(random_number_in_interval(0.0f, 1.0f),
-                                   2.0f * random_number_in_interval(0.0f, 1.0f) - 1.0f,
-                                   2.0f * random_number_in_interval(0.0f, 1.0f) - 1.0f);
+                lcolor = color_lab(rng.next_float(),
+                                   2.0f * rng.next_float() - 1.0f,
+                                   2.0f * rng.next_float() - 1.0f);
             }
 
             colors.push_back(lcolor);
@@ -102,10 +287,10 @@ generate_color_palette(const v8_int32_t                 num_colors,
         while (num_steps-- > 0) {
             //
             // compute force
-            for (int i = 0; i < colors.size(); ++i) {
+            for (v8_size_t i = 0; i < colors.size(); ++i) {
                 const color_lab& color_a = colors[i];
 
-                for (int j = 0; j < colors.size(); ++j) {
+                for (v8_size_t j = 0; j < colors.size(); ++j) {
                     const color_lab& color_b = colors[j];
 
                     //
@@ -120,9 +305,9 @@ generate_color_palette(const v8_int32_t                 num_colors,
 
                     if (is_zero(dist)) {
 
-                        vectors[j].dl += 0.02f - 0.04f * random_number_in_interval(0.0f, 1.0f);
-                        vectors[j].da += 0.02f - 0.04f * random_number_in_interval(0.0f, 1.0f);
-                        vectors[j].db += 0.02f - 0.04f * random_number_in_interval(0.0f, 1.0f);
+                        vectors[j].dl += 0.02f - 0.04f * rng.next_float();
+                        vectors[j].da += 0.02f - 0.04f * rng.next_float();
+                        vectors[j].db += 0.02f - 0.04f * rng.next_float();
 
                     } else {
                         const float force    = repulsion / dist * dist;
@@ -142,7 +327,7 @@ generate_color_palette(const v8_int32_t                 num_colors,
 
         //
         // apply force
-        for (int idx = 0; idx < colors.size(); ++idx) {
+        for (v8_size_t idx = 0; idx < colors.size(); ++idx) {
             const color_lab& color = colors[idx];
             const force_vector_t& fvec = vectors[idx];
 
@@ -164,15 +349,10 @@ generate_color_palette(const v8_int32_t                 num_colors,
             }
         }
 
-        using namespace std;
-        transform(begin(colors),
-                  end(colors),
-                  output_colors,
-                  [](const color_lab& lab_color) {
-            color_rgb rgb;
-            lab_to_rgb(lab_color, &rgb);
-            return rgb;
-        });
+        for (size_t idx = 0; idx < colors.size(); ++idx) {
+            const color_lab& lab_color = colors [idx];
+            lab_to_rgb(lab_color, &output_colors[idx]);
+        }
     }
 }
 

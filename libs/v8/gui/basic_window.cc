@@ -108,7 +108,7 @@ v8::gui::basic_window::app_main_loop() {
 
     if (m_windata.active) {
         app_do_frame();
-        Sleep(2);
+        Sleep(15);
         return;
     } else {
         on_app_idle();
@@ -226,37 +226,74 @@ v8::gui::basic_window::handle_wm_mousewheel(WPARAM      w_param,
     return true;
 }
 
+void fill_mouse_event_common_fields(const WPARAM      /*w_param*/,
+                                    const LPARAM      l_param,
+                                    v8::input_event*  in_evt)
+{
+    in_evt->type = v8::InputEventType::Mouse_Button;
+    in_evt->mouse_button_ev.x_pos = GET_X_LPARAM(l_param);
+    in_evt->mouse_button_ev.y_pos = GET_Y_LPARAM(l_param);
+}
+
 v8_bool_t 
-v8::gui::basic_window::handle_wm_leftbutton_down(WPARAM         /*w_param*/, 
+v8::gui::basic_window::handle_wm_leftbutton_down(WPARAM         w_param, 
                                                  LPARAM         l_param) 
 {
-    SetCapture(m_windata.win);
-    m_windata.mousecaptured = true;
+    capture_mouse();
 
     input_event ie;
-    ie.type = InputEventType::Mouse_Button;
+    fill_mouse_event_common_fields(w_param, l_param, &ie);
     ie.mouse_button_ev.id = MouseButton::Left;
     ie.mouse_button_ev.down = true;
-    ie.mouse_button_ev.x_pos = GET_X_LPARAM(l_param);
-    ie.mouse_button_ev.y_pos = GET_Y_LPARAM(l_param);
+    
     Subscribers_InputEvents.call_delegates(ie);
 
     return true;
 }
 
 v8_bool_t 
-v8::gui::basic_window::handle_wm_leftbutton_up(WPARAM       /*w_param*/, 
+v8::gui::basic_window::handle_wm_leftbutton_up(WPARAM       w_param, 
                                                LPARAM       l_param) 
 {
-    ReleaseCapture();
-    m_windata.mousecaptured = false;
+    release_mouse();
 
     input_event ie;
-    ie.type = InputEventType::Mouse_Button;
+    fill_mouse_event_common_fields(w_param, l_param, &ie);    
     ie.mouse_button_ev.id = MouseButton::Left;
     ie.mouse_button_ev.down = false;
-    ie.mouse_button_ev.x_pos = GET_X_LPARAM(l_param);
-    ie.mouse_button_ev.y_pos = GET_Y_LPARAM(l_param);
+
+    Subscribers_InputEvents.call_delegates(ie);
+
+    return true;
+}
+
+v8_bool_t
+v8::gui::basic_window::handle_wm_rightbutton_down(WPARAM     w_param,
+                                                  LPARAM     l_param)
+{
+    capture_mouse();
+
+    input_event ie;
+    fill_mouse_event_common_fields(w_param, l_param, &ie);
+    ie.mouse_button_ev.id = MouseButton::Right;
+    ie.mouse_button_ev.down = true;
+
+    Subscribers_InputEvents.call_delegates(ie);
+
+    return true;
+}
+
+v8_bool_t 
+v8::gui::basic_window::handle_wm_rightbutton_up(WPARAM       w_param,
+                                                LPARAM       l_param)
+{
+    release_mouse();
+
+    input_event ie;
+    fill_mouse_event_common_fields(w_param, l_param, &ie);
+    ie.mouse_button_ev.id = MouseButton::Right;
+    ie.mouse_button_ev.down = false;
+
     Subscribers_InputEvents.call_delegates(ie);
 
     return true;
@@ -362,6 +399,16 @@ v8::gui::basic_window::window_procedure(UINT        msg,
     case WM_ACTIVATE :
         message_status = make_tuple(true, 0L);
         handle_wm_activate(w_param);
+        break;
+
+    case WM_RBUTTONDOWN :
+        message_status = make_tuple(
+            handle_wm_rightbutton_down(w_param, l_param), 0L);
+        break;
+
+    case WM_RBUTTONUP :
+        message_status = make_tuple(
+            handle_wm_rightbutton_up(w_param, l_param), 0L);
         break;
 
     default :

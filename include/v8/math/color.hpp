@@ -31,6 +31,62 @@
 
 namespace v8 { namespace math {
 
+class   color_rgb;
+struct  color_hsv;
+struct  color_hls;
+struct  color_xyz;
+struct  color_lab;
+struct  color_hcl;
+
+void
+rgb_to_hsv(const color_rgb* rgb, color_hsv* hsv);
+
+void
+hsv_to_rgb(const color_hsv* hsv, color_rgb* rgb);
+
+void
+rgb_to_hls(const color_rgb& rgb, color_hls* hls);
+
+void
+hls_to_rgb(const color_hls& hls, color_rgb *rgb);
+
+void
+rgb_to_xyz(const color_rgb*     rgb,
+           color_xyz*           xyz);
+
+void
+rgb_to_lab(const color_rgb*     rgb,
+           color_lab*           lab);
+
+void
+rgb_to_hcl(const color_rgb&     rgb,
+           color_hcl*           lab);
+
+void
+xyz_to_rgb(const color_xyz&     xyz,
+           color_rgb*           rgb);
+
+void
+xyz_to_lab(const color_xyz*     xyz,
+           color_lab*           lab);
+
+void
+lab_to_xyz(const color_lab*     lab,
+           color_xyz*           xyz);
+
+void
+lab_to_rgb(const color_lab&     lab,
+           color_rgb*           rgb);
+
+void
+hcl_to_lab(const color_hcl&     hcl,
+           color_lab*           lab);
+
+void
+lab_to_hcl(const color_lab&     lab,
+           color_hcl*           hcl);
+
+
 struct color_cmy {
     float Cyan;
     float Magenta;
@@ -77,10 +133,14 @@ struct color_hls {
 
     color_hls() {}
 
-    color_hls(float hue, float lightness, float saturation)
+    color_hls(const float hue, const float lightness, const float saturation)
         :       Hue(hue)
             ,   Lightness(lightness)
             ,   Saturation(saturation) {}
+
+    color_hls(const color_rgb& rgb) {
+        rgb_to_hls(rgb, this);
+    }
 };
 
 struct color_xyz {
@@ -150,10 +210,20 @@ public :
         };
 
         float components_[4];
+        float Elements [4];
     };
 
     color_rgb(float r = 0.0f, float g = 0.0f, float b = 0.0f, float a = 1.0f)
         : Red(r), Green(g), Blue(b), Alpha(a) {}
+
+    color_rgb(const color_hls& hls) {
+        from_hsl(hls);
+    }
+
+    color_rgb& from_hsl(const color_hls& hsl) {
+        hls_to_rgb(hsl, this);
+        return *this;
+    }
 
     static color_rgb from_u32_rgba(unsigned int u32color) {
         unsigned char red = (u32color >> 24) & 0xFF;
@@ -619,56 +689,5 @@ inline void yiq_to_rgb(const color_yiq* yiq, color_rgb* rgb) {
     rgb->Blue = yiq->Y + 1.7298f * yiq->Q - 1.1054f * yiq->I;
 }
 
-void
-rgb_to_hsv(const color_rgb* rgb, color_hsv* hsv);
-
-void
-hsv_to_rgb(const color_hsv* hsv, color_rgb* rgb);
-
-void
-rgb_to_hls(const color_rgb* rgb, color_hls* hls);
-
-void
-hls_to_rgb(const color_hls* hls, color_rgb *rgb);
-
-void
-rgb_to_xyz(const color_rgb*     rgb,
-           color_xyz*           xyz);
-
-void
-rgb_to_lab(const color_rgb*     rgb,
-           color_lab*           lab);
-
-void
-rgb_to_hcl(const color_rgb&     rgb,
-           color_hcl*           lab);
-
-void
-xyz_to_rgb(const color_xyz&     xyz,
-           color_rgb*           rgb);
-
-void
-xyz_to_lab(const color_xyz*     xyz,
-           color_lab*           lab);
-
-void
-lab_to_xyz(const color_lab*     lab,
-           color_xyz*           xyz);
-
-void
-lab_to_rgb(const color_lab&     lab,
-           color_rgb*           rgb);
-
-void
-hcl_to_lab(const color_hcl&     hcl,
-           color_lab*           lab);
-
-void
-lab_to_hcl(const color_lab&     lab,
-           color_hcl*           hcl);
-
-
 } // namespace math
 } // namespace v8
-
-#include <v8/math/color_palette_generator.hpp>

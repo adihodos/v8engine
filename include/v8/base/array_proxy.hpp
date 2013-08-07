@@ -30,6 +30,7 @@
  * \file array_proxy.hpp
  */
 
+#include <cassert>
 #include <iterator>
 #include <v8/v8.hpp>
 #include <v8/meta_programming/constraints.hpp>

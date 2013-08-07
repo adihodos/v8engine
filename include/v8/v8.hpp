@@ -249,9 +249,9 @@ typedef ptrdiff_t                                           v8_ptrdiff_t;
 #if defined(V8_COMPILER_IS_MSVC)
 
 #ifndef SUPPRESS_WARNING_START
-#define SUPPRESS_WARNING_START(...)             \
+#define SUPPRESS_WARNING_START(args)            \
     __pragma(warning(push))                     \
-    __pragma(warning(disable : ##__VA_ARGS__))
+    __pragma(warning(disable : args))
 #endif /* !SUPPRESS_WARNING */    
 
 #ifndef SUPPRESS_WARNING_END

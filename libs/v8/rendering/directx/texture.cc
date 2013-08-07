@@ -181,6 +181,8 @@ texture(const v8::rendering::textureDescriptor_t&   tex_desc,
     initialize(tex_desc, rsys, tex_data);
 }
 
+SUPPRESS_WARNING_START(4701)
+
 v8_bool_t 
 v8::directx::texture::
 initialize(const v8::rendering::textureDescriptor_t&     tex_desc,
@@ -354,6 +356,8 @@ initialize(const v8::rendering::textureDescriptor_t&     tex_desc,
 
     return true;
 }
+
+SUPPRESS_WARNING_END()
 
 v8_bool_t 
 v8::directx::texture::initialize(const char*                    filename,

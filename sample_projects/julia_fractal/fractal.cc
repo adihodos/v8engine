@@ -5,12 +5,14 @@
 
 #include <third_party/stlsoft/platformstl/filesystem/path.hpp>
 #include <v8/v8.hpp>
+#include <v8/base/array_proxy.hpp>
 #include <v8/base/count_of.hpp>
 #include <v8/io/filesystem.hpp>
 #include <v8/event/input_event.hpp>
 #include <v8/event/window_event.hpp>
 #include <v8/math/color.hpp>
 #include <v8/math/color_palette_generator.hpp>
+#include <v8/math/vector2.hpp>
 #include <v8/rendering/constants.hpp>
 #include <v8/rendering/depth_stencil_state.hpp>
 #include <v8/rendering/fragment_shader.hpp>
@@ -69,6 +71,7 @@ struct fractal_params_t {
     float                                                       C_real;
     ///< Shape constant, imaginary part.
     float                                                       C_imag;
+    v8::math::vector2<v8_int_t>                                 C_origin;
 
     ~fractal_params_t() {
     }
@@ -87,6 +90,7 @@ struct fractal::implementation {
     v8_bool_t                                               size_is_current;
     v8_bool_t                                               solution_is_current;
     v8_size_t                                               shape_idx;
+    v8::math::vector2<v8_int_t>                             origin;
     v8::rendering::index_buffer                             indexbuffer;
     v8::rendering::vertex_buffer                            vertexbuffer;
     v8::rendering::depth_stencil_state                      no_depth_test;
@@ -105,7 +109,9 @@ fractal::implementation::implementation(
     :       initialized(false)
         ,   size_is_current(false)
         ,   solution_is_current(false)
-        ,   shape_idx(0) {
+        ,   shape_idx(0)
+        ,   origin(v8::math::vector2<v8_int_t>::zero) 
+{
     frac_params.width = width;
     frac_params.height = height;
     frac_params.max_iterations = iter;
@@ -114,6 +120,7 @@ fractal::implementation::implementation(
     frac_params.C_real = -0.835f;
     frac_params.C_imag = -0.2321f;
     frac_params.is_mandelbrot = false;
+    frac_params.C_origin = v8::math::vector2<v8_int_t>::zero;
 }
 
 fractal::fractal(
@@ -205,25 +212,25 @@ v8_bool_t fractal::initialize(fractal_app_context& app_context) {
 }
 
 v8_bool_t fractal::create_color_table(fractal_app_context& app_context) {
-    const int num_colors = 16;
+    const int num_colors = 128;
 
     vector<color_rgb> color_palette(num_colors);
 
-    auto color_check_fn = [](const color_rgb& rgb) {
-        color_hcl hcl;
-        rgb_to_hcl(rgb, &hcl);
+    //auto color_check_fn = [](const color_rgb& rgb) -> bool {
+    //    color_hcl hcl;
+    //    rgb_to_hcl(rgb, &hcl);
 
-        return hcl.Elements[0] >= 20.0f && hcl.Elements[0] <= 60.0f
-            && hcl.Elements[1] >= 0.3f && hcl.Elements[1] <= 1.6f
-            && hcl.Elements[2] >= 0.5f && hcl.Elements[2] <= 1.5f;
-    };
+    //    return hcl.Elements[0] >= 20.0f && hcl.Elements[0] <= 60.0f
+    //        && hcl.Elements[1] >= 0.3f && hcl.Elements[1] <= 1.6f
+    //        && hcl.Elements[2] >= 0.5f && hcl.Elements[2] <= 1.5f;
+    //};
 
-    generate_color_palette(num_colors, 
-                           color_check_fn, 
-                           true, 
-                           50, 
-                           false, 
-                           &color_palette[0]);
+    v8::base::array_proxy<color_rgb> arr_proxy(&color_palette [0],
+                                               &color_palette[0] + color_palette.size());
+
+    //procedural_palette::generate_color_palette(
+    //    color_check_fn, true, 50, false, arr_proxy);
+    procedural_palette::gen_uniform_colors(arr_proxy);
 
     textureDescriptor_t tex_desc(num_colors, 
                                  1, 
@@ -236,13 +243,14 @@ v8_bool_t fractal::create_color_table(fractal_app_context& app_context) {
                                  CPUAccess::None,
                                  false);
 
-    const void* tex_data = &color_palette[0];
+    const void* tex_data = arr_proxy.base();
     texture lookup_tex(tex_desc, *app_context.Renderer, &tex_data);
 
     if (!lookup_tex) {
         return false;
     }
 
+    lookup_tex.write_to_file("C:\\temp\\lookuptex.dds", *app_context.Renderer);
     return impl_->color_table.initialize(lookup_tex, *app_context.Renderer);
 }
 
@@ -378,8 +386,7 @@ void fractal::draw(v8::rendering::renderer* draw_context) {
     draw_context->set_depth_stencil_state(impl_->no_depth_test);
     draw_context->draw_indexed(impl_->indexbuffer.get_element_count());
     draw_context->draw_string(
-        key_settings, 16.0f, 5.0f, 60.0f, v8::math::color_rgb::C_Yellow
-        );
+        key_settings, 16.0f, 5.0f, 60.0f, v8::math::color_rgb::C_Yellow);
 }
 
 v8_bool_t fractal::mouse_wheel_event(
@@ -427,6 +434,7 @@ v8_bool_t fractal::key_press_event(const v8_int_t key_code) {
         impl_->frac_params.offset_y       = 0.0f;
         impl_->frac_params.max_iterations = 256;
         impl_->solution_is_current        = false;
+        impl_->frac_params.C_origin.make_zero();
 
     } else if (Key_Sym_t::Key_Q  == key_code) {
 
@@ -476,14 +484,18 @@ void fractal::mouse_button_event(const v8::mouse_button_event_t& evt) {
     }
 
     if (evt.id == v8::MouseButton::Left) {
-        //set_x_offset(evt.x_pos - get_width() / 2);
-        //set_y_offset(evt.y_pos - get_height() / 2);
-        mouse_wheel_event(1, 0, 0);
+        const int x_pos = evt.x_pos - get_width() / 2;
+        const int y_pos = -(evt.y_pos - get_height() / 2);
+
+        impl_->frac_params.C_origin.x_ = evt.x_pos;
+        impl_->frac_params.C_origin.y_ = evt.y_pos;
+
+        mouse_wheel_event(-1, 0, 0);
         return;
     }
 
     if (evt.id == v8::MouseButton::Right) {
-        mouse_wheel_event(-1, 0, 0);
+        mouse_wheel_event(1, 0, 0);
         return;
     }
 }
