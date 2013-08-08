@@ -34,7 +34,7 @@ using namespace v8::rendering;
 
 v8_bool_t write_palette_as_dds(
     const char*                                         file_name,
-    const v8::base::array_proxy<v8::math::color_rgb>&   palette,
+    const v8::base::array_proxy<v8::math::rgb_color>&   palette,
     const v8::rendering::renderer&                      rsys) 
 {
     textureDescriptor_t tex_desc((v8_uint32_t) palette.length(),
@@ -108,8 +108,7 @@ v8_bool_t fractal_application::initialize() {
     v8::rendering::renderOptions_t initialization_params(
         window_->get_handle(),
         window_->get_width(), 
-        window_->get_height(),
-        false);
+        window_->get_height());
 
     if (!rendersys_->initialize(initialization_params)) {
         return false;
@@ -200,15 +199,15 @@ void fractal_application::draw_scene() {
                         julia_->get_constant().imag());
 
     app_context_.Renderer->draw_string(
-        fractal_stats_str.begin(), 12.0f, 5.0f, 5.0f, v8::math::color_rgb::C_White
+        fractal_stats_str.begin(), 12.0f, 5.0f, 5.0f, v8::math::rgb_color::C_White
         );
 
     app_context_.Renderer->present_frame(v8::rendering::FramePresent::All);
 }
 
 void fractal_application::boogie_boogie() {
-    v8::math::color_rgb uniform_colors[16];
-    array_proxy<v8::math::color_rgb> color_arr(uniform_colors);
+    v8::math::rgb_color uniform_colors[16];
+    array_proxy<v8::math::rgb_color> color_arr(uniform_colors);
 
     for (v8_int_t i = 0; i < 16; ++i) {
         v8::math::procedural_palette::gen_uniform_colors(color_arr);
@@ -218,10 +217,10 @@ void fractal_application::boogie_boogie() {
         write_palette_as_dds(file_path, color_arr, *rendersys_);
     }
 
-    const v8::math::color_rgb base_colors [] = {
-        v8::math::color_rgb(1.0f, 0.5f, 0.0f),
-        v8::math::color_rgb(0.5f, 1.0f, 0.25f),
-        v8::math::color_rgb(0.25f, 0.5f, 1.0f),
+    const v8::math::rgb_color base_colors [] = {
+        v8::math::rgb_color(1.0f, 0.5f, 0.0f),
+        v8::math::rgb_color(0.5f, 1.0f, 0.25f),
+        v8::math::rgb_color(0.25f, 0.5f, 1.0f),
     };
 
     for (v8_size_t idx = 0; idx < dimension_of(base_colors); ++idx) {
@@ -240,12 +239,12 @@ void fractal_application::boogie_boogie() {
         write_palette_as_dds(file_path, color_arr, *rendersys_);
     }
 
-    v8::math::color_rgb palette2 [128];
-    v8::base::array_proxy<v8::math::color_rgb> arrp(palette2);
+    v8::math::rgb_color palette2 [128];
+    v8::base::array_proxy<v8::math::rgb_color> arrp(palette2);
 
     using v8::math::procedural_palette;
 
-    auto color_check_fn = [](const v8::math::color_rgb& rgb) -> float {
+    auto color_check_fn = [](const v8::math::rgb_color& rgb) -> float {
         using namespace v8::math;
         color_hcl hcl;
         rgb_to_hcl(rgb, &hcl);

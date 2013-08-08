@@ -102,7 +102,7 @@ F4Phantom::Initialize(const InitContext* init_context) {
         return false;
     }
 
-    sampler_descriptor_t sampler_desc;
+    samplerDescriptor_t sampler_desc;
     sampler_desc.filter_type = Filter::Min_Mag_Mip_Linear;
     if (!sam_state_.initialize(sampler_desc, init_context->Renderer)) {
         return false;

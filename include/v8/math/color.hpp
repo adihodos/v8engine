@@ -26,12 +26,11 @@
 
 #pragma once
 
-#include <cstdint>
-#include <cmath>
+#include <v8/v8.hpp>
 
 namespace v8 { namespace math {
 
-class   color_rgb;
+class   rgb_color;
 struct  color_hsv;
 struct  color_hls;
 struct  color_xyz;
@@ -39,32 +38,32 @@ struct  color_lab;
 struct  color_hcl;
 
 void
-rgb_to_hsv(const color_rgb* rgb, color_hsv* hsv);
+rgb_to_hsv(const rgb_color* rgb, color_hsv* hsv);
 
 void
-hsv_to_rgb(const color_hsv* hsv, color_rgb* rgb);
+hsv_to_rgb(const color_hsv* hsv, rgb_color* rgb);
 
 void
-rgb_to_hls(const color_rgb& rgb, color_hls* hls);
+rgb_to_hls(const rgb_color& rgb, color_hls* hls);
 
 void
-hls_to_rgb(const color_hls& hls, color_rgb *rgb);
+hls_to_rgb(const color_hls& hls, rgb_color *rgb);
 
 void
-rgb_to_xyz(const color_rgb*     rgb,
+rgb_to_xyz(const rgb_color*     rgb,
            color_xyz*           xyz);
 
 void
-rgb_to_lab(const color_rgb*     rgb,
+rgb_to_lab(const rgb_color*     rgb,
            color_lab*           lab);
 
 void
-rgb_to_hcl(const color_rgb&     rgb,
+rgb_to_hcl(const rgb_color&     rgb,
            color_hcl*           lab);
 
 void
 xyz_to_rgb(const color_xyz&     xyz,
-           color_rgb*           rgb);
+           rgb_color*           rgb);
 
 void
 xyz_to_lab(const color_xyz*     xyz,
@@ -76,7 +75,7 @@ lab_to_xyz(const color_lab*     lab,
 
 void
 lab_to_rgb(const color_lab&     lab,
-           color_rgb*           rgb);
+           rgb_color*           rgb);
 
 void
 hcl_to_lab(const color_hcl&     hcl,
@@ -138,7 +137,7 @@ struct color_hls {
             ,   Lightness(lightness)
             ,   Saturation(saturation) {}
 
-    color_hls(const color_rgb& rgb) {
+    color_hls(const rgb_color& rgb) {
         rgb_to_hls(rgb, this);
     }
 };
@@ -158,9 +157,15 @@ struct color_xyz {
 };
 
 struct color_lab {
-    float   L;
-    float   A;
-    float   B;
+    union {
+        struct {
+            float   L;
+            float   A;
+            float   B;
+        };
+
+        float Elements[3];
+    };
 
     color_lab() {}
 
@@ -178,6 +183,7 @@ struct color_hcl {
             float   S;
             float   L;
         };
+
         float Elements[3];
     };
 
@@ -198,7 +204,7 @@ struct color_hcl {
  *         in individual components having values out of the [0, 1] range, so
  *         some form of normalization should be used, to correct those situations.
  */
-class color_rgb {
+class rgb_color {
 public :
     union {
 
@@ -209,28 +215,45 @@ public :
             float Alpha; /*!<< Alpha component (opacity) */
         };
 
-        float components_[4];
-        float Elements [4];
+        float Elements[4];
     };
 
-    color_rgb(float r = 0.0f, float g = 0.0f, float b = 0.0f, float a = 1.0f)
+    rgb_color(float r = 0.0f, float g = 0.0f, float b = 0.0f, float a = 1.0f)
         : Red(r), Green(g), Blue(b), Alpha(a) {}
 
-    color_rgb(const color_hls& hls) {
+    explicit rgb_color(const color_hls& hls) {
         from_hsl(hls);
     }
 
-    color_rgb& from_hsl(const color_hls& hsl) {
+    explicit rgb_color(const color_xyz& xyz) {
+        from_xyz(xyz);
+    }
+
+    explicit rgb_color(const color_lab& lab) {
+        from_lab(lab);
+    }
+
+    rgb_color& from_hsl(const color_hls& hsl) {
         hls_to_rgb(hsl, this);
         return *this;
     }
 
-    static color_rgb from_u32_rgba(unsigned int u32color) {
+    rgb_color& from_xyz(const color_xyz& xyz) {
+        xyz_to_rgb(xyz, this);
+        return *this;
+    }
+
+    rgb_color& from_lab(const color_lab& lab) {
+        lab_to_rgb(lab, this);
+        return *this;
+    }
+
+    static rgb_color from_rgba(const v8_uint32_t u32color) {
         unsigned char red = (u32color >> 24) & 0xFF;
         unsigned char green = (u32color >> 16) & 0xFF;
         unsigned char blue = (u32color >> 8) & 0xFF;
         unsigned char alpha = u32color & 0xFF;
-        return color_rgb(
+        return rgb_color(
             static_cast<float>(red) / 255.0f, 
             static_cast<float>(green) / 255.0f, 
             static_cast<float>(blue) / 255.0f, 
@@ -238,12 +261,12 @@ public :
             );
     }
 
-    static color_rgb from_u32_bgra(unsigned int u32bgra) {
+    static rgb_color from_bgra(const v8_uint32_t u32bgra) {
         unsigned char blue = (u32bgra >> 24) & 0xFF;
         unsigned char green = (u32bgra >> 16) & 0xFF;
         unsigned char red = (u32bgra >> 8) & 0xFF;
         unsigned char alpha = u32bgra & 0xFF;
-        return color_rgb(
+        return rgb_color(
             static_cast<float>(red) / 255.0f, 
             static_cast<float>(green) / 255.0f, 
             static_cast<float>(blue) / 255.0f, 
@@ -251,12 +274,12 @@ public :
             );
     }
 
-    static color_rgb from_u32_argb(unsigned int u32argb) {
+    static rgb_color from_argb(const v8_uint32_t u32argb) {
         unsigned char alpha = (u32argb >> 24) & 0xFF;
         unsigned char red = (u32argb >> 16) & 0xFF;
         unsigned char green = (u32argb >> 8) & 0xFF;
         unsigned char blue = u32argb & 0xFF;
-        return color_rgb(
+        return rgb_color(
             static_cast<float>(red) / 255.0f, 
             static_cast<float>(green) / 255.0f, 
             static_cast<float>(blue) / 255.0f, 
@@ -264,7 +287,7 @@ public :
             );
     }
 
-    uint32_t to_uint32_rgba() const {
+    v8_uint32_t to_rgba() const {
         unsigned int red = static_cast<unsigned int>(ceil(255 * Red)) << 24;
         unsigned int green = static_cast<unsigned int>(ceil(255 * Green)) << 16;
         unsigned int blue = static_cast<unsigned int>(ceil(255 * Blue)) << 8;
@@ -272,15 +295,15 @@ public :
         return red | green | blue | alpha;
     }
 
-    uint32_t to_uint32_abgr() const {
+    v8_uint32_t to_bgra() const {
         unsigned int alpha = static_cast<unsigned int>(ceil(255 * Alpha)) << 24;
         unsigned int blue = static_cast<unsigned int>(ceil(255 * Blue)) << 16;
         unsigned int green = static_cast<unsigned int>(ceil(255 * Green)) << 8;
         unsigned int red = static_cast<unsigned int>(ceil(255 * Red));
-        return red | green | blue | alpha;
+        return alpha | blue | green | red ;
     }
 
-    color_rgb& operator+=(const color_rgb& rhs) {
+    rgb_color& operator+=(const rgb_color& rhs) {
         Red += rhs.Red;
         Green += rhs.Green;
         Blue += rhs.Blue;
@@ -288,7 +311,7 @@ public :
         return *this;
     }
 
-    color_rgb& operator-=(const color_rgb& rhs) {
+    rgb_color& operator-=(const rgb_color& rhs) {
         Red -= rhs.Red;
         Green -= rhs.Green;
         Blue -= rhs.Blue;
@@ -296,7 +319,7 @@ public :
         return *this;
     }
 
-    color_rgb& operator*=(float k) {
+    rgb_color& operator*=(float k) {
         Red *= k;
         Green *= k;
         Blue *= k;
@@ -307,7 +330,7 @@ public :
     /*!
      *\brief Performs a componentwise multiplication between the two colors.
      */
-    color_rgb& operator*=(const color_rgb& other) {
+    rgb_color& operator*=(const rgb_color& other) {
         Red *= other.Red;
         Green *= other.Green;
         Blue *= other.Blue;
@@ -315,7 +338,7 @@ public :
         return *this;
     }
 
-    color_rgb& operator/=(float scalar) {
+    rgb_color& operator/=(const float scalar) {
         float k = 1.0f / scalar;
         Red *= k;
         Green *= k;
@@ -324,369 +347,369 @@ public :
         return *this;
     }
 
-    static const color_rgb C_AliceBlue;
+    static const rgb_color C_AliceBlue;
 
-    static const color_rgb C_AntiqueWhite;
+    static const rgb_color C_AntiqueWhite;
 
-    static const color_rgb C_Aqua;
+    static const rgb_color C_Aqua;
 
-    static const color_rgb C_Aquamarine;
+    static const rgb_color C_Aquamarine;
 
-    static const color_rgb C_Azure;
+    static const rgb_color C_Azure;
 
-    static const color_rgb C_Beige;
+    static const rgb_color C_Beige;
 
-    static const color_rgb C_Bisque;
+    static const rgb_color C_Bisque;
 
-    static const color_rgb C_Black;
+    static const rgb_color C_Black;
 
-    static const color_rgb C_BlanchedAlmond;
+    static const rgb_color C_BlanchedAlmond;
 
-    static const color_rgb C_Blue;
+    static const rgb_color C_Blue;
 
-    static const color_rgb C_BlueViolet;
+    static const rgb_color C_BlueViolet;
 
-    static const color_rgb C_Brown;
+    static const rgb_color C_Brown;
 
-    static const color_rgb C_BurlyWood;
+    static const rgb_color C_BurlyWood;
 
-    static const color_rgb C_CadetBlue;
+    static const rgb_color C_CadetBlue;
 
-    static const color_rgb C_Chartreuse;
+    static const rgb_color C_Chartreuse;
 
-    static const color_rgb C_Chocolate;
+    static const rgb_color C_Chocolate;
 
-    static const color_rgb C_Coral;
+    static const rgb_color C_Coral;
 
-    static const color_rgb C_CornflowerBlue;
+    static const rgb_color C_CornflowerBlue;
 
-    static const color_rgb C_Cornsilk;
+    static const rgb_color C_Cornsilk;
 
-    static const color_rgb C_Crimson;
+    static const rgb_color C_Crimson;
 
-    static const color_rgb C_Cyan;
+    static const rgb_color C_Cyan;
 
-    static const color_rgb C_DarkBlue;
+    static const rgb_color C_DarkBlue;
 
-    static const color_rgb C_DarkCyan;
+    static const rgb_color C_DarkCyan;
 
-    static const color_rgb C_DarkGoldenRod;
+    static const rgb_color C_DarkGoldenRod;
 
-    static const color_rgb C_DarkGray;
+    static const rgb_color C_DarkGray;
 
-    static const color_rgb C_DarkGrey;
+    static const rgb_color C_DarkGrey;
 
-    static const color_rgb C_DarkGreen;
+    static const rgb_color C_DarkGreen;
 
-    static const color_rgb C_DarkKhaki;
+    static const rgb_color C_DarkKhaki;
 
-    static const color_rgb C_DarkMagenta;
+    static const rgb_color C_DarkMagenta;
 
-    static const color_rgb C_DarkOliveGreen;
+    static const rgb_color C_DarkOliveGreen;
 
-    static const color_rgb C_Darkorange;
+    static const rgb_color C_Darkorange;
 
-    static const color_rgb C_DarkOrchid;
+    static const rgb_color C_DarkOrchid;
 
-    static const color_rgb C_DarkRed;
+    static const rgb_color C_DarkRed;
 
-    static const color_rgb C_DarkSalmon;
+    static const rgb_color C_DarkSalmon;
 
-    static const color_rgb C_DarkSeaGreen;
+    static const rgb_color C_DarkSeaGreen;
 
-    static const color_rgb C_DarkSlateBlue;
+    static const rgb_color C_DarkSlateBlue;
 
-    static const color_rgb C_DarkSlateGray;
+    static const rgb_color C_DarkSlateGray;
 
-    static const color_rgb C_DarkSlateGrey;
+    static const rgb_color C_DarkSlateGrey;
 
-    static const color_rgb C_DarkTurquoise;
+    static const rgb_color C_DarkTurquoise;
 
-    static const color_rgb C_DarkViolet;
+    static const rgb_color C_DarkViolet;
 
-    static const color_rgb C_DeepPink;
+    static const rgb_color C_DeepPink;
 
-    static const color_rgb C_DeepSkyBlue;
+    static const rgb_color C_DeepSkyBlue;
 
-    static const color_rgb C_DimGray;
+    static const rgb_color C_DimGray;
 
-    static const color_rgb C_DimGrey;
+    static const rgb_color C_DimGrey;
 
-    static const color_rgb C_DodgerBlue;
+    static const rgb_color C_DodgerBlue;
 
-    static const color_rgb C_FireBrick;
+    static const rgb_color C_FireBrick;
 
-    static const color_rgb C_FloralWhite;
+    static const rgb_color C_FloralWhite;
 
-    static const color_rgb C_ForestGreen;
+    static const rgb_color C_ForestGreen;
 
-    static const color_rgb C_Fuchsia;
+    static const rgb_color C_Fuchsia;
 
-    static const color_rgb C_Gainsboro;
+    static const rgb_color C_Gainsboro;
 
-    static const color_rgb C_GhostWhite;
+    static const rgb_color C_GhostWhite;
 
-    static const color_rgb C_Gold;
+    static const rgb_color C_Gold;
 
-    static const color_rgb C_GoldenRod;
+    static const rgb_color C_GoldenRod;
 
-    static const color_rgb C_Gray;
+    static const rgb_color C_Gray;
 
-    static const color_rgb C_Grey;
+    static const rgb_color C_Grey;
 
-    static const color_rgb C_Green;
+    static const rgb_color C_Green;
 
-    static const color_rgb C_GreenYellow;
+    static const rgb_color C_GreenYellow;
 
-    static const color_rgb C_HoneyDew;
+    static const rgb_color C_HoneyDew;
 
-    static const color_rgb C_HotPink;
+    static const rgb_color C_HotPink;
 
-    static const color_rgb C_IndianRed;
+    static const rgb_color C_IndianRed;
 
-    static const color_rgb C_Indigo;
+    static const rgb_color C_Indigo;
 
-    static const color_rgb C_Ivory;
+    static const rgb_color C_Ivory;
 
-    static const color_rgb C_Khaki;
+    static const rgb_color C_Khaki;
 
-    static const color_rgb C_Lavender;
+    static const rgb_color C_Lavender;
 
-    static const color_rgb C_LavenderBlush;
+    static const rgb_color C_LavenderBlush;
 
-    static const color_rgb C_LawnGreen;
+    static const rgb_color C_LawnGreen;
 
-    static const color_rgb C_LemonChiffon;
+    static const rgb_color C_LemonChiffon;
 
-    static const color_rgb C_LightBlue;
+    static const rgb_color C_LightBlue;
 
-    static const color_rgb C_LightCoral;
+    static const rgb_color C_LightCoral;
 
-    static const color_rgb C_LightCyan;
+    static const rgb_color C_LightCyan;
 
-    static const color_rgb C_LightGoldenRodYellow;
+    static const rgb_color C_LightGoldenRodYellow;
 
-    static const color_rgb C_LightGray;
+    static const rgb_color C_LightGray;
 
-    static const color_rgb C_LightGrey;
+    static const rgb_color C_LightGrey;
 
-    static const color_rgb C_LightGreen;
+    static const rgb_color C_LightGreen;
 
-    static const color_rgb C_LightPink;
+    static const rgb_color C_LightPink;
 
-    static const color_rgb C_LightSalmon;
+    static const rgb_color C_LightSalmon;
 
-    static const color_rgb C_LightSeaGreen;
+    static const rgb_color C_LightSeaGreen;
 
-    static const color_rgb C_LightSkyBlue;
+    static const rgb_color C_LightSkyBlue;
 
-    static const color_rgb C_LightSlateGray;
+    static const rgb_color C_LightSlateGray;
 
-    static const color_rgb C_LightSlateGrey;
+    static const rgb_color C_LightSlateGrey;
 
-    static const color_rgb C_LightSteelBlue;
+    static const rgb_color C_LightSteelBlue;
 
-    static const color_rgb C_LightYellow;
+    static const rgb_color C_LightYellow;
 
-    static const color_rgb C_Lime;
+    static const rgb_color C_Lime;
 
-    static const color_rgb C_LimeGreen;
+    static const rgb_color C_LimeGreen;
 
-    static const color_rgb C_Linen;
+    static const rgb_color C_Linen;
 
-    static const color_rgb C_Magenta;
+    static const rgb_color C_Magenta;
 
-    static const color_rgb C_Maroon;
+    static const rgb_color C_Maroon;
 
-    static const color_rgb C_MediumAquaMarine;
+    static const rgb_color C_MediumAquaMarine;
 
-    static const color_rgb C_MediumBlue;
+    static const rgb_color C_MediumBlue;
 
-    static const color_rgb C_MediumOrchid;
+    static const rgb_color C_MediumOrchid;
 
-    static const color_rgb C_MediumPurple;
+    static const rgb_color C_MediumPurple;
 
-    static const color_rgb C_MediumSeaGreen;
+    static const rgb_color C_MediumSeaGreen;
 
-    static const color_rgb C_MediumSlateBlue;
+    static const rgb_color C_MediumSlateBlue;
 
-    static const color_rgb C_MediumSpringGreen;
+    static const rgb_color C_MediumSpringGreen;
 
-    static const color_rgb C_MediumTurquoise;
+    static const rgb_color C_MediumTurquoise;
 
-    static const color_rgb C_MediumVioletRed;
+    static const rgb_color C_MediumVioletRed;
 
-    static const color_rgb C_MidnightBlue;
+    static const rgb_color C_MidnightBlue;
 
-    static const color_rgb C_MintCream;
+    static const rgb_color C_MintCream;
 
-    static const color_rgb C_MistyRose;
+    static const rgb_color C_MistyRose;
 
-    static const color_rgb C_Moccasin;
+    static const rgb_color C_Moccasin;
 
-    static const color_rgb C_NavajoWhite;
+    static const rgb_color C_NavajoWhite;
 
-    static const color_rgb C_Navy;
+    static const rgb_color C_Navy;
 
-    static const color_rgb C_OldLace;
+    static const rgb_color C_OldLace;
 
-    static const color_rgb C_Olive;
+    static const rgb_color C_Olive;
 
-    static const color_rgb C_OliveDrab;
+    static const rgb_color C_OliveDrab;
 
-    static const color_rgb C_Orange;
+    static const rgb_color C_Orange;
 
-    static const color_rgb C_OrangeRed;
+    static const rgb_color C_OrangeRed;
 
-    static const color_rgb C_Orchid;
+    static const rgb_color C_Orchid;
 
-    static const color_rgb C_PaleGoldenRod;
+    static const rgb_color C_PaleGoldenRod;
 
-    static const color_rgb C_PaleGreen;
+    static const rgb_color C_PaleGreen;
 
-    static const color_rgb C_PaleTurquoise;
+    static const rgb_color C_PaleTurquoise;
 
-    static const color_rgb C_PaleVioletRed;
+    static const rgb_color C_PaleVioletRed;
 
-    static const color_rgb C_PapayaWhip;
+    static const rgb_color C_PapayaWhip;
 
-    static const color_rgb C_PeachPuff;
+    static const rgb_color C_PeachPuff;
 
-    static const color_rgb C_Peru;
+    static const rgb_color C_Peru;
 
-    static const color_rgb C_Pink;
+    static const rgb_color C_Pink;
 
-    static const color_rgb C_Plum;
+    static const rgb_color C_Plum;
 
-    static const color_rgb C_PowderBlue;
+    static const rgb_color C_PowderBlue;
 
-    static const color_rgb C_Purple;
+    static const rgb_color C_Purple;
 
-    static const color_rgb C_Red;
+    static const rgb_color C_Red;
 
-    static const color_rgb C_RosyBrown;
+    static const rgb_color C_RosyBrown;
 
-    static const color_rgb C_RoyalBlue;
+    static const rgb_color C_RoyalBlue;
 
-    static const color_rgb C_SaddleBrown;
+    static const rgb_color C_SaddleBrown;
 
-    static const color_rgb C_Salmon;
+    static const rgb_color C_Salmon;
 
-    static const color_rgb C_SandyBrown;
+    static const rgb_color C_SandyBrown;
 
-    static const color_rgb C_SeaGreen;
+    static const rgb_color C_SeaGreen;
 
-    static const color_rgb C_SeaShell;
+    static const rgb_color C_SeaShell;
 
-    static const color_rgb C_Sienna;
+    static const rgb_color C_Sienna;
 
-    static const color_rgb C_Silver;
+    static const rgb_color C_Silver;
 
-    static const color_rgb C_SkyBlue;
+    static const rgb_color C_SkyBlue;
 
-    static const color_rgb C_SlateBlue;
+    static const rgb_color C_SlateBlue;
 
-    static const color_rgb C_SlateGray;
+    static const rgb_color C_SlateGray;
 
-    static const color_rgb C_SlateGrey;
+    static const rgb_color C_SlateGrey;
 
-    static const color_rgb C_Snow;
+    static const rgb_color C_Snow;
 
-    static const color_rgb C_SpringGreen;
+    static const rgb_color C_SpringGreen;
 
-    static const color_rgb C_SteelBlue;
+    static const rgb_color C_SteelBlue;
 
-    static const color_rgb C_Tan;
+    static const rgb_color C_Tan;
 
-    static const color_rgb C_Teal;
+    static const rgb_color C_Teal;
 
-    static const color_rgb C_Thistle;
+    static const rgb_color C_Thistle;
 
-    static const color_rgb C_Tomato;
+    static const rgb_color C_Tomato;
 
-    static const color_rgb C_Turquoise;
+    static const rgb_color C_Turquoise;
 
-    static const color_rgb C_Violet;
+    static const rgb_color C_Violet;
 
-    static const color_rgb C_Wheat;
+    static const rgb_color C_Wheat;
 
-    static const color_rgb C_White;
+    static const rgb_color C_White;
 
-    static const color_rgb C_WhiteSmoke;
+    static const rgb_color C_WhiteSmoke;
 
-    static const color_rgb C_Yellow;
+    static const rgb_color C_Yellow;
 
-    static const color_rgb C_YellowGreen;
+    static const rgb_color C_YellowGreen;
 
 };
 
 inline
-color_rgb
-operator+(const color_rgb& lhs, const color_rgb& rhs) {
-    color_rgb result(lhs);
+rgb_color
+operator+(const rgb_color& lhs, const rgb_color& rhs) {
+    rgb_color result(lhs);
     result += rhs;
     return result;
 }
 
 inline
-color_rgb
-operator-(const color_rgb& lhs, const color_rgb& rhs) {
-    color_rgb result(lhs);
+rgb_color
+operator-(const rgb_color& lhs, const rgb_color& rhs) {
+    rgb_color result(lhs);
     result -= rhs;
     return result;
 }
 
 inline
-color_rgb
-operator*(const color_rgb& lhs, const color_rgb& rhs) {
-    color_rgb result(lhs);
+rgb_color
+operator*(const rgb_color& lhs, const rgb_color& rhs) {
+    rgb_color result(lhs);
     result *= rhs;
     return result;
 }
 
 inline
-color_rgb
-operator*(const color_rgb& lhs, float k) {
-    color_rgb result(lhs);
+rgb_color
+operator*(const rgb_color& lhs, float k) {
+    rgb_color result(lhs);
     result *= k;
     return result;
 }
 
 inline
-color_rgb
-operator*(float k, const color_rgb& rhs) {
+rgb_color
+operator*(float k, const rgb_color& rhs) {
     return rhs * k;
 }
 
 inline
-color_rgb
-operator/(const color_rgb& lhs, float scalar) {
+rgb_color
+operator/(const rgb_color& lhs, float scalar) {
     float inv = 1.0f / scalar;
     return lhs * inv;
 }
 
-inline void rgb_to_cmy(const color_rgb* rgb, color_cmy* cmy) {
-    cmy->Cyan = 1.0f - rgb->Red;
-    cmy->Magenta = 1.0f - rgb->Green;
-    cmy->Yellow = 1.0f - rgb->Blue;
+inline void rgb_to_cmy(const rgb_color& rgb, color_cmy* cmy) {
+    cmy->Cyan = 1.0f - rgb.Red;
+    cmy->Magenta = 1.0f - rgb.Green;
+    cmy->Yellow = 1.0f - rgb.Blue;
 }
 
-inline void cmy_to_rgb(const color_cmy* cmy, color_rgb* rgb) {
-    rgb->Red = 1.0f - cmy->Cyan;
-    rgb->Green = 1.0f - cmy->Magenta;
-    rgb->Blue = 1.0f - cmy->Yellow;
+inline void cmy_to_rgb(const color_cmy& cmy, rgb_color* rgb) {
+    rgb->Red = 1.0f - cmy.Cyan;
+    rgb->Green = 1.0f - cmy.Magenta;
+    rgb->Blue = 1.0f - cmy.Yellow;
 }
 
-inline void rgb_to_yiq(const color_rgb* rgb, color_yiq* yiq) {
-    yiq->Y = 0.30f * rgb->Red + 0.59f * rgb->Green + 0.11f * rgb->Blue;
-    yiq->I = 0.60f * rgb->Red - 0.28f * rgb->Green - 0.32f * rgb->Blue;
-    yiq->Q = 0.21f * rgb->Red - 0.52f * rgb->Green + 0.31f * rgb->Blue;
+inline void rgb_to_yiq(const rgb_color& rgb, color_yiq* yiq) {
+    yiq->Y = 0.30f * rgb.Red + 0.59f * rgb.Green + 0.11f * rgb.Blue;
+    yiq->I = 0.60f * rgb.Red - 0.28f * rgb.Green - 0.32f * rgb.Blue;
+    yiq->Q = 0.21f * rgb.Red - 0.52f * rgb.Green + 0.31f * rgb.Blue;
 }
 
-inline void yiq_to_rgb(const color_yiq* yiq, color_rgb* rgb) {
-    rgb->Red = yiq->Y + 0.6240f * yiq->Q + 0.9482f * yiq->I;
-    rgb->Green = yiq->Y - 0.6398f * yiq->Q - 0.2760f * yiq->I;
-    rgb->Blue = yiq->Y + 1.7298f * yiq->Q - 1.1054f * yiq->I;
+inline void yiq_to_rgb(const color_yiq& yiq, rgb_color* rgb) {
+    rgb->Red = yiq.Y + 0.6240f * yiq.Q + 0.9482f * yiq.I;
+    rgb->Green = yiq.Y - 0.6398f * yiq.Q - 0.2760f * yiq.I;
+    rgb->Blue = yiq.Y + 1.7298f * yiq.Q - 1.1054f * yiq.I;
 }
 
 } // namespace math

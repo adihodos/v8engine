@@ -364,7 +364,7 @@ void basic_drawing_app::draw() {
     const std::string cam_stats = cam_controller_->cam_data_as_string();
 
     rendersys_->draw_string(cam_stats.c_str(), 14.0f, 5.0f, 5.0f, 
-                            v8::math::color_rgb::C_Black);
+                            v8::math::rgb_color::C_Black);
 
     rendersys_->present_frame(v8::rendering::FramePresent::All);
 }
@@ -397,9 +397,9 @@ void basic_drawing_app::initialize_objects() {
     // add some lights
     using namespace v8::math;
     lights_[0] = light::make_directional_light(
-        color_rgb(0.1f, 0.1f, 0.1f, 1.0f),
-        color_rgb(1.0f, 1.0f, 1.0f, 1.0f), 
-        color_rgb(1.0f, 1.0f, 1.0f, 1.0f),
+        rgb_color(0.1f, 0.1f, 0.1f, 1.0f),
+        rgb_color(1.0f, 1.0f, 1.0f, 1.0f), 
+        rgb_color(1.0f, 1.0f, 1.0f, 1.0f),
         normal_of(vector3F(1.0f, -1.0f, 1.0f))
         );
 }
@@ -408,7 +408,7 @@ using namespace v8::math;
 
 void
 test_colors() {
-    auto color_check_fn = [](const v8::math::color_rgb& rgb) -> float {
+    auto color_check_fn = [](const v8::math::rgb_color& rgb) -> float {
         using namespace v8::math;
         color_hcl hcl;
         rgb_to_hcl(rgb, &hcl);
@@ -423,8 +423,8 @@ test_colors() {
     for (int i = 0; i < 3; ++i) {
         const int num_colors = 16;
 
-        std::vector<color_rgb> colors(num_colors);
-        v8::base::array_proxy<color_rgb> arr(&colors[0], &colors[0] + colors.size());
+        std::vector<rgb_color> colors(num_colors);
+        v8::base::array_proxy<rgb_color> arr(&colors[0], &colors[0] + colors.size());
 
         procedural_palette::generate_color_palette( 
                                color_check_fn, 
@@ -434,7 +434,7 @@ test_colors() {
                                arr);
 
         for (int idx = 0; idx < colors.size(); ++idx) {
-            const color_rgb& c = colors[idx];
+            const rgb_color& c = colors[idx];
 
             fprintf(fp, "\n[%3.6f, %3.6f, %3.6f]", c.Red, c.Green, c.Blue);
         }

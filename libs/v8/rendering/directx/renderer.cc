@@ -10,7 +10,7 @@
 
 v8::directx::renderer::renderer() 
     :       m_target_window(nullptr)
-        ,   m_clear_color(v8::math::color_rgb::C_LightSeaGreen)
+        ,   m_clear_color(v8::math::rgb_color::C_LightSeaGreen)
         ,   m_target_width(1024.0f)
         ,   m_target_height(1024.0f)
         ,   m_fullscreen(false)
@@ -34,8 +34,9 @@ void v8::directx::renderer::on_viewport_resized(
 }
 
 v8_bool_t 
-v8::directx::renderer::initialize(const v8::rendering::renderOptions_t& options
-    ) {
+v8::directx::renderer::initialize(
+    const v8::rendering::renderOptions_t& options) 
+{
     if (check_if_object_state_valid()) {
         return true;
     }
@@ -201,12 +202,12 @@ void v8::directx::renderer::draw_string(
     float font_size, 
     float xpos, 
     float ypos, 
-    const v8::math::color_rgb& color
+    const v8::math::rgb_color& color
     ) {
     assert(check_if_object_state_valid());
     m_font_wrapper->DrawString(v8::base::scoped_pointer_get(m_device_context), 
                               text, font_size, xpos, ypos, 
-                              color.to_uint32_abgr(), FW1_RESTORESTATE);
+                              color.to_bgra(), FW1_RESTORESTATE);
 }
 
 void v8::directx::renderer::draw_string(
@@ -214,7 +215,7 @@ void v8::directx::renderer::draw_string(
     float font_size, 
     float xpos, 
     float ypos, 
-    const v8::math::color_rgb& color
+    const v8::math::rgb_color& color
     ) {
 
     std::vector<wchar_t> utf8_string;
@@ -284,9 +285,12 @@ v8::directx::renderer::initialize_swap_chain(
         return false;
     }
 
-    //if (feat_level != D3D_FEATURE_LEVEL_11_0) {
-    //    return false;
-    //}
+    const v8_uint32_t apiVersionDontCare = static_cast<v8_uint32_t>(-1);
+
+    if (options.ApiLevel.VerMajor != apiVersionDontCare) {
+        if (options.ApiLevel.VerMinor != apiVersionDontCare) {
+        }
+    }
 
     DXGI_SWAP_CHAIN_DESC swap_chain_info;
     swap_chain_info.BufferDesc.Width = static_cast<UINT>(m_target_width);

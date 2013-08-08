@@ -10,7 +10,7 @@
 
 namespace v8 { namespace directx {
 
-struct sampler_descriptor_t {
+struct samplerDescriptor_t {
     Filter::Type                    filter_type;
     Texture_Address_Mode::Type      tex_address_u;
     Texture_Address_Mode::Type      tex_address_v;
@@ -18,11 +18,11 @@ struct sampler_descriptor_t {
     float                           mip_lod_bias;
     v8_uint32_t                     max_aniso_level;
     CompareFunc::Type               compare_func;
-    v8::math::color_rgb             border_color;
+    v8::math::rgb_color             border_color;
     float                           max_lod;
     float                           min_lod;
 
-    sampler_descriptor_t() {
+    samplerDescriptor_t() {
         set_defaults();
     }
     
@@ -34,7 +34,7 @@ struct sampler_descriptor_t {
         mip_lod_bias = 0.0f;
         max_aniso_level = 16U;
         compare_func = CompareFunc::Never;
-        border_color = v8::math::color_rgb::C_Black;
+        border_color = v8::math::rgb_color::C_Black;
         max_lod = std::numeric_limits<float>::max(),
         min_lod = std::numeric_limits<float>::min();
     }
@@ -42,7 +42,7 @@ struct sampler_descriptor_t {
 };
 
 inline bool operator==(
-    const sampler_descriptor_t& lhs, const sampler_descriptor_t& rhs
+    const samplerDescriptor_t& lhs, const samplerDescriptor_t& rhs
     ) {
     if (lhs.filter_type != rhs.filter_type)
         return false;
@@ -60,17 +60,17 @@ inline bool operator==(
 }
 
 inline bool operator!=(
-    const sampler_descriptor_t& lhs, const sampler_descriptor_t& rhs
+    const samplerDescriptor_t& lhs, const samplerDescriptor_t& rhs
     ) NOEXCEPT {
     return !(lhs == rhs);
 }
 
 struct samplerstate_traits {
     typedef ID3D11SamplerState                                      handle_type;
-    typedef sampler_descriptor_t                                descriptor_type;
+    typedef samplerDescriptor_t                                descriptor_type;
 
     static handle_type* create_state(
-        const sampler_descriptor_t& descriptor, renderer* rsys
+        const samplerDescriptor_t& descriptor, renderer* rsys
         );
 };
 

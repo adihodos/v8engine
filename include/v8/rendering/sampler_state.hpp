@@ -14,7 +14,7 @@ namespace v8 { namespace rendering {
 
 #if defined(V8FRAMEWORK_GRAPHICS_API_IS_DIRECTX)
 
-    using directx::sampler_descriptor_t;
+    using directx::samplerDescriptor_t;
     using directx::sampler_state;
 
 #else

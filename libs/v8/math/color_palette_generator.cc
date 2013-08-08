@@ -8,11 +8,11 @@
 
 namespace {
 
-v8::math::color_rgb
+v8::math::rgb_color
 random_mix_hsl(
-    const v8::math::color_rgb&          color1,
-    const v8::math::color_rgb&          color2,
-    const v8::math::color_rgb&          color3,
+    const v8::math::rgb_color&          color1,
+    const v8::math::rgb_color&          color2,
+    const v8::math::rgb_color&          color3,
     const float                         grey_control)
 {
     v8::math::random rng;
@@ -38,14 +38,14 @@ random_mix_hsl(
         mix_ratio2 * hls1.Lightness + mix_ratio2 * hls2.Lightness + mix_ratio3 * hls3.Lightness,
         mix_ratio1 * hls1.Saturation + mix_ratio2 * hls2.Saturation + mix_ratio3 * hls3.Saturation);
 
-    return v8::math::color_rgb(hls);
+    return v8::math::rgb_color(hls);
 }
 
-v8::math::color_rgb
+v8::math::rgb_color
 random_mix_paint(
-    const v8::math::color_rgb&      color1,
-    const v8::math::color_rgb&      color2,
-    const v8::math::color_rgb&      color3,
+    const v8::math::rgb_color&      color1,
+    const v8::math::rgb_color&      color2,
+    const v8::math::rgb_color&      color3,
     const float                     grey_control)
 {
     v8::math::random rng;
@@ -62,7 +62,7 @@ random_mix_paint(
     mix_ratio2 *= inv_sum;
     mix_ratio3 *= inv_sum;
 
-    return v8::math::color_rgb(1.0f - (mix_ratio1 * (1.0f - color1.Red)
+    return v8::math::rgb_color(1.0f - (mix_ratio1 * (1.0f - color1.Red)
                                        + mix_ratio2 * (1.0f - color2.Red)
                                        + mix_ratio3 * (1.0f - color3.Red)),
                                1.0f - (mix_ratio1 * (1.0f - color1.Blue)
@@ -73,11 +73,11 @@ random_mix_paint(
                                        + mix_ratio3 * (1.0f - color3.Green)));
 }
 
-v8::math::color_rgb
+v8::math::rgb_color
 random_add(
-    const v8::math::color_rgb&      color1,
-    const v8::math::color_rgb&      color2,
-    const v8::math::color_rgb&      color3,
+    const v8::math::rgb_color&      color1,
+    const v8::math::rgb_color&      color2,
+    const v8::math::rgb_color&      color3,
     const float                     non_gray_bias)
 {
     v8::math::random rng;
@@ -118,12 +118,12 @@ random_add(
                              0.0f,
                              1.0f);
 
-    return v8::math::color_rgb(red, green, blue);
+    return v8::math::rgb_color(red, green, blue);
 }
 
-v8::math::color_rgb
+v8::math::rgb_color
 SampleLinearGradient(
-    const v8::base::array_proxy<v8::math::color_rgb>&       colors,
+    const v8::base::array_proxy<v8::math::rgb_color>&       colors,
     const float                                             t)
 {
     const v8_int_t colorCount = static_cast<v8_int_t>(colors.length());
@@ -132,10 +132,10 @@ SampleLinearGradient(
     const float cellRange = 1.0f / colorCount;
     const float alpha = (t - leftIndex * cellRange) / cellRange;
 
-    const v8::math::color_rgb& leftColor = colors[leftIndex];
-    const v8::math::color_rgb& rightColor = colors[(leftIndex + 1) % colorCount];
+    const v8::math::rgb_color& leftColor = colors[leftIndex];
+    const v8::math::rgb_color& rightColor = colors[(leftIndex + 1) % colorCount];
 
-    return v8::math::color_rgb(
+    return v8::math::rgb_color(
         leftColor.Red * (1.0f - alpha) + rightColor.Red * alpha,
         leftColor.Green * (1.0f - alpha) + rightColor.Green * alpha,
         leftColor.Blue * (1.0f - alpha) + rightColor.Blue * alpha);
@@ -145,12 +145,12 @@ SampleLinearGradient(
 
 void 
 v8::math::procedural_palette::gen_uniform_colors(
-    v8::base::array_proxy<color_rgb>& output_colors) {
+    v8::base::array_proxy<rgb_color>& output_colors) {
 
     random rng;
 
     for (v8_size_t idx = 0; idx < output_colors.length(); ++idx) {
-        output_colors[idx] = color_rgb(rng.next_float(),
+        output_colors[idx] = rgb_color(rng.next_float(),
                                        rng.next_float(),
                                        rng.next_float());
     }
@@ -165,7 +165,7 @@ v8::math::procedural_palette::gen_harmony_colors(
     const float                          range_angle2,
     const float                          saturation,
     const float                          luminance,
-    v8::base::array_proxy<color_rgb>&    output_colors)
+    v8::base::array_proxy<rgb_color>&    output_colors)
 {
     const float reference_angle = random_number_in_interval(0.0f, 1.0f) * 360.0f;
     random rng;
@@ -199,7 +199,7 @@ v8::math::procedural_palette::gen_harmony_colors2(
     const float                          saturation_range,
     const float                          luminance,
     const float                          luminance_range,
-    v8::base::array_proxy<color_rgb>&    output_colors)
+    v8::base::array_proxy<rgb_color>&    output_colors)
 {
     random rng;
 
@@ -233,10 +233,10 @@ v8::math::procedural_palette::gen_harmony_colors2(
 
 void
 v8::math::procedural_palette::gen_random_walk_colors(
-    const color_rgb&                        base_color,
+    const rgb_color&                        base_color,
     const float                             min,
     const float                             max,
-    v8::base::array_proxy<color_rgb>&       output_colors) 
+    v8::base::array_proxy<rgb_color>&       output_colors) 
 {
     random rng;
 
@@ -269,12 +269,12 @@ v8::math::procedural_palette::gen_random_walk_colors(
 
 void
 v8::math::procedural_palette::gen_random_mix_colors(
-    const color_rgb&                    color1,
-    const color_rgb&                    color2,
-    const color_rgb&                    color3,
+    const rgb_color&                    color1,
+    const rgb_color&                    color2,
+    const rgb_color&                    color3,
     const float                         grey_control,
     const v8_bool_t                     paint,
-    v8::base::array_proxy<color_rgb>&   output_colors)
+    v8::base::array_proxy<rgb_color>&   output_colors)
 {
     for (v8_size_t idx = 0; idx < output_colors.length(); ++idx) {
         if (paint) {
@@ -287,11 +287,11 @@ v8::math::procedural_palette::gen_random_mix_colors(
 
 void
 v8::math::procedural_palette::gen_random_add_colors(
-    const color_rgb&                    color1,
-    const color_rgb&                    color2,
-    const color_rgb&                    color3,
+    const rgb_color&                    color1,
+    const rgb_color&                    color2,
+    const rgb_color&                    color3,
     const float                         non_gray_bias,
-    v8::base::array_proxy<color_rgb>&   output_colors)
+    v8::base::array_proxy<rgb_color>&   output_colors)
 {
     for (v8_size_t idx = 0; idx < output_colors.length(); ++idx) {
         output_colors[idx] = random_add(color1, color2, color3, non_gray_bias);
@@ -300,9 +300,9 @@ v8::math::procedural_palette::gen_random_add_colors(
 
 void
 v8::math::procedural_palette::gen_colors_offset(
-    const color_rgb&                    base_color,
+    const rgb_color&                    base_color,
     const float                         max_range,
-    v8::base::array_proxy<color_rgb>&   output_colors)
+    v8::base::array_proxy<rgb_color>&   output_colors)
 {
     random rng;
 
@@ -321,7 +321,7 @@ void
 v8::math::procedural_palette::gen_colors_hue(
     const float                         saturation,
     const float                         luminance,
-    v8::base::array_proxy<color_rgb>&   output_colors)
+    v8::base::array_proxy<rgb_color>&   output_colors)
 {
     random rng;
 
@@ -335,7 +335,7 @@ void
 v8::math::procedural_palette::gen_colors_luminance(
     const float                         hue,
     const float                         saturation,
-    v8::base::array_proxy<color_rgb>&   output_colors)
+    v8::base::array_proxy<rgb_color>&   output_colors)
 {
     random rng;
 
@@ -348,7 +348,7 @@ v8::math::procedural_palette::gen_colors_luminance(
 void
 v8::math::procedural_palette::gen_colors_luminance_saturation(
     const float                         hue,
-    v8::base::array_proxy<color_rgb>&   output_colors)
+    v8::base::array_proxy<rgb_color>&   output_colors)
 {
     random rng;
 
@@ -362,7 +362,7 @@ void
 v8::math::procedural_palette::gen_colors_golden_ration_rainbow(
     const float                         saturation,
     const float                         luminance,
-    v8::base::array_proxy<color_rgb>&   output_colors)
+    v8::base::array_proxy<rgb_color>&   output_colors)
 {
     const float goldenRatioConjugate = 0.618033988749895f;
 
@@ -384,8 +384,8 @@ void
 v8::math::procedural_palette::gen_colors_golden_ration_gradient(
     const float                                 saturation,
     const float                                 luminance,
-    const v8::base::array_proxy<color_rgb>&     gradient,
-    v8::base::array_proxy<color_rgb>&           output_colors)
+    const v8::base::array_proxy<rgb_color>&     gradient,
+    v8::base::array_proxy<rgb_color>&           output_colors)
 {
     const float goldenRatioConjugate = 0.618033988749895f;
 
@@ -408,7 +408,7 @@ v8::math::procedural_palette::gen_colors_hue_range(
     const float                                 hue_max,
     const float                                 saturation,
     const float                                 luminance,
-    v8::base::array_proxy<color_rgb>&           output_colors)
+    v8::base::array_proxy<rgb_color>&           output_colors)
 {
     float hueRange = hue_max - hue_min;
 
@@ -436,7 +436,7 @@ v8::math::procedural_palette::gen_colors_jittered_rainbow(
     const float                                 saturation,
     const float                                 luminance,
     const v8_bool_t                             jitter,
-    v8::base::array_proxy<color_rgb>&           output_colors)
+    v8::base::array_proxy<rgb_color>&           output_colors)
 {
     float hueRange = hue_max - hue_min;
 

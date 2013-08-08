@@ -62,7 +62,7 @@ struct render_init_params {
     v8_int_t    stencil_bits;
 
     ///< Backbuffer clear color.
-    math::color_rgb clear_color;
+    math::rgb_color clear_color;
 
     render_init_params() {
         memset(this, 0, sizeof(*this));
@@ -209,7 +209,7 @@ public :
 
 public :    
 
-    void set_clear_color(const v8::math::color_rgb& clear_color) {
+    void set_clear_color(const v8::math::rgb_color& clear_color) {
         m_clear_color = clear_color;
     }
 
@@ -247,7 +247,7 @@ public :
         float font_size, 
         float xpos, 
         float ypos, 
-        const v8::math::color_rgb& color
+        const v8::math::rgb_color& color
         );
 
     void draw_string(
@@ -255,7 +255,7 @@ public :
         float font_size, 
         float xpos, 
         float ypos, 
-        const v8::math::color_rgb& color
+        const v8::math::rgb_color& color
         );
 
 //! @}
@@ -333,7 +333,7 @@ private :
 
     HWND                                                        m_target_window;
 
-    v8::math::color_rgb                                         m_clear_color;
+    v8::math::rgb_color                                         m_clear_color;
 
     float                                                       m_target_width;
 
@@ -410,7 +410,7 @@ inline void renderer::clear_backbuffer() {
     assert(check_if_object_state_valid());
     m_device_context->ClearRenderTargetView(
         v8::base::scoped_pointer_get(m_rendertarget_view), 
-        m_clear_color.components_
+        m_clear_color.Elements
         );
 }
 

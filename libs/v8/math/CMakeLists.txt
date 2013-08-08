@@ -8,7 +8,6 @@ add_library(
     light.cc
     pch_hdr.cc
     random/mtrand.cpp
-    random/random.cc
-    )
+)
 
 install(TARGETS v8_math DESTINATION libs)

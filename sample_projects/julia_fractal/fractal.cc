@@ -203,7 +203,7 @@ v8_bool_t fractal::initialize(fractal_app_context& app_context) {
         return false;
     }
 
-    sampler_descriptor_t sampler_desc;
+    samplerDescriptor_t sampler_desc;
     if (!impl_->sampler.initialize(sampler_desc, app_context.Renderer)) {
         return false;
     }
@@ -214,7 +214,7 @@ v8_bool_t fractal::initialize(fractal_app_context& app_context) {
 v8_bool_t fractal::create_color_table(fractal_app_context& app_context) {
     const int num_colors = 128;
 
-    vector<color_rgb> color_palette(num_colors);
+    vector<rgb_color> color_palette(num_colors);
 
     //auto color_check_fn = [](const color_rgb& rgb) -> bool {
     //    color_hcl hcl;
@@ -225,7 +225,7 @@ v8_bool_t fractal::create_color_table(fractal_app_context& app_context) {
     //        && hcl.Elements[2] >= 0.5f && hcl.Elements[2] <= 1.5f;
     //};
 
-    v8::base::array_proxy<color_rgb> arr_proxy(&color_palette [0],
+    v8::base::array_proxy<rgb_color> arr_proxy(&color_palette [0],
                                                &color_palette[0] + color_palette.size());
 
     //procedural_palette::generate_color_palette(
@@ -386,7 +386,7 @@ void fractal::draw(v8::rendering::renderer* draw_context) {
     draw_context->set_depth_stencil_state(impl_->no_depth_test);
     draw_context->draw_indexed(impl_->indexbuffer.get_element_count());
     draw_context->draw_string(
-        key_settings, 16.0f, 5.0f, 60.0f, v8::math::color_rgb::C_Yellow);
+        key_settings, 16.0f, 5.0f, 60.0f, v8::math::rgb_color::C_Yellow);
 }
 
 v8_bool_t fractal::mouse_wheel_event(

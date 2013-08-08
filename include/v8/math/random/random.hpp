@@ -26,56 +26,73 @@
 
 #pragma once
 
+///
+/// \file random.hpp    Random number generators.
+
 #include <v8/v8.hpp>
-#include <v8/base/scoped_pointer.hpp>
+#include <v8/math/random/mtrand.h>
 
 namespace v8 { namespace math {
 
+///
+/// \brief  Random number generator class.
 class random {
 public :
-    random();
+    random()
+        :   rng_()
+    {}
 
-    random(const v8_uint32_t seed);
-
-    ~random();
+    random(const v8_uint32_t seed)
+        :   rng_(seed)
+    {}
 
 public :
 
     ///
     /// Returns a non negative random number.
-    v8_uint32_t next();
+    v8_uint32_t next() { return rng_(); }
 
     ///
-    /// Returns a random signed integer, in the [min, max) range.
+    /// Returns a random non negative integer, in the [0, max) range.
+    v8_uint32_t next(const v8_uint32_t max) {
+        return static_cast<v8_uint32_t>(next_double() * static_cast<double>(max));
+    }
+
+    ///
+    /// Returns a random number, in the [min, max) range.
     template<typename T>
-    T next(const T min, const T max) {
+    T next(const T min, const T max) 
+    {
         return static_cast<T>(next_double() * (max - min) + min);
     }
 
     ///
-    /// Returns a random non negative integer, in the [0, max) range.
-    v8_uint32_t next(const v8_uint32_t max);
-
-    ///
     /// Returns a random number in the [0.0, 1.0) range.
-    double next_double();
-
-    float next_float() {
-        return static_cast<float>(next_double());
+    double next_double() {
+        return static_cast<double>(next()) * (1. / 4294967296.); // divided by 2^32
     }
 
     ///
     /// Returns a random number in the [0.0, 1.0] range.
-    double next_double_closed();
+    double next_double_closed() {
+        return static_cast<double>(next()) * (1. / 4294967295.); // divided by 2^32 - 1
+    }
 
+    ///
+    /// Returns a random floating point number in the [0, 1) range.
+    float next_float() {
+        return static_cast<float>(next()) * (1.f / 4294967296.f);
+    }
+
+    ///
+    /// Returns a random floating point number in the [0, 1] range.
     float next_float_closed() {
-        return static_cast<float>(next_double_closed());
+        return static_cast<float>(next()) * (1.f / 4294967295.f);
     }
 
 private :
-    struct implementation_details;
-
-    v8::base::scoped_ptr<implementation_details>    impl_;
+    ///< Mersenne twister rng.
+    MTRand_int32    rng_;
 
 private :
     NO_CC_ASSIGN(random);    

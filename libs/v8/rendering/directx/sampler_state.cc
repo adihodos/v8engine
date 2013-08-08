@@ -39,7 +39,7 @@ const D3D11_COMPARISON_FUNC kComparisonFuncMapping[] = {
 
 v8::directx::samplerstate_traits::handle_type*
 v8::directx::samplerstate_traits::create_state(
-    const sampler_descriptor_t& descriptor, renderer* rsys
+    const samplerDescriptor_t& descriptor, renderer* rsys
     ) {
     D3D11_SAMPLER_DESC sampler_desc;
     sampler_desc.Filter = kFilterMappings[descriptor.filter_type];
@@ -50,7 +50,7 @@ v8::directx::samplerstate_traits::create_state(
     sampler_desc.MaxAnisotropy = descriptor.max_aniso_level;
     sampler_desc.ComparisonFunc = kComparisonFuncMapping[descriptor.compare_func];
 
-    memcpy(sampler_desc.BorderColor, descriptor.border_color.components_,
+    memcpy(sampler_desc.BorderColor, descriptor.border_color.Elements,
             sizeof(sampler_desc.BorderColor));
 
     sampler_desc.MinLOD = descriptor.min_lod;

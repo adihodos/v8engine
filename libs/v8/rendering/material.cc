@@ -101,11 +101,11 @@ v8::rendering::material::default() {
     material mtl;
     mtl.type = Type_Color;
 
-    using v8::math::color_rgb;
-    *(color_rgb*) mtl.color.emissive = color_rgb::C_Black;
-    *(color_rgb*) mtl.color.ambient = color_rgb(0.0f, 0.498f, 1.0f, 1.0f);
-    *(color_rgb*) mtl.color.diffuse = color_rgb(0.0f, 0.67f, 0.84f, 1.0f);
-    *(color_rgb*) mtl.color.specular = color_rgb(0.0f, 1.0f, 1.0f, 95.2f);
+    using v8::math::rgb_color;
+    *(rgb_color*) mtl.color.emissive = rgb_color::C_Black;
+    *(rgb_color*) mtl.color.ambient = rgb_color(0.0f, 0.498f, 1.0f, 1.0f);
+    *(rgb_color*) mtl.color.diffuse = rgb_color(0.0f, 0.67f, 0.84f, 1.0f);
+    *(rgb_color*) mtl.color.specular = rgb_color(0.0f, 1.0f, 1.0f, 95.2f);
 
     return mtl;
 }

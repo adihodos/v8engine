@@ -101,14 +101,14 @@ void v8::scene::section_reader_lights::read_section_entry(
 
     //
     // Anything else is common to all light types.
-    v8::math::color_rgb color_vec;
-    se_entry.GetValue("ambient", color_vec.components_);
+    v8::math::rgb_color color_vec;
+    se_entry.GetValue("ambient", color_vec.Elements);
     llinfo.light.set_ambient_color(color_vec);
 
-    se_entry.GetValue("specular", color_vec.components_);
+    se_entry.GetValue("specular", color_vec.Elements);
     llinfo.light.set_specular_color(color_vec);
 
-    se_entry.GetValue("diffuse", color_vec.components_);
+    se_entry.GetValue("diffuse", color_vec.Elements);
     llinfo.light.set_diffuse_color(color_vec);
 
     if (!light_proc_del_.empty()) {
