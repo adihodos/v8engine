@@ -194,6 +194,15 @@ struct color_hcl {
             ,   S(sat)
             ,   L(lum)
     {}
+
+    color_hcl(const rgb_color& rgb) {
+        from_rgb(rgb);
+    }
+
+    color_hcl& from_rgb(const rgb_color& rgb) {
+        rgb_to_hcl(rgb, this);
+        return *this;
+    }
 };
 
 /*!

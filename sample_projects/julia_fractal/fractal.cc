@@ -27,6 +27,7 @@
 #include <v8/rendering/vertex_buffer.hpp>
 #include <v8/rendering/vertex_shader.hpp>
 #include <v8/rendering/vertex_pt.hpp>
+#include <v8/base/string_util.hpp>
 #include <v8/input/key_syms.hpp>
 
 #include "fractal.hpp"
@@ -216,21 +217,55 @@ v8_bool_t fractal::create_color_table(fractal_app_context& app_context) {
 
     vector<rgb_color> color_palette(num_colors);
 
-    //auto color_check_fn = [](const color_rgb& rgb) -> bool {
-    //    color_hcl hcl;
-    //    rgb_to_hcl(rgb, &hcl);
+    auto color_check_fn = [](const rgb_color& rgb) -> bool {
+        color_hcl hcl(rgb);
 
-    //    return hcl.Elements[0] >= 20.0f && hcl.Elements[0] <= 60.0f
-    //        && hcl.Elements[1] >= 0.3f && hcl.Elements[1] <= 1.6f
-    //        && hcl.Elements[2] >= 0.5f && hcl.Elements[2] <= 1.5f;
-    //};
+        return hcl.Elements[0] >= 20.0f && hcl.Elements[0] <= 60.0f
+            && hcl.Elements[1] >= 0.3f && hcl.Elements[1] <= 1.6f
+            && hcl.Elements[2] >= 0.5f && hcl.Elements[2] <= 1.5f;
+    };
 
     v8::base::array_proxy<rgb_color> arr_proxy(&color_palette [0],
                                                &color_palette[0] + color_palette.size());
 
-    //procedural_palette::generate_color_palette(
-    //    color_check_fn, true, 50, false, arr_proxy);
-    procedural_palette::gen_uniform_colors(arr_proxy);
+    //procedural_palette::gen_colors_luminance(0.9f, 1.f, arr_proxy);
+    
+    for (v8_int_t idx = 0; idx < 5; ++idx) {
+        procedural_palette::generate_color_palette(color_check_fn,
+                                                   true,
+                                                   50,
+                                                   true,
+                                                   arr_proxy);
+
+        textureDescriptor_t tex_desc(num_colors, 
+                                     1, 
+                                     textureType_t::Tex1D, 
+                                     1,
+                                     4, 
+                                     ElementType::Float32, 
+                                     BindingFlag::ShaderResource,
+                                     ResourceUsage::Default,
+                                     CPUAccess::None,
+                                     false);
+
+        const void* tex_data = arr_proxy.base();
+        texture lookup_tex(tex_desc, *app_context.Renderer, &tex_data);
+
+        if (!lookup_tex) {
+            return false;
+        }
+
+        char fname[256];
+        v8::base::snprintf(fname, dimension_of(fname), "C:\\temp\\lookuptex%d.dds", idx);
+
+        lookup_tex.write_to_file(fname, *app_context.Renderer);
+    }
+
+    procedural_palette::generate_color_palette(color_check_fn,
+                                                true,
+                                                50,
+                                                true,
+                                                arr_proxy);
 
     textureDescriptor_t tex_desc(num_colors, 
                                  1, 
@@ -250,7 +285,6 @@ v8_bool_t fractal::create_color_table(fractal_app_context& app_context) {
         return false;
     }
 
-    lookup_tex.write_to_file("C:\\temp\\lookuptex.dds", *app_context.Renderer);
     return impl_->color_table.initialize(lookup_tex, *app_context.Renderer);
 }
 
