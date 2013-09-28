@@ -13,6 +13,7 @@
 #include <v8/rendering/constants.hpp>
 #include <v8/rendering/renderer.hpp>
 #include <v8/rendering/render_assets_cache.hpp>
+#include <v8/rendering/render_init_params.hpp>
 #include <v8/rendering/texture_descriptor.hpp>
 #include <v8/rendering/texture.hpp>
 #include <v8/utility/win_util.hpp>

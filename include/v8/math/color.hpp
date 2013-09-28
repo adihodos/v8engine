@@ -26,6 +26,7 @@
 
 #pragma once
 
+#include <cmath>
 #include <v8/v8.hpp>
 
 namespace v8 { namespace math {

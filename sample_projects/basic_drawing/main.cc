@@ -16,6 +16,7 @@
 #include <v8/io/filesystem.hpp>
 #include <v8/rendering/constants.hpp>
 #include <v8/rendering/renderer.hpp>
+#include <v8/rendering/render_init_params.hpp>
 #include <v8/utility/win_util.hpp>
 #include <v8/math/camera.hpp>
 #include <v8/math/color.hpp>
@@ -427,11 +428,7 @@ test_colors() {
         v8::base::array_proxy<rgb_color> arr(&colors[0], &colors[0] + colors.size());
 
         procedural_palette::generate_color_palette( 
-                               color_check_fn, 
-                               true, 
-                               50, 
-                               false, 
-                               arr);
+            color_check_fn, true, 50, false, arr);
 
         for (int idx = 0; idx < colors.size(); ++idx) {
             const rgb_color& c = colors[idx];

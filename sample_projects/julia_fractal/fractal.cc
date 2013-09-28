@@ -61,18 +61,19 @@ const fractal::complex_type C_shape_constants[] = {
 ///
 /// \brief Fractal parameters passed to the pixel shader.
 struct fractal_params_t {
-    v8_int_t                                                    is_mandelbrot;
-    v8_int_t                                                    width;
-    v8_int_t                                                    height;
-    v8_int_t                                                    max_iterations;
-    float                                                       zoom_factor;
-    float                                                       offset_x;
-    float                                                       offset_y;
+    v8_int32_t                                                      is_mandelbrot;
+    v8_int32_t                                                      use_color_table;
+    v8_int32_t                                                      width;
+    v8_int32_t                                                      height;
+    v8_int32_t                                                      max_iterations;
+    float                                                           zoom_factor;
+    float                                                           offset_x;
+    float                                                           offset_y;
     ///< Shape constant, real part.
-    float                                                       C_real;
+    float                                                           C_real;
     ///< Shape constant, imaginary part.
-    float                                                       C_imag;
-    v8::math::vector2<v8_int_t>                                 C_origin;
+    float                                                           C_imag;
+    v8::math::vector2<v8_int_t>                                     C_origin;
 
     ~fractal_params_t() {
     }
@@ -113,6 +114,7 @@ fractal::implementation::implementation(
         ,   shape_idx(0)
         ,   origin(v8::math::vector2<v8_int_t>::zero) 
 {
+    frac_params.use_color_table = false;
     frac_params.width = width;
     frac_params.height = height;
     frac_params.max_iterations = iter;
@@ -200,14 +202,14 @@ v8_bool_t fractal::initialize(fractal_app_context& app_context) {
         return false;
     }
 
-    if (!create_color_table(app_context)) {
-        return false;
-    }
+    //if (!create_color_table(app_context)) {
+    //    return false;
+    //}
 
-    samplerDescriptor_t sampler_desc;
-    if (!impl_->sampler.initialize(sampler_desc, app_context.Renderer)) {
-        return false;
-    }
+    //samplerDescriptor_t sampler_desc;
+    //if (!impl_->sampler.initialize(sampler_desc, app_context.Renderer)) {
+    //    return false;
+    //}
 
     return true;
 }
@@ -411,8 +413,11 @@ void fractal::draw(v8::rendering::renderer* draw_context) {
         );
 
     impl_->frag_shader.set_uniform_block_by_name("globals", impl_->frac_params);
-    impl_->frag_shader.set_resource_view("colorTable", impl_->color_table.handle());
-    impl_->frag_shader.set_sampler("samplerState", impl_->sampler.internal_np_get_handle());
+
+    if (impl_->frac_params.use_color_table) {
+        impl_->frag_shader.set_sampler("samplerState", impl_->sampler.internal_np_get_handle());
+        impl_->frag_shader.set_resource_view("colorTable", impl_->color_table.handle());
+    }
 
     impl_->vert_shader.bind_to_pipeline(draw_context);
     impl_->frag_shader.bind_to_pipeline(draw_context);

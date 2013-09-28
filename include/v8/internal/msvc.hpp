@@ -51,10 +51,10 @@
 #define V8_SI64BIT_BASE_TYPE    __int64
 #define V8_UI64BIT_BASE_TYPE    unsigned __int64
 
-#define NOEXCEPT
+#define NOEXCEPT                throw()
 #define CONSTEXPR
 
-///! C++11 features present in Visual C++ 11.0
+///! C++11 features present in Visual C++ 10.0
 #if (_MSC_VER >= 1600)
 
 #define V8_COMPILER_HAS_CXX11_SUPPORT
@@ -79,7 +79,7 @@
 
 #endif // _MSC_VER >= 1600
 
-///! C++ features present in Visual C++ 12.0
+///! C++ features present in Visual C++ 11.0
 #if (_MSC_VER >= 1700)
 
 ///! Support for strongly typed enumeration types
@@ -92,3 +92,14 @@
 #define V8_COMPILER_HAS_CXX11_RANGED_FOR_LOOP
 
 #endif // _MSC_VER >= 1700
+
+///! C++ features present in Visual C++ 12.0
+#if (_MSC_VER >= 1800)
+
+///!    Support for defaulted and deleted functions
+#define V8_COMPILER_HAS_CXX11_DEFAULTED_DELETED_FUNCTIONS
+
+///!    Support for initializer list syntax
+#define V8_COMPILER_HAS_CXX11_INITIALIZER_LISTS
+
+#endif //   (_MSC_VER >= 1800)
