@@ -51,17 +51,17 @@ private :
     /**
      \summary The ambient color that this light emits.
      */
-    math::color_rgb     ambient_color_;
+    math::rgb_color     ambient_color_;
 
     /**
      \summary The diffuse color that this light emits.
      */
-    math::color_rgb     diffuse_color_;
+    math::rgb_color     diffuse_color_;
 
     /**
      \summary The specular color that this light source emits.
      */
-    math::color_rgb     specular_color_;
+    math::rgb_color     specular_color_;
 
     /**
      \summary The direction vector. Only valid for directional or spot
@@ -136,9 +136,9 @@ public :
    \param direction       The direction of the rays.
    */
   static inline const light make_directional_light(
-    const math::color_rgb& ambient_color, 
-    const math::color_rgb& diffuse_color, 
-    const math::color_rgb& specular_color,
+    const math::rgb_color& ambient_color, 
+    const math::rgb_color& diffuse_color, 
+    const math::rgb_color& specular_color,
     const math::vector3F& direction
     );
 
@@ -152,9 +152,9 @@ public :
    \param max_range       The maximum range for the light source.
    */
   static inline const light make_point_light(
-    const math::color_rgb& ambient_color, 
-    const math::color_rgb& diffuse_color, 
-    const math::color_rgb& specular_color,
+    const math::rgb_color& ambient_color, 
+    const math::rgb_color& diffuse_color, 
+    const math::rgb_color& specular_color,
     const math::vector3F& position,
     const math::vector3F& attenuation,
     const float max_range
@@ -174,9 +174,9 @@ public :
    \note For the spot to be valid, the assumption that (theta < phi) must hold.
    */
   static inline const light make_spot_light(
-    const math::color_rgb& ambient_color, 
-    const math::color_rgb& diffuse_color, 
-    const math::color_rgb& specular_color,
+    const math::rgb_color& ambient_color, 
+    const math::rgb_color& diffuse_color, 
+    const math::rgb_color& specular_color,
     const math::vector3F& position,
     const math::vector3F& direction,
     const math::vector3F& attenuation,
@@ -194,27 +194,27 @@ public :
     type_ = type;
   }
 
-  const math::color_rgb& get_ambient_color() const {
+  const math::rgb_color& get_ambient_color() const {
     return ambient_color_;
   }
 
-  void set_ambient_color(const math::color_rgb& color) {
+  void set_ambient_color(const math::rgb_color& color) {
     ambient_color_ = color;
   }
 
-  const math::color_rgb& get_diffuse_color() const {
+  const math::rgb_color& get_diffuse_color() const {
     return diffuse_color_;
   }
 
-  void set_diffuse_color(const math::color_rgb& diffuse_color) {
+  void set_diffuse_color(const math::rgb_color& diffuse_color) {
     diffuse_color_ = diffuse_color;
   }
 
-  const math::color_rgb& get_specular_color() const {
+  const math::rgb_color& get_specular_color() const {
     return specular_color_;
   }
 
-  void set_specular_color(const math::color_rgb& specular_color) {
+  void set_specular_color(const math::rgb_color& specular_color) {
     specular_color_ = specular_color;
   }
 

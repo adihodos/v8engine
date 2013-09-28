@@ -104,7 +104,7 @@ v8_bool_t FloorPlane::Initialize(const InitContext* init_context) {
         return false;
     }
 
-    sampler_descriptor_t sampler_desc;
+    samplerDescriptor_t sampler_desc;
     sampler_desc.tex_address_u = Texture_Address_Mode::Wrap;
     sampler_desc.tex_address_v = Texture_Address_Mode::Wrap;
 
@@ -150,7 +150,7 @@ void FloorPlane::Draw(const DrawingContext* draw_context) {
     } else {
 
         fragshader_.set_uniform_by_name(
-            "g_vertex_color", v8::math::color_rgb::C_MediumSpringGreen
+            "g_vertex_color", v8::math::rgb_color::C_MediumSpringGreen
             );
     }
 

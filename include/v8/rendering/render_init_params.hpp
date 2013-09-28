@@ -32,6 +32,16 @@
 
 namespace v8 { namespace rendering {
 
+struct apiLevel_t {
+    v8_uint32_t  VerMinor;
+    v8_uint32_t  VerMajor;
+
+    apiLevel_t() 
+        :       VerMinor(static_cast<v8_uint32_t>(-1))
+            ,   VerMajor(static_cast<v8_uint32_t>(-1))
+    {}
+};
+
 ///
 /// \brief Parameters for rrender device initialization.
 struct renderOptions_t {
@@ -39,6 +49,7 @@ struct renderOptions_t {
     renderOptions_t(void*                           output_window,
                     const v8_int_t                  width = 1024,
                     const v8_int_t                  height = 1024,
+                    const apiLevel_t&               api_level = apiLevel_t(),
                     const v8_bool_t                 use_hardware_accel = true,
                     const v8_bool_t                 full_screen = false,
                     const v8_bool_t                 aa_enabed = false,
@@ -47,10 +58,11 @@ struct renderOptions_t {
                     const v8_int_t                  num_render_targets = 1,
                     const v8_int_t                  depth_bits = 24,
                     const v8_int_t                  stencil_bits = 8,
-                    const v8::math::color_rgb&      clear_color = v8::math::color_rgb::C_OrangeRed)
+                    const v8::math::rgb_color&      clear_color = v8::math::rgb_color::C_OrangeRed)
         :       OutputWindow(output_window)
             ,   Width(width)
             ,   Height(height)
+            ,   ApiLevel(api_level)
             ,   UseHardwareAcceleration(use_hardware_accel)
             ,   FullScreen(full_screen)
             ,   EnableAntialiasing(aa_enabed)
@@ -70,6 +82,9 @@ struct renderOptions_t {
 
     ///< Window height.
     v8_int_t    Height;
+
+    ///< Minimum revision of the graphics API to support.
+    apiLevel_t  ApiLevel;
 
     ///< True if using hardware acceleration.
     v8_bool_t   UseHardwareAcceleration;
@@ -96,7 +111,7 @@ struct renderOptions_t {
     v8_int_t    StencilBits;
 
     ///< Backbuffer clear color.
-    math::color_rgb ClearColor;
+    math::rgb_color ClearColor;
 };
 
 } // namespace rendering

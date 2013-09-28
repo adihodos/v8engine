@@ -27,6 +27,7 @@
 #include <v8/rendering/vertex_buffer.hpp>
 #include <v8/rendering/vertex_shader.hpp>
 #include <v8/rendering/vertex_pt.hpp>
+#include <v8/base/string_util.hpp>
 #include <v8/input/key_syms.hpp>
 
 #include "fractal.hpp"
@@ -60,18 +61,19 @@ const fractal::complex_type C_shape_constants[] = {
 ///
 /// \brief Fractal parameters passed to the pixel shader.
 struct fractal_params_t {
-    v8_int_t                                                    is_mandelbrot;
-    v8_int_t                                                    width;
-    v8_int_t                                                    height;
-    v8_int_t                                                    max_iterations;
-    float                                                       zoom_factor;
-    float                                                       offset_x;
-    float                                                       offset_y;
+    v8_int32_t                                                      is_mandelbrot;
+    v8_int32_t                                                      use_color_table;
+    v8_int32_t                                                      width;
+    v8_int32_t                                                      height;
+    v8_int32_t                                                      max_iterations;
+    float                                                           zoom_factor;
+    float                                                           offset_x;
+    float                                                           offset_y;
     ///< Shape constant, real part.
-    float                                                       C_real;
+    float                                                           C_real;
     ///< Shape constant, imaginary part.
-    float                                                       C_imag;
-    v8::math::vector2<v8_int_t>                                 C_origin;
+    float                                                           C_imag;
+    v8::math::vector2<v8_int_t>                                     C_origin;
 
     ~fractal_params_t() {
     }
@@ -112,6 +114,7 @@ fractal::implementation::implementation(
         ,   shape_idx(0)
         ,   origin(v8::math::vector2<v8_int_t>::zero) 
 {
+    frac_params.use_color_table = false;
     frac_params.width = width;
     frac_params.height = height;
     frac_params.max_iterations = iter;
@@ -199,14 +202,14 @@ v8_bool_t fractal::initialize(fractal_app_context& app_context) {
         return false;
     }
 
-    if (!create_color_table(app_context)) {
-        return false;
-    }
+    //if (!create_color_table(app_context)) {
+    //    return false;
+    //}
 
-    sampler_descriptor_t sampler_desc;
-    if (!impl_->sampler.initialize(sampler_desc, app_context.Renderer)) {
-        return false;
-    }
+    //samplerDescriptor_t sampler_desc;
+    //if (!impl_->sampler.initialize(sampler_desc, app_context.Renderer)) {
+    //    return false;
+    //}
 
     return true;
 }
@@ -214,23 +217,57 @@ v8_bool_t fractal::initialize(fractal_app_context& app_context) {
 v8_bool_t fractal::create_color_table(fractal_app_context& app_context) {
     const int num_colors = 128;
 
-    vector<color_rgb> color_palette(num_colors);
+    vector<rgb_color> color_palette(num_colors);
 
-    //auto color_check_fn = [](const color_rgb& rgb) -> bool {
-    //    color_hcl hcl;
-    //    rgb_to_hcl(rgb, &hcl);
+    auto color_check_fn = [](const rgb_color& rgb) -> bool {
+        color_hcl hcl(rgb);
 
-    //    return hcl.Elements[0] >= 20.0f && hcl.Elements[0] <= 60.0f
-    //        && hcl.Elements[1] >= 0.3f && hcl.Elements[1] <= 1.6f
-    //        && hcl.Elements[2] >= 0.5f && hcl.Elements[2] <= 1.5f;
-    //};
+        return hcl.Elements[0] >= 20.0f && hcl.Elements[0] <= 60.0f
+            && hcl.Elements[1] >= 0.3f && hcl.Elements[1] <= 1.6f
+            && hcl.Elements[2] >= 0.5f && hcl.Elements[2] <= 1.5f;
+    };
 
-    v8::base::array_proxy<color_rgb> arr_proxy(&color_palette [0],
+    v8::base::array_proxy<rgb_color> arr_proxy(&color_palette [0],
                                                &color_palette[0] + color_palette.size());
 
-    //procedural_palette::generate_color_palette(
-    //    color_check_fn, true, 50, false, arr_proxy);
-    procedural_palette::gen_uniform_colors(arr_proxy);
+    //procedural_palette::gen_colors_luminance(0.9f, 1.f, arr_proxy);
+    
+    for (v8_int_t idx = 0; idx < 5; ++idx) {
+        procedural_palette::generate_color_palette(color_check_fn,
+                                                   true,
+                                                   50,
+                                                   true,
+                                                   arr_proxy);
+
+        textureDescriptor_t tex_desc(num_colors, 
+                                     1, 
+                                     textureType_t::Tex1D, 
+                                     1,
+                                     4, 
+                                     ElementType::Float32, 
+                                     BindingFlag::ShaderResource,
+                                     ResourceUsage::Default,
+                                     CPUAccess::None,
+                                     false);
+
+        const void* tex_data = arr_proxy.base();
+        texture lookup_tex(tex_desc, *app_context.Renderer, &tex_data);
+
+        if (!lookup_tex) {
+            return false;
+        }
+
+        char fname[256];
+        v8::base::snprintf(fname, dimension_of(fname), "C:\\temp\\lookuptex%d.dds", idx);
+
+        lookup_tex.write_to_file(fname, *app_context.Renderer);
+    }
+
+    procedural_palette::generate_color_palette(color_check_fn,
+                                                true,
+                                                50,
+                                                true,
+                                                arr_proxy);
 
     textureDescriptor_t tex_desc(num_colors, 
                                  1, 
@@ -250,7 +287,6 @@ v8_bool_t fractal::create_color_table(fractal_app_context& app_context) {
         return false;
     }
 
-    lookup_tex.write_to_file("C:\\temp\\lookuptex.dds", *app_context.Renderer);
     return impl_->color_table.initialize(lookup_tex, *app_context.Renderer);
 }
 
@@ -377,8 +413,11 @@ void fractal::draw(v8::rendering::renderer* draw_context) {
         );
 
     impl_->frag_shader.set_uniform_block_by_name("globals", impl_->frac_params);
-    impl_->frag_shader.set_resource_view("colorTable", impl_->color_table.handle());
-    impl_->frag_shader.set_sampler("samplerState", impl_->sampler.internal_np_get_handle());
+
+    if (impl_->frac_params.use_color_table) {
+        impl_->frag_shader.set_sampler("samplerState", impl_->sampler.internal_np_get_handle());
+        impl_->frag_shader.set_resource_view("colorTable", impl_->color_table.handle());
+    }
 
     impl_->vert_shader.bind_to_pipeline(draw_context);
     impl_->frag_shader.bind_to_pipeline(draw_context);
@@ -386,7 +425,7 @@ void fractal::draw(v8::rendering::renderer* draw_context) {
     draw_context->set_depth_stencil_state(impl_->no_depth_test);
     draw_context->draw_indexed(impl_->indexbuffer.get_element_count());
     draw_context->draw_string(
-        key_settings, 16.0f, 5.0f, 60.0f, v8::math::color_rgb::C_Yellow);
+        key_settings, 16.0f, 5.0f, 60.0f, v8::math::rgb_color::C_Yellow);
 }
 
 v8_bool_t fractal::mouse_wheel_event(

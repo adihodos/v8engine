@@ -26,78 +26,65 @@
 
 #pragma once
 
-///
-/// \file random.hpp    Random number generators.
-
 #include <v8/v8.hpp>
-#include <v8/math/random/mtrand.h>
+#include <v8/base/com_exclusive_pointer.hpp>
 
-namespace v8 { namespace math {
+namespace v8 { namespace rendering { 
+    struct renderOptions_t; 
+} 
+}
 
-///
-/// \brief  Random number generator class.
-class random {
+namespace v8 { namespace directx {
+
+class renderer;    
+
+enum class bufferSwapStatus_t {
+    Ok,
+    Occlusion,
+    Error
+};
+
+enum class bufferSwapOptions_t {
+    Swap,
+    TestIfOccluded
+};
+
+class buffer_swapper {
 public :
-    random()
-        :   rng_()
-    {}
+    buffer_swapper() NOEXCEPT {}
 
-    random(const v8_uint32_t seed)
-        :   rng_(seed)
-    {}
-
-public :
-
-    ///
-    /// Returns a non negative random number.
-    v8_uint32_t next() { return rng_(); }
-
-    ///
-    /// Returns a random non negative integer, in the [0, max) range.
-    v8_uint32_t next(const v8_uint32_t max) {
-        return static_cast<v8_uint32_t>(next_double() * static_cast<double>(max));
-    }
-
-    ///
-    /// Returns a random number, in the [min, max) range.
-    template<typename T>
-    T next(const T min, const T max) 
+    buffer_swapper(
+        renderer const*                     render_sys,
+        rendering::renderOptions_t const&   opts
+        ) NOEXCEPT
     {
-        return static_cast<T>(next_double() * (max - min) + min);
+        initialize(render_sys, opts);
     }
 
-    ///
-    /// Returns a random number in the [0.0, 1.0) range.
-    double next_double() {
-        return static_cast<double>(next()) * (1. / 4294967296.); // divided by 2^32
+    v8_bool_t
+    initialize(
+        renderer const*                         render_sys,
+        v8::rendering::renderOptions_t const&   opts
+        ) NOEXCEPT;
+
+    explicit operator bool() const NOEXCEPT {
+        return is_valid();
     }
 
-    ///
-    /// Returns a random number in the [0.0, 1.0] range.
-    double next_double_closed() {
-        return static_cast<double>(next()) * (1. / 4294967295.); // divided by 2^32 - 1
-    }
+    bufferSwapStatus_t 
+    swap_buffers(
+        bufferSwapOptions_t const swap_opt) const NOEXCEPT;
 
-    ///
-    /// Returns a random floating point number in the [0, 1) range.
-    float next_float() {
-        return static_cast<float>(next()) * (1.f / 4294967296.f);
-    }
+private:
 
-    ///
-    /// Returns a random floating point number in the [0, 1] range.
-    float next_float_closed() {
-        return static_cast<float>(next()) * (1.f / 4294967295.f);
-    }
+    bool is_valid() const NOEXCEPT { return swap_chain_ != nullptr; }
 
 private :
-    ///< Mersenne twister rng.
-    MTRand_int32    rng_;
+    v8::base::com_exclusive_pointer<IDXGISwapChain>::type swap_chain_;
 
 private :
-    NO_CC_ASSIGN(random);    
-};    
+    NO_CC_ASSIGN(buffer_swapper);
+};
 
-} // namespace math
+} // namespace directx
 } // namespace v8
-

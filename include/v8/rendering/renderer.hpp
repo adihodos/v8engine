@@ -14,7 +14,6 @@ namespace v8 { namespace rendering {
 
 #if defined(V8FRAMEWORK_GRAPHICS_API_IS_DIRECTX)
 
-    using directx::render_init_params;
     using directx::renderer;
 
 #else

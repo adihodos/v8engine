@@ -226,8 +226,8 @@ typedef ptrdiff_t                                           v8_ptrdiff_t;
 /*!
  * \def NO_CC_ASSIGN(type_name)
  * \brief   A macro to suppress automatic generation by the compiler of
- *          the copy constructor and assignment operator. It must appear
- *          in the private part of the class.
+ *          the copy constructor and assignment operator. If not using ISO C++ 11
+ *          compliant compiler, place it in the private part of the class definition.
  * \code
  *  class U {
  *	private :
@@ -236,9 +236,19 @@ typedef ptrdiff_t                                           v8_ptrdiff_t;
  *  };
  * \endcode
  */
+#if defined(V8_COMPILER_HAS_CXX11_DEFAULTED_DELETED_FUNCTIONS)
+
+#define NO_CC_ASSIGN(type_name)                 \
+    type_name(type_name const&) = delete;       \
+    type_name& operator=(type_name const&) = delete
+
+#else /* V8_COMPILER_HAS_CXX11_DEFAULTED_DELETED_FUNCTIONS */
+
 #define NO_CC_ASSIGN(type_name)                 \
     type_name(const type_name&);                \
     type_name& operator=(const type_name&)
+
+#endif /* !V8_COMPILER_HAS_CXX11_DEFAULTED_DELETED_FUNCTIONS */
 
 //!
 //! \def V8_GEN_OPAQUE_TYPE(type)

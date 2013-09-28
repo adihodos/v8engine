@@ -8,6 +8,7 @@ add_library(
     directx/internal/utilities.cc
     directx/internal/shader_profile_strings.cc
     directx/blend_state.cc
+    directx/buffer_swapper.cc
     directx/depthstencil_state.cc
     directx/gpu_shader.cc
     directx/input_layout.cc

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2011, 2012, Adrian Hodos
+// Copyright (c) 2011, 2012, 2013 Adrian Hodos
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -26,6 +26,10 @@
 
 #pragma once
 
+///
+/// \file   procedural_palette.hpp Classes and functions for procedural
+///         generation of color palettes.
+
 #include <vector>
 
 #include <v8/v8.hpp>
@@ -36,6 +40,8 @@
 
 namespace v8 { namespace math {
 
+///
+/// \brief  Contains functions for generating procedural color palettes.
 class procedural_palette {
 public :
 
@@ -44,7 +50,7 @@ public :
     */
     static void 
     gen_uniform_colors(
-        v8::base::array_proxy<color_rgb>&    output_colors);
+        v8::base::array_proxy<rgb_color>&    output_colors);
 
     /** Generates random colors from standard color harmonies, applying the
         specified constraint parameters.
@@ -59,7 +65,7 @@ public :
         const float                          range_angle2,
         const float                          saturation,
         const float                          luminance,
-        v8::base::array_proxy<color_rgb>&    output_colors);
+        v8::base::array_proxy<rgb_color>&    output_colors);
 
     /** Generates random colors from standard color harmonies, applying the
         specified constraint parameters.
@@ -76,49 +82,49 @@ public :
         const float                          saturation_range,
         const float                          luminance,
         const float                          luminance_range,
-        v8::base::array_proxy<color_rgb>&    output_colors);
+        v8::base::array_proxy<rgb_color>&    output_colors);
 
     /** Fills an array with random colors generated from a starting color. 
         \see http://devmag.org.za/2012/07/29/how-to-choose-colours-procedurally-algorithms/
     */
     static void
     gen_random_walk_colors(
-        const color_rgb&                     base_color,
+        const rgb_color&                     base_color,
         const float                          min,
         const float                          max,
-        v8::base::array_proxy<color_rgb>&    output_colors);
+        v8::base::array_proxy<rgb_color>&    output_colors);
 
     /** Fills an array with random colors, generated from 3 base colors.
         \see http://devmag.org.za/2012/07/29/how-to-choose-colours-procedurally-algorithms/
     */
     static void
     gen_random_mix_colors(
-        const color_rgb&                    color1,
-        const color_rgb&                    color2,
-        const color_rgb&                    color3,
+        const rgb_color&                    color1,
+        const rgb_color&                    color2,
+        const rgb_color&                    color3,
         const float                         grey_control,
         const v8_bool_t                     paint,
-        v8::base::array_proxy<color_rgb>&   output_colors);
+        v8::base::array_proxy<rgb_color>&   output_colors);
 
     /** Fills an array with random colors, generated from 3 base colors.
         \see http://devmag.org.za/2012/07/29/how-to-choose-colours-procedurally-algorithms/
     */
     static void
     gen_random_add_colors(
-        const color_rgb&                    color1,
-        const color_rgb&                    color2,
-        const color_rgb&                    color3,
+        const rgb_color&                    color1,
+        const rgb_color&                    color2,
+        const rgb_color&                    color3,
         const float                         non_gray_bias,
-        v8::base::array_proxy<color_rgb>&   output_colors);
+        v8::base::array_proxy<rgb_color>&   output_colors);
 
     /** Fills an array with random colors, generated from a base color.
         \see http://devmag.org.za/2012/07/29/how-to-choose-colours-procedurally-algorithms/
     */
     static void
     gen_colors_offset(
-        const color_rgb&                    base_color,
+        const rgb_color&                    base_color,
         const float                         max_range,
-        v8::base::array_proxy<color_rgb>&   output_colors);
+        v8::base::array_proxy<rgb_color>&   output_colors);
 
     /** Fills an array with random colors, using a random hue.
         \see http://devmag.org.za/2012/07/29/how-to-choose-colours-procedurally-algorithms/
@@ -128,7 +134,7 @@ public :
     gen_colors_hue(
         const float                         saturation,
         const float                         luminance,
-        v8::base::array_proxy<color_rgb>&   output_colors);
+        v8::base::array_proxy<rgb_color>&   output_colors);
 
     /** Fills an array with random colors, using a random luminance.
         \see http://devmag.org.za/2012/07/29/how-to-choose-colours-procedurally-algorithms/
@@ -138,7 +144,7 @@ public :
     gen_colors_luminance(
         const float                         hue,
         const float                         saturation,
-        v8::base::array_proxy<color_rgb>&   output_colors);
+        v8::base::array_proxy<rgb_color>&   output_colors);
 
     /** Fills an array with random colors, using a random luminance and saturation.
         \see http://devmag.org.za/2012/07/29/how-to-choose-colours-procedurally-algorithms/
@@ -147,7 +153,7 @@ public :
     static void
     gen_colors_luminance_saturation(
         const float                         hue,
-        v8::base::array_proxy<color_rgb>&   output_colors);
+        v8::base::array_proxy<rgb_color>&   output_colors);
 
     /** Fills an array with random colors. Starts with a random hue and accumulates
         with each color the golden ratio conjugate.
@@ -158,7 +164,7 @@ public :
     gen_colors_golden_ration_rainbow(
         const float                         saturation,
         const float                         luminance,
-        v8::base::array_proxy<color_rgb>&   output_colors);
+        v8::base::array_proxy<rgb_color>&   output_colors);
 
     /** Fills an array with random colors. Each color is generated by sampling
         the gradient colors with a random value that is incremented with
@@ -170,8 +176,8 @@ public :
     gen_colors_golden_ration_gradient(
         const float                                 saturation,
         const float                                 luminance,
-        const v8::base::array_proxy<color_rgb>&     gradient,
-        v8::base::array_proxy<color_rgb>&           output_colors);
+        const v8::base::array_proxy<rgb_color>&     gradient,
+        v8::base::array_proxy<rgb_color>&           output_colors);
 
     /** Fills an array with random colors. Each color is generated from a
         random hue in the [hue_min, hue_max] interval.
@@ -184,7 +190,7 @@ public :
         const float                                 hue_max,
         const float                                 saturation,
         const float                                 luminance,
-        v8::base::array_proxy<color_rgb>&           output_colors);
+        v8::base::array_proxy<rgb_color>&           output_colors);
 
 
     /** Fills an array with random colors.
@@ -198,7 +204,7 @@ public :
         const float                                 saturation,
         const float                                 luminance,
         const v8_bool_t                             jitter,
-        v8::base::array_proxy<color_rgb>&           output_colors);
+        v8::base::array_proxy<rgb_color>&           output_colors);
 
     /** Generates a color palette.
         \see    http://tools.medialab.sciences-po.fr/iwanthue/theory.php
@@ -210,7 +216,7 @@ public :
                            const v8_bool_t                      force_mode,
                            const v8_int32_t                     quality,
                            const v8_bool_t                      /*higher_precision*/,
-                           v8::base::array_proxy<color_rgb>&    output_colors);
+                           v8::base::array_proxy<rgb_color>&    output_colors);
 
 private :
 
@@ -239,14 +245,14 @@ procedural_palette::generate_color_palette(
     const v8_bool_t                      force_mode,
     const v8_int32_t                     quality,
     const v8_bool_t                      /*higher_precision*/,
-    v8::base::array_proxy<color_rgb>&    output_colors)
+    v8::base::array_proxy<rgb_color>&    output_colors)
 {
     const v8_size_t num_colors = output_colors.length();
 
     if (force_mode) {
 
         auto check_if_lab_in_rgb_space = [&color_checker__](const color_lab& lab) -> bool {
-            color_rgb rgb;
+            rgb_color rgb;
             lab_to_rgb(lab, &rgb);
 
             return rgb.Red >= 0.0f 

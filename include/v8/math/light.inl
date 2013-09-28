@@ -1,9 +1,9 @@
 inline 
 const v8::math::light 
 v8::math::light::make_directional_light(
-    const v8::math::color_rgb& ambient_color, 
-    const v8::math::color_rgb& diffuse_color, 
-    const v8::math::color_rgb& specular_color,
+    const v8::math::rgb_color& ambient_color, 
+    const v8::math::rgb_color& diffuse_color, 
+    const v8::math::rgb_color& specular_color,
     const v8::math::vector3F& direction
     ) {
     light l;
@@ -18,9 +18,9 @@ v8::math::light::make_directional_light(
 inline 
 const v8::math::light 
 v8::math::light::make_point_light(
-    const math::color_rgb& ambient_color, 
-    const math::color_rgb& diffuse_color, 
-    const math::color_rgb& specular_color,
+    const math::rgb_color& ambient_color, 
+    const math::rgb_color& diffuse_color, 
+    const math::rgb_color& specular_color,
     const math::vector3F& position,
     const math::vector3F& attenuation,
     const float max_range
@@ -39,9 +39,9 @@ v8::math::light::make_point_light(
 inline 
 const v8::math::light 
 v8::math::light::make_spot_light(
-    const math::color_rgb& ambient_color, 
-    const math::color_rgb& diffuse_color, 
-    const math::color_rgb& specular_color,
+    const math::rgb_color& ambient_color, 
+    const math::rgb_color& diffuse_color, 
+    const math::rgb_color& specular_color,
     const math::vector3F& position,
     const math::vector3F& direction,
     const math::vector3F& attenuation,
